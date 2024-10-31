@@ -1,101 +1,161 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/Sidebar';
+import StockList from '@/components/StockList/StockList';
+import StockForm from '@/components/StockForm/StockForm';
+import StockMovements from '@/components/StockMovements';
+import TabContainer from '@/components/TabContainer';
+import { Button } from '@/components/ui/button';
+import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import ServicesCosts from '@/components/Services-Costs';
+import StockVouchers from '@/components/StockVouchers';
+import BundleSetStocks from '@/components/BundleSetStocks';
+import BundleSetStockForm from '@/components/BundleSetStockForm';
+import QuickStock from '@/components/QuickStock';
+import Campaigns from '@/components/Campaigns';
+import CampaignDialog from '@/components/Campaigns/CampaignDialog';
+import Categories from '@/components/Categories';
+import Properties from '@/components/Properties';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [openTabs, setOpenTabs] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "Yeni bir bildirim var" }, // TODO: setNotifications fonksiyonu ileride kullanılacak ve eslint hatasını düzeltecek şekilde güncellenecek. Sonrasında bu tanımlamalar kaldırılacak.
+    { id: 2, message: "Önemli güncelleme mevcut" },
+  ]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  const handleMenuItemClick = (itemName: string) => {
+    if (!openTabs.includes(itemName)) {
+      setOpenTabs([...openTabs, itemName]);
+    }
+    setActiveTab(itemName);
+  };
+
+  const handleCloseTab = (tabName: string) => {
+    const newOpenTabs = openTabs.filter((tab) => tab !== tabName);
+    setOpenTabs(newOpenTabs);
+    if (activeTab === tabName) {
+      setActiveTab(newOpenTabs[newOpenTabs.length - 1] || null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-sidebar-bg">
+      <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <Sidebar isCollapsed={isSidebarCollapsed} onMenuItemClick={handleMenuItemClick} />
+      </div>
+
+      <div className="main-content">
+        <header className="bg-sidebar-bg text-sidebar-text p-2 flex items-center justify-between">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="mr-2 text-sidebar-text hover:bg-sidebar-hover"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm">
+              <span className="text-green-600">₺ 34,2401</span>
+              <span className="text-red-600">€ 37,1289</span>
+            </div>
+            <ThemeToggle />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-sidebar-text hover:bg-sidebar-hover relative">
+                  <Bell className="h-5 w-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Bildirimler</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Son bildirimleriniz burada görüntülenir.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className="flex items-center space-x-2">
+                        <Bell className="h-4 w-4" />
+                        <span className="text-sm">{notification.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <div className="flex items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-sidebar-text hover:bg-sidebar-hover border border-sidebar-text">
+                    <span className="mr-2">MN</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Çıkış Yap</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+        <main className="overflow-auto bg-background p-4">
+          <TabContainer
+            tabs={openTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onCloseTab={handleCloseTab}
+            sidebarCollapsed={isSidebarCollapsed}
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {activeTab === 'Stok Listesi' && <StockList />}
+            {activeTab === 'Stok Formu' && <StockForm />}
+            {activeTab === 'Bundle/Set Stoklar' && <BundleSetStocks />}
+            {activeTab === 'Bundle/Set Stok Formu' && <BundleSetStockForm />}
+            {activeTab === 'Hizmet - Masraflar' && <ServicesCosts />}
+            {activeTab === 'Fişler' && <StockVouchers />}
+            {activeTab === 'Hareketler' && <StockMovements />}
+            {activeTab === 'Hızlı Stok' && <QuickStock />}
+            {activeTab === 'Kampanyalar' && <Campaigns />}
+            {activeTab === 'Kategoriler' && <Categories />}
+            {activeTab === 'Özellikler' && <Properties />}
+          </TabContainer>
+        </main>
+      </div>
+      <CampaignDialog />
     </div>
   );
 }
