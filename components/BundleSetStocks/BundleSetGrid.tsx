@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import DataGrid, {
     Column,
     Export,
@@ -31,26 +31,10 @@ import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
 import { bundleSetStocks, currencies } from './data';
-import type dxDataGrid from 'devextreme/ui/data_grid';
-import { VerticalAlignment } from 'devextreme/common';
-import { HorizontalAlignment } from 'devextreme/ui/data_grid';
-import type { DataGridRef } from 'devextreme-react/data-grid';
-interface ExportingEvent {
-    component: dxDataGrid;
-}
-
-interface GridCell {
-    rowType?: string;
-    value?: string | number | boolean | null;
-}
-
-interface ExcelCell {
-    numFmt?: string;
-}
 
 const searchEditorOptions = { placeholder: 'Search column' };
 
-const onExporting = (e: ExportingEvent) => {
+const onExporting = (e: any) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet('Gruplu Stoklar');
 
@@ -58,9 +42,8 @@ const onExporting = (e: ExportingEvent) => {
         component: e.component,
         worksheet,
         autoFilterEnabled: true,
-        customizeCell: (options: { gridCell?: GridCell; excelCell?: ExcelCell }) => {
-            const { gridCell, excelCell } = options;
-            if (gridCell && excelCell && gridCell.rowType === 'data') {
+        customizeCell: ({ gridCell, excelCell }: any) => {
+            if (gridCell.rowType === 'data') {
                 if (typeof gridCell.value === 'number') {
                     excelCell.numFmt = '#,##0.00';
                 }
@@ -74,14 +57,8 @@ const onExporting = (e: ExportingEvent) => {
 };
 
 const BundleSetGrid: React.FC = () => {
-
-    const dataGridRef = useRef<DataGridRef>(null);
-    const filterBuilderPopupPosition = {
-        of: window,
-        at: { x: 'center' as HorizontalAlignment, y: 'top' as VerticalAlignment },
-        my: { x: 'center' as HorizontalAlignment, y: 'top' as VerticalAlignment },
-        offset: { y: 10 }
-    };
+    const dataGridRef = useRef<DataGrid>(null);
+    const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
 
     return (
         <DataGrid

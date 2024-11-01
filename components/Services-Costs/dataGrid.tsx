@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import DataGrid, {
+    Column,
     Export,
     FilterRow,
     HeaderFilter,
@@ -11,12 +12,15 @@ import DataGrid, {
     Scrolling,
     SearchPanel,
     Selection,
+    Summary,
+    TotalItem,
     Toolbar,
     Item,
     ColumnChooser,
     ColumnFixing,
     StateStoring,
     LoadPanel,
+    Lookup,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
@@ -24,10 +28,9 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { servicesAndCosts } from './data';
-import type { DataGridRef } from 'devextreme-react/data-grid';
-import type { ExportingEvent } from 'devextreme/ui/data_grid';
 
-const onExporting = (e: ExportingEvent) => {
+
+const onExporting = (e: any) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet('Hizmet-Masraf');
 
@@ -52,7 +55,13 @@ const onExporting = (e: ExportingEvent) => {
 };
 
 const ServicesCostsGrid: React.FC = () => {
-    const dataGridRef = useRef<DataGridRef>(null);
+    const dataGridRef = useRef<DataGrid>(null);
+
+    const clearFilters = () => {
+        if (dataGridRef.current) {
+            dataGridRef.current.instance.clearFilter();
+        }
+    };
 
     const renderToolbarButtons = () => (
         <Item location="before" render={() => (

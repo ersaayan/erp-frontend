@@ -26,7 +26,6 @@ import DataGrid, {
     Position,
     FilterBuilderPopup,
     FilterPanel,
-    DataGridRef,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
@@ -66,9 +65,14 @@ const onExporting = (e: any) => {
 };
 
 const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
-    const dataGridRef = useRef<DataGridRef>(null);
+    const dataGridRef = useRef<DataGrid>(null);
     const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
 
+    const clearFilters = () => {
+        if (dataGridRef.current) {
+            dataGridRef.current.instance.clearFilter();
+        }
+    };
 
     const renderToolbarButtons = () => (
         <Item location="after" render={() => (
