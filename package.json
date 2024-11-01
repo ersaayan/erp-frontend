@@ -71,6 +71,7 @@
   "devDependencies": {
     "@types/file-saver-es": "^2.0.3",
     "@types/node": "^20",
+    "@types/prop-types": "^15.7.13",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "9.13.0",
