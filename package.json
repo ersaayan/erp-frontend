@@ -43,7 +43,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^2.30.0",
     "devextreme": "^24.1.6",
     "devextreme-aspnet-data-nojquery": "^4.0.2",
     "devextreme-react": "^24.1.6",

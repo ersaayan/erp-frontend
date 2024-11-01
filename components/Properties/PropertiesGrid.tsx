@@ -26,7 +26,15 @@ import { usePropertyDialog } from './usePropertyDialog';
 const PropertiesGrid: React.FC = () => {
     const { openDialog } = usePropertyDialog();
 
-    const renderEditButton = (data: any) => {
+    interface Property {
+        id: number;
+        name: string;
+        values: string[];
+        createdAt: Date;
+        updatedAt: Date;
+    }
+
+    const renderEditButton = (data: { data: Property }) => {
         return (
             <Button
                 variant="ghost"

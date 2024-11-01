@@ -22,6 +22,7 @@ import DataGrid, {
     SearchPanel,
     Toolbar,
     Item,
+    DataGridRef,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
@@ -60,7 +61,7 @@ const StockList: React.FC = () => {
     const [stockData, setStockData] = useState<StockCard[]>([]);
     const [loading, setLoading] = useState(true);
     const [exchangeRates, setExchangeRates] = useState<ExchangeRate | null>(null);
-    const dataGridRef = useRef<DataGrid>(null);
+    const dataGridRef = useRef<DataGridRef>(null);
     const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
 
     useEffect(() => {
@@ -100,7 +101,7 @@ const StockList: React.FC = () => {
 
     const clearFilters = () => {
         if (dataGridRef.current) {
-            dataGridRef.current.instance.clearFilter();
+            (dataGridRef.current.instance as any).clearFilter("row");
         }
     };
 

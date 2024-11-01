@@ -24,9 +24,10 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { servicesAndCosts } from './data';
+import type { DataGridRef } from 'devextreme-react/data-grid';
+import type { ExportingEvent } from 'devextreme/ui/data_grid';
 
-
-const onExporting = (e: any) => {
+const onExporting = (e: ExportingEvent) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet('Hizmet-Masraf');
 
@@ -51,13 +52,7 @@ const onExporting = (e: any) => {
 };
 
 const ServicesCostsGrid: React.FC = () => {
-    const dataGridRef = useRef<DataGrid>(null);
-
-    const clearFilters = () => {
-        if (dataGridRef.current) {
-            dataGridRef.current.instance.clearFilter();
-        }
-    };
+    const dataGridRef = useRef<DataGridRef>(null);
 
     const renderToolbarButtons = () => (
         <Item location="before" render={() => (
