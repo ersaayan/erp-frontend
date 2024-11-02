@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,18 +17,14 @@ import {
 import { useCurrents } from './hooks/useCurrents';
 import { useBrands } from './hooks/useBrands';
 import { useStockForm } from './hooks/useStockForm';
+import { Manufacturer } from './types'; // Import Manufacturer interface
 
-interface Manufacturer {
-    id: number;
-    currentId: string;
-    stockName: string;
-    code: string;
-    barcode: string;
-    brandId: string;
+interface StockManufacturersProps {
+    manufacturers: Manufacturer[];
+    setManufacturers: React.Dispatch<React.SetStateAction<Manufacturer[]>>;
 }
 
-const StockManufacturers: React.FC = () => {
-    const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, setManufacturers }) => {
     const { currents, loading: currentsLoading, error: currentsError } = useCurrents();
     const { brands, loading: brandsLoading, error: brandsError } = useBrands();
     const { formState, updateManufacturers } = useStockForm();
@@ -37,12 +33,14 @@ const StockManufacturers: React.FC = () => {
         // Initialize manufacturers from formState if available
         if (formState.manufacturers.length > 0) {
             setManufacturers(formState.manufacturers.map((m, index) => ({
-                id: index + 1,
+                id: index + 1, // Ensure 'id' is a number
                 currentId: m.currentId,
                 stockName: m.productName,
                 code: m.productCode,
                 barcode: m.barcode,
-                brandId: m.brandId
+                brandId: m.brandId,
+                brandName: '', // Add brandName
+                brandCode: ''  // Add brandCode
             })));
         }
     }, [formState.manufacturers]);
@@ -50,6 +48,8 @@ const StockManufacturers: React.FC = () => {
     const addManufacturer = () => {
         const newManufacturer: Manufacturer = {
             id: Date.now(),
+            brandName: '',      // Added 'brandName'
+            brandCode: '',      // Added 'brandCode'
             currentId: '',
             stockName: '',
             code: '',

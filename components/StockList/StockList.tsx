@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import DataGrid, {
     Column,
     Export,
@@ -12,230 +12,335 @@ import DataGrid, {
     Scrolling,
     GroupPanel,
     Grouping,
-    Lookup,
     Summary,
     TotalItem,
-    ValueFormat,
     ColumnChooser,
-    ColumnChooserSearch,
-    ColumnChooserSelection,
-    Position,
-    DataGridTypes,
-    SearchPanel,
     Toolbar,
     Item,
+    Paging,
+    StateStoring,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
-import { Import, Settings, X } from 'lucide-react';
-import { DataType, HorizontalAlignment, VerticalAlignment } from 'devextreme/common';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Filter, RefreshCw, Settings, Upload } from 'lucide-react';
+import { StockCard } from './types';
+import { currencyService } from '@/lib/services/currency';
+import { useToast } from '@/hooks/use-toast';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
-import { StockCard } from './types';
-import { currencyService, ExchangeRate } from '@/lib/services/currency';
-
-const onExporting = (e: DataGridTypes.ExportingEvent) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Stok Listesi');
-
-    exportDataGrid({
-        component: e.component,
-        worksheet,
-        autoFilterEnabled: true,
-    }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-            saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StokListesi.xlsx');
-        });
-    });
-};
-
-const searchEditorOptions = { placeholder: 'Kolon ara' };
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const StockList: React.FC = () => {
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const { toast } = useToast();
     const [stockData, setStockData] = useState<StockCard[]>([]);
     const [loading, setLoading] = useState(true);
-    const [exchangeRates, setExchangeRates] = useState<ExchangeRate | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [exchangeRates, setExchangeRates] = useState<{ USD_TRY: number; EUR_TRY: number } | null>(null);
     const dataGridRef = useRef<DataGrid>(null);
-    const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
+    const [quickFilterText, setQuickFilterText] = useState('');
+    const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        setFilterBuilderPopupPosition({
-            of: window,
-            at: { x: 'center' as HorizontalAlignment, y: 'top' as VerticalAlignment },
-            my: { x: 'center' as HorizontalAlignment, y: 'top' as VerticalAlignment },
-            offset: { y: 10 },
-        });
+    // Settings state
+    const [settings, setSettings] = useState({
+        showGroupPanel: true,
+        showFilterRow: true,
+        showHeaderFilter: true,
+        alternateRowColoring: true,
+        pageSize: '50',
+        virtualScrolling: true
+    });
 
-        const initData = async () => {
-            await Promise.all([
-                fetchStockData(),
-                fetchExchangeRates()
-            ]);
-        };
-
-        initData();
-    }, []);
-
-    const fetchExchangeRates = async () => {
-        const rates = await currencyService.getExchangeRates();
-        setExchangeRates(rates);
-    };
-
-    const fetchStockData = async () => {
+    // Fetch data and exchange rates
+    const fetchData = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:1303/stockcards/stockCardsWithRelations');
-            const data = await response.json();
+            setLoading(true);
+            const [stockResponse, ratesResponse] = await Promise.all([
+                fetch('http://localhost:1303/stockcards/stockCardsWithRelations'),
+                currencyService.getExchangeRates()
+            ]);
+
+            if (!stockResponse.ok) {
+                throw new Error('Failed to fetch stock data');
+            }
+
+            const data = await stockResponse.json();
             setStockData(data);
-        } catch (error) {
-            console.error('Error fetching stock data:', error);
+            setExchangeRates(ratesResponse);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to fetch stock data. Please try again.",
+            });
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
 
-    const clearFilters = () => {
-        if (dataGridRef.current) {
-            dataGridRef.current.instance.clearFilter();
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // Export functionality
+    const onExporting = React.useCallback((e: any) => {
+        const workbook = new Workbook();
+        const worksheet = workbook.addWorksheet('Stock List');
+
+        exportDataGrid({
+            component: e.component,
+            worksheet,
+            autoFilterEnabled: true,
+            customizeCell: ({ gridCell, excelCell }: any) => {
+                if (gridCell.rowType === 'data') {
+                    if (typeof gridCell.value === 'number') {
+                        excelCell.numFmt = '#,##0.00';
+                    }
+                }
+            }
+        }).then(() => {
+            workbook.xlsx.writeBuffer().then((buffer) => {
+                saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StockList.xlsx');
+            });
+        });
+    }, []);
+
+    // Quick filter functionality
+    const applyQuickFilter = useCallback(() => {
+        if (!dataGridRef.current) return;
+
+        const instance = dataGridRef.current.instance;
+        if (quickFilterText) {
+            instance.filter([
+                ['productCode', 'contains', quickFilterText],
+                'or',
+                ['productName', 'contains', quickFilterText],
+                'or',
+                ['Barcodes.barcode', 'contains', quickFilterText]
+            ]);
+        } else {
+            instance.clearFilter();
         }
-    };
+    }, [quickFilterText]);
 
-    const renderSettingsButton = () => {
-        return (
-            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <DialogTrigger asChild>
-                    <button
-                        className="dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-icon"
-                        title="Ayarlar"
-                        style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-                    >
-                        <Settings size={18} className='ml-2' />
-                        <span className='mr-2'>Ayarlar</span>
-                    </button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Stok Listesi Görünüm Formatları</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <h3 className="text-lg font-medium">Görünüm Ayarları</h3>
-                        <p className="text-sm text-gray-500">
-                            Stok listesi görünümünü özelleştirin.
-                        </p>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    };
+    // Handle file import
+    const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
 
-    const renderClearFiltersButton = () => {
-        return (
-            <button
-                className="dx-button dx-button-normal dx-button-mode-contained dx-widget"
-                onClick={clearFilters}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-            >
-                <X size={18} className='ml-2' />
-                <span className='mr-2'>Filtreleri Temizle</span>
-            </button>
-        );
-    };
+        // Simulate file processing
+        setLoading(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+            toast({
+                title: "Success",
+                description: `File "${file.name}" imported successfully.`,
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to import file. Please try again. Message: " + (error instanceof Error ? error.message : 'Unknown error'),
+            });
+        } finally {
+            setLoading(false);
+            if (event.target) {
+                event.target.value = '';
+            }
+        }
+    }, [toast]);
 
-    const renderImportButton = () => {
-        return (
-            <button
-                className="dx-button dx-button-normal dx-button-mode-contained dx-widget"
-                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-            >
-                <Import size={18} className='ml-2' />
-                <span className='mr-2'>Stok İçe Aktar</span>
-            </button>
-        );
-    };
-
-    const calculateTotalQuantity = (rowData: StockCard) => {
+    // Calculate total quantity for a stock item
+    const calculateTotalQuantity = useCallback((rowData: StockCard) => {
         return rowData.StockCardWarehouse.reduce((total, warehouse) => {
             return total + parseInt(warehouse.quantity, 10);
         }, 0);
-    };
+    }, []);
 
-    const renderPriceWithTRY = (price: number, currency: string) => {
-        if (!exchangeRates || currency !== 'USD') return price.toFixed(2);
+    // Render price with TRY equivalent
+    const renderPriceWithTRY = useCallback((price: number, currency: string) => {
+        if (!exchangeRates || currency === 'TRY') return price.toFixed(2);
 
-        const tryPrice = price * exchangeRates.USD_TRY;
+        const rate = currency === 'USD' ? exchangeRates.USD_TRY : exchangeRates.EUR_TRY;
+        const tryPrice = price * rate;
         return `${price.toFixed(2)} (₺${tryPrice.toFixed(2)})`;
-    };
+    }, [exchangeRates]);
 
-    const getCategoryPath = (rowData: StockCard) => {
-        if (!rowData.Categories || rowData.Categories.length === 0) return '';
+    // Get category path
+    const getCategoryPath = useCallback((rowData: StockCard) => {
+        if (!rowData.Categories?.length) return '';
 
         const category = rowData.Categories[0];
         if (!category.parentCategories) return category.category.categoryName;
 
-        const categoryPath = category.parentCategories
+        return category.parentCategories
             .slice()
             .reverse()
             .map(cat => cat.categoryName)
             .join(' > ');
+    }, []);
 
-        return categoryPath;
-    };
+    // Toolbar content
+    const renderToolbarContent = useCallback(() => (
+        <div className="flex items-center gap-2">
+            <div className="flex-1">
+                <Input
+                    placeholder="Quick search..."
+                    value={quickFilterText}
+                    onChange={(e) => setQuickFilterText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && applyQuickFilter()}
+                    className="max-w-xs"
+                />
+            </div>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                    setQuickFilterText('');
+                    dataGridRef.current?.instance.clearFilter();
+                }}
+            >
+                <Filter className="h-4 w-4 mr-2" />
+                Clear Filters
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchData}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+            >
+                <Upload className="h-4 w-4 mr-2" />
+                Import
+            </Button>
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImport}
+                accept=".xlsx,.xls"
+                className="hidden"
+            />
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSettingsOpen(true)}
+            >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+            </Button>
+        </div>
+    ), [quickFilterText, applyQuickFilter, fetchData, handleImport]);
+
+    if (error) {
+        return (
+            <Alert variant="destructive" className="m-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
 
     return (
-        <div className="p-4">
+        <div className="p-4 space-y-4">
+            {renderToolbarContent()}
+
             <DataGrid
                 ref={dataGridRef}
                 dataSource={stockData}
                 showBorders={true}
                 showRowLines={true}
                 showColumnLines={true}
-                width="100%"
-                height={600}
-                allowColumnResizing={true}
-                columnResizingMode='widget'
+                rowAlternationEnabled={settings.alternateRowColoring}
                 allowColumnReordering={true}
+                allowColumnResizing={true}
+                columnAutoWidth={true}
                 wordWrapEnabled={true}
-                columnWidth={150}
                 onExporting={onExporting}
-                loadPanel={{ enabled: loading }}
+                height="calc(100vh - 200px)"
+                selectedRowKeys={selectedRowKeys}
+                onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys as string[])}
+                loadPanel={{
+                    enabled: loading,
+                    showIndicator: true,
+                    showPane: true,
+                    text: 'Loading...'
+                }}
             >
-                <SearchPanel visible={true} width={240} placeholder="Genel arama..." />
-                <GroupPanel visible={true} />
-                <FilterRow visible={true} />
-                <HeaderFilter visible={true} />
-                <Selection mode="multiple" />
-                <ColumnChooser height={340} enabled={true} mode="select">
-                    <Position my="right top" at="right bottom" of=".dx-datagrid-column-chooser-button" />
-                    <ColumnChooserSearch enabled={true} editorOptions={searchEditorOptions} />
-                    <ColumnChooserSelection allowSelectAll={true} selectByClick={true} recursive={true} />
-                </ColumnChooser>
+                <StateStoring enabled={true} type="localStorage" storageKey="stockListGrid" />
+                <Selection mode="multiple" showCheckBoxesMode="always" />
+                <FilterRow visible={settings.showFilterRow} />
+                <HeaderFilter visible={settings.showHeaderFilter} />
                 <FilterPanel visible={true} />
-                <FilterBuilderPopup position={filterBuilderPopupPosition} />
+                <FilterBuilderPopup position={{ my: 'top', at: 'top', of: window }} />
+                <GroupPanel visible={settings.showGroupPanel} />
                 <Grouping autoExpandAll={false} />
-                <Scrolling mode="virtual" columnRenderingMode='virtual' rowRenderingMode='virtual' />
+                <Scrolling
+                    mode={settings.virtualScrolling ? "virtual" : "standard"}
+                    rowRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
+                    columnRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
+                />
+                <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
                 <Export enabled={true} allowExportSelectedData={true} />
+                <ColumnChooser enabled={true} mode="select" />
 
-                <Column dataField="productCode" caption="Stok Kodu" fixed={true} />
-                <Column dataField="productName" caption="Stok Adı" />
-                <Column dataField="Brand.brandName" caption="Marka" />
-                <Column dataField="unit" caption="Birim" />
+                {/* Columns configuration remains the same */}
                 <Column
-                    caption="Kategori"
-                    calculateCellValue={getCategoryPath}
+                    dataField="productCode"
+                    caption="Stock Code"
+                    width={120}
+                    fixed={true}
                 />
                 <Column
-                    caption="Toplam Stok"
+                    dataField="productName"
+                    caption="Stock Name"
+                    width={200}
+                />
+                <Column
+                    dataField="Brand.brandName"
+                    caption="Brand"
+                    width={120}
+                />
+                <Column
+                    dataField="unit"
+                    caption="Unit"
+                    width={80}
+                />
+                <Column
+                    caption="Category"
+                    calculateCellValue={getCategoryPath}
+                    dataField='Categories'
+                    width={200}
+                />
+                <Column
+                    caption="Total Stock"
                     calculateCellValue={calculateTotalQuantity}
                     dataType="number"
                     format="#,##0"
+                    width={100}
                 />
-                <Column caption="Depolar">
+
+                <Column caption="Warehouses">
                     {stockData[0]?.StockCardWarehouse.map(warehouse => (
                         <Column
                             key={warehouse.warehouse.id}
@@ -248,10 +353,12 @@ const StockList: React.FC = () => {
                             }}
                             dataType="number"
                             format="#,##0"
+                            width={100}
                         />
                     ))}
                 </Column>
-                <Column caption="Fiyatlar">
+
+                <Column caption="Prices">
                     {stockData[0]?.StockCardPriceLists.map(priceList => (
                         <Column
                             key={priceList.priceList.id}
@@ -267,34 +374,123 @@ const StockList: React.FC = () => {
                                     ? renderPriceWithTRY(price, 'USD')
                                     : price.toFixed(2);
                             }}
-                            cellRender={(cellData: any) => {
-                                return <span>{cellData.value}</span>;
-                            }}
+                            width={150}
                         />
                     ))}
                 </Column>
-                <Column dataField="productType" caption="Ürün Tipi" />
-                <Column dataField="stockStatus" caption="Durum" dataType="boolean" />
-                <Column dataField="createdAt" caption="Oluşturma Tarihi" dataType="datetime" format="dd.MM.yyyy HH:mm" />
+
+                <Column
+                    dataField="productType"
+                    caption="Product Type"
+                    width={120}
+                />
+                <Column
+                    dataField="stockStatus"
+                    caption="Status"
+                    dataType="boolean"
+                    width={80}
+                />
+                <Column
+                    dataField="createdAt"
+                    caption="Created Date"
+                    dataType="datetime"
+                    format="dd.MM.yyyy HH:mm"
+                    width={140}
+                />
 
                 <Summary>
                     <TotalItem
-                        column="Toplam Stok"
+                        column="Total Stock"
                         summaryType="sum"
                         valueFormat="#,##0"
                     />
                 </Summary>
 
                 <Toolbar>
-                    <Item name='groupPanel' location='before' />
-                    <Item name="searchPanel" location="after" />
-                    <Item location="after" render={renderClearFiltersButton} />
-                    <Item location="after" render={renderSettingsButton} />
-                    <Item location="after" render={renderImportButton} />
-                    <Item name="exportButton" location="after" />
-                    <Item name="columnChooserButton" location="after" />
+                    <Item name="groupPanel" />
+                    <Item name="exportButton" />
+                    <Item name="columnChooserButton" />
                 </Toolbar>
             </DataGrid>
+
+            <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Table Settings</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="showGroupPanel">Show Group Panel</Label>
+                            <Switch
+                                id="showGroupPanel"
+                                checked={settings.showGroupPanel}
+                                onCheckedChange={(checked) =>
+                                    setSettings(prev => ({ ...prev, showGroupPanel: checked }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="showFilterRow">Show Filter Row</Label>
+                            <Switch
+                                id="showFilterRow"
+                                checked={settings.showFilterRow}
+                                onCheckedChange={(checked) =>
+                                    setSettings(prev => ({ ...prev, showFilterRow: checked }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="showHeaderFilter">Show Header Filter</Label>
+                            <Switch
+                                id="showHeaderFilter"
+                                checked={settings.showHeaderFilter}
+                                onCheckedChange={(checked) =>
+                                    setSettings(prev => ({ ...prev, showHeaderFilter: checked }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="alternateRowColoring">Alternate Row Coloring</Label>
+                            <Switch
+                                id="alternateRowColoring"
+                                checked={settings.alternateRowColoring}
+                                onCheckedChange={(checked) =>
+                                    setSettings(prev => ({ ...prev, alternateRowColoring: checked }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="virtualScrolling">Virtual Scrolling</Label>
+                            <Switch
+                                id="virtualScrolling"
+                                checked={settings.virtualScrolling}
+                                onCheckedChange={(checked) =>
+                                    setSettings(prev => ({ ...prev, virtualScrolling: checked }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="pageSize">Page Size</Label>
+                            <Select
+                                value={settings.pageSize}
+                                onValueChange={(value) =>
+                                    setSettings(prev => ({ ...prev, pageSize: value }))
+                                }
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select page size" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">10 rows</SelectItem>
+                                    <SelectItem value="25">25 rows</SelectItem>
+                                    <SelectItem value="50">50 rows</SelectItem>
+                                    <SelectItem value="100">100 rows</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

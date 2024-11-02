@@ -41,9 +41,8 @@ const PropertyValueDialog: React.FC<PropertyValueDialogProps> = ({
                                 onClick={() => onValueChange(value)}
                                 className="justify-start"
                             >
-                                <Check className={`mr-2 h-4 w-4 ${
-                                    selectedValues.includes(value) ? "opacity-100" : "opacity-0"
-                                }`} />
+                                <Check className={`mr-2 h-4 w-4 ${selectedValues.includes(value) ? "opacity-100" : "opacity-0"
+                                    }`} />
                                 {value}
                             </Button>
                         ))}

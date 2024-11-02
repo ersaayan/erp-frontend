@@ -1,5 +1,7 @@
-import { useState } from 'react';
+'use client';
 
+import { useState, useCallback } from 'react';
+import { PriceList } from './usePriceLists';
 interface StockFormState {
     stockCard: {
         productCode: string;
@@ -49,6 +51,14 @@ interface StockFormState {
     marketNames: Array<{ marketName: string }>;
 }
 
+interface PriceListItem {
+    priceListId: string;
+    price: number;
+    vatRate: number | null;
+    priceWithVat: number | null;
+    barcode: string;
+}
+
 const initialState: StockFormState = {
     stockCard: {
         productCode: '',
@@ -87,7 +97,10 @@ export const useStockForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const updateStockCard = <K extends keyof StockFormState['stockCard']>(field: K, value: StockFormState['stockCard'][K]) => {
+    const updateStockCard = useCallback(<K extends keyof StockFormState['stockCard']>(
+        field: K,
+        value: StockFormState['stockCard'][K]
+    ) => {
         setFormState(prev => ({
             ...prev,
             stockCard: {
@@ -95,57 +108,51 @@ export const useStockForm = () => {
                 [field]: value
             }
         }));
-    };
+    }, []);
 
-    const updateBarcodes = (barcodes: string[]) => {
+    const updateAttributes = useCallback((attributes: Array<{ attributeId: string; value: string }>) => {
+        setFormState(prev => ({
+            ...prev,
+            attributes: [...attributes]
+        }));
+    }, []);
+
+    const updateBarcodes = useCallback((barcodes: string[]) => {
         setFormState(prev => ({
             ...prev,
             barcodes: barcodes.map(barcode => ({ barcode }))
         }));
-    };
+    }, []);
 
-    const updateMarketNames = (names: string[]) => {
+    const updateMarketNames = useCallback((names: string[]) => {
         setFormState(prev => ({
             ...prev,
             marketNames: names.map(name => ({ marketName: name }))
         }));
-    };
+    }, []);
 
-    const updateCategories = (categoryIds: string[]) => {
+    const updateCategories = useCallback((categoryIds: string[]) => {
         setFormState(prev => ({
             ...prev,
             categoryItem: categoryIds.map(id => ({ categoryId: id }))
         }));
-    };
+    }, []);
 
-    const updateAttributes = (attributes: Array<{ attributeId: string; value: string }>) => {
-        setFormState(prev => ({
-            ...prev,
-            attributes
+    const updatePriceListItems = (priceListItems: PriceListItem[]) => {
+        setFormState(prevState => ({
+            ...prevState,
+            priceListItems
         }));
     };
 
-    const updatePriceListItems = (items: Array<{
-        priceListId: string;
-        price: number;
-        vatRate: number | null;
-        priceWithVat: number | null;
-        barcode: string;
-    }>) => {
-        setFormState(prev => ({
-            ...prev,
-            priceListItems: items
-        }));
-    };
-
-    const updateWarehouse = (warehouseId: string, quantity: number) => {
+    const updateWarehouse = useCallback((warehouseId: string, quantity: number) => {
         setFormState(prev => ({
             ...prev,
             stockCardWarehouse: [{ id: warehouseId, quantity }]
         }));
-    };
+    }, []);
 
-    const updateManufacturers = (manufacturers: Array<{
+    const updateManufacturers = useCallback((manufacturers: Array<{
         productCode: string;
         productName: string;
         barcode: string;
@@ -154,11 +161,11 @@ export const useStockForm = () => {
     }>) => {
         setFormState(prev => ({
             ...prev,
-            manufacturers
+            manufacturers: [...manufacturers]
         }));
-    };
+    }, []);
 
-    const updateEFatura = (productCode: string, productName: string, priceListId: string) => {
+    const updateEFatura = useCallback((productCode: string, productName: string, priceListId: string) => {
         setFormState(prev => ({
             ...prev,
             eFatura: [{
@@ -167,27 +174,25 @@ export const useStockForm = () => {
                 stockCardPriceListId: priceListId
             }]
         }));
+    }, []);
+
+    const calculatePriceWithVat = (price: number, vatRate: number | null) => {
+        const result = price * (1 + (vatRate ?? 0) / 100);
+        return parseFloat(result.toFixed(2));
     };
 
-    const updateStockUnits = (units: Array<{ unitId: string; price: number; vatRate: number | null; priceWithVat: number | null }>) => {
-        setFormState(prev => ({
-            ...prev,
-            stockUnits: units
-        }));
-    };
-
-    const saveStockCard = async () => {
+    const saveStockCard = async (priceLists: PriceList[]) => {
         try {
             setLoading(true);
             setError(null);
 
-            // Transform price list items before sending
-            const transformedPriceListItems = formState.priceListItems.map(item => ({
-                priceListId: item.priceListId,
-                price: item.vatRate !== null ? item.priceWithVat : item.price,
-                vatRate: item.vatRate,
-                barcode: item.barcode
-            }));
+            const transformedPriceListItems = formState.priceListItems.map(item => {
+                const priceList = priceLists.find((pl: PriceList) => pl.id === item.priceListId);
+                return {
+                    priceListId: item.priceListId,
+                    priceWithVat: priceList?.isVatIncluded ? calculatePriceWithVat(item.price, item.vatRate) : item.price
+                };
+            });
 
             const dataToSend = {
                 ...formState,
@@ -207,9 +212,10 @@ export const useStockForm = () => {
             }
 
             return await response.json();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred while saving');
-            return Promise.reject(err);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }
@@ -220,15 +226,14 @@ export const useStockForm = () => {
         loading,
         error,
         updateStockCard,
+        updateAttributes,
         updateBarcodes,
         updateMarketNames,
         updateCategories,
-        updateAttributes,
         updatePriceListItems,
         updateWarehouse,
         updateManufacturers,
         updateEFatura,
-        updateStockUnits,
         saveStockCard,
     };
 };

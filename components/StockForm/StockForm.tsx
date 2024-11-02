@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,9 @@ import { useBrands } from './hooks/useBrands';
 import { useCategories } from './hooks/useCategories';
 import ImagePreview from './ImagePreview';
 import { useStockForm } from './hooks/useStockForm';
+import Image from 'next/image';
+import { SelectedProperty, Manufacturer, StockUnit } from './types';
+import { usePriceLists } from './hooks/usePriceLists';
 
 const currencies = [
   { value: 'TRY', label: '₺ TRY' },
@@ -60,8 +63,6 @@ interface FormErrors {
 
 const StockForm: React.FC = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('genel');
-  const [isActive, setIsActive] = useState(true);
   const [isSerili, setIsSerili] = useState(false);
   const [isYerli, setIsYerli] = useState(false);
   const [barcodes, setBarcodes] = useState<Tag[]>([]);
@@ -75,6 +76,7 @@ const StockForm: React.FC = () => {
   const { warehouses, loading: warehousesLoading, error: warehousesError } = useWarehouses();
   const { brands, loading: brandsLoading, error: brandsError } = useBrands();
   const { refreshCategories, loading: categoriesLoading } = useCategories();
+  const [activeTab, setActiveTab] = useState('genel');
 
   const {
     formState,
@@ -86,10 +88,52 @@ const StockForm: React.FC = () => {
     updateCategories,
     updateWarehouse,
     updateEFatura,
+    updateAttributes,
+    updateManufacturers,
+    updatePriceListItems,
     saveStockCard
   } = useStockForm();
 
-  const validateForm = (): boolean => {
+  const { priceLists } = usePriceLists();
+
+  const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [unitList, setUnitList] = useState<StockUnit[]>([]);
+  // Initialize state from formState
+  useEffect(() => {
+    if (formState.attributes.length > 0) {
+      setSelectedProperties(formState.attributes.map(attr => ({
+        propertyName: attr.attributeId || '', // Use 'attributeId' if available
+        selectedValues: [attr.value]
+      })));
+    }
+    if (formState.manufacturers.length > 0) {
+      setManufacturers(formState.manufacturers.map((m, index) => ({
+        id: index + 1, // Ensure 'id' is a number
+        brandName: '',
+        brandCode: '',
+        currentId: m.currentId,
+        stockName: m.productName,
+        code: m.productCode,
+        barcode: m.barcode,
+        brandId: m.brandId
+      })));
+    }
+    if (formState.priceListItems.length > 0) {
+      setUnitList(formState.priceListItems.map((item, index) => ({
+        id: index + 1, // Ensure 'id' is a number
+        value: '',
+        label: '',
+        priceListId: item.priceListId,
+        vatRate: item.vatRate,
+        price: item.price,
+        priceWithVat: item.priceWithVat,
+        barcode: item.barcode
+      })));
+    }
+  }, [formState.attributes, formState.manufacturers, formState.priceListItems]);
+
+  const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
 
     if (!formState.stockCard.productName.trim()) {
@@ -118,9 +162,9 @@ const StockForm: React.FC = () => {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+  }, [formState, selectedCategories]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -131,13 +175,40 @@ const StockForm: React.FC = () => {
     }
 
     try {
-      updateBarcodes(barcodes.map(tag => tag.text));
+
       updateMarketNames(marketNames.map(tag => tag.text));
       updateCategories(selectedCategories);
+      updateAttributes(selectedProperties.map(prop => ({
+        attributeId: prop.propertyName,
+        value: prop.selectedValues[0]
+      }))
+      );
+      updateManufacturers(manufacturers.map(m => ({
+        productCode: m.code,
+        productName: m.stockName,
+        barcode: m.barcode,
+        brandId: m.brandId,
+        currentId: m.currentId,
+      })));
+      updatePriceListItems(unitList.map(unit => ({
+        priceListId: unit.priceListId,
+        price: unit.price,
+        vatRate: unit.vatRate,
+        priceWithVat: unit.priceWithVat,
+        barcode: unit.barcode,
+      })));
 
-      await saveStockCard();
+      const updatedBarcodes = [
+        ...barcodes.map(tag => tag.text),
+        ...unitList.map(unit => unit.barcode)
+      ];
+
+      updateBarcodes(updatedBarcodes);
+
+      await saveStockCard(priceLists);
 
       toast({
+        variant: "default",
         title: "Başarılı",
         description: "Stok kartı başarıyla kaydedildi",
       });
@@ -148,7 +219,7 @@ const StockForm: React.FC = () => {
         description: error.message,
       });
     }
-  };
+  }, [barcodes, formState.attributes, formState.manufacturers, formState.priceListItems, marketNames, saveStockCard, selectedCategories, toast, updateAttributes, updateBarcodes, updateCategories, updateManufacturers, updateMarketNames, updatePriceListItems, validateForm, priceLists]);
 
   const handleImageUpload = async () => {
     try {
@@ -209,15 +280,12 @@ const StockForm: React.FC = () => {
           <h2 className="text-2xl font-bold">Stok Formu</h2>
           <div className="flex items-center space-x-2">
             <Switch
-              checked={isActive}
-              onCheckedChange={(checked) => {
-                setIsActive(checked);
-                updateStockCard('stockStatus', checked);
-              }}
+              checked={formState.stockCard.stockStatus}
+              onCheckedChange={(checked) => updateStockCard('stockStatus', checked)}
               id="active-status"
             />
             <Label htmlFor="active-status" className="font-medium">
-              {isActive ? 'Aktif' : 'Pasif'}
+              {formState.stockCard.stockStatus ? 'Aktif' : 'Pasif'}
             </Label>
           </div>
         </div>
@@ -335,7 +403,7 @@ const StockForm: React.FC = () => {
                       {brandsLoading ? (
                         <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">Yükleniyor...</span>
+                          <span className="text-muted-foreground">Y��kleniyor...</span>
                         </div>
                       ) : brandsError ? (
                         <Alert variant="destructive">
@@ -494,9 +562,11 @@ const StockForm: React.FC = () => {
                     <div className="grid grid-cols-4 gap-4">
                       {images.map((image, index) => (
                         <div key={index} className="relative group">
-                          <img
+                          <Image
                             src={image}
                             alt={`Product ${index + 1}`}
+                            width={128}
+                            height={128}
                             className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => setPreviewImage(index)}
                           />
@@ -738,15 +808,24 @@ const StockForm: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="ozellikler">
-            <StockProperties />
+            <StockProperties
+              selectedProperties={selectedProperties}
+              setSelectedProperties={setSelectedProperties}
+            />
           </TabsContent>
 
           <TabsContent value="uretciler">
-            <StockManufacturers />
+            <StockManufacturers
+              manufacturers={manufacturers}
+              setManufacturers={setManufacturers}
+            />
           </TabsContent>
 
           <TabsContent value="birimler">
-            <StockUnits />
+            <StockUnits
+              units={unitList}
+              setUnits={setUnitList}
+            />
           </TabsContent>
         </Tabs>
       </div>
