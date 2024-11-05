@@ -26,7 +26,7 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Filter, RefreshCw, Settings, Upload } from 'lucide-react';
+import { AlertCircle, CheckSquare, Filter, RefreshCw, Settings, Upload } from 'lucide-react';
 import { StockCard } from './types';
 import { currencyService } from '@/lib/services/currency';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +57,7 @@ const StockList: React.FC = () => {
     const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
 
     // Settings state
     const [settings, setSettings] = useState({
@@ -67,6 +68,8 @@ const StockList: React.FC = () => {
         pageSize: '50',
         virtualScrolling: true
     });
+
+
 
     // Fetch data and exchange rates
     const fetchData = useCallback(async () => {
@@ -199,12 +202,57 @@ const StockList: React.FC = () => {
             .join(' > ');
     }, []);
 
+    const handleDeleteSelected = useCallback(async () => {
+        if (selectedRowKeys.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Hata',
+                description: 'Lütfen silmek için en az bir stok seçin.',
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const selectedStockCards = selectedRowKeys.map((id) => id);
+            const selectedStockCardIds = selectedStockCards.map((stockCard: any) => stockCard.id);
+            const response = await fetch('http://localhost:1303/stockcards/deleteManyStockCardsWithRelations/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedStockCardIds }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Silme işlemi başarısız oldu.');
+            }
+
+            toast({
+                title: 'Başarılı',
+                description: 'Seçili stoklar başarıyla silindi.',
+            });
+
+            // Silme işleminden sonra verileri yeniden yükleyin
+            await fetchData();
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Hata',
+                description: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu.',
+            });
+        } finally {
+            setLoading(false);
+            setBulkActionsOpen(false);
+        }
+    }, [selectedRowKeys, fetchData, toast]);
+
     // Toolbar content
     const renderToolbarContent = useCallback(() => (
         <div className="flex items-center gap-2">
             <div className="flex-1">
                 <Input
-                    placeholder="Quick search..."
+                    placeholder="Hızlı arama..."
                     value={quickFilterText}
                     onChange={(e) => setQuickFilterText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyQuickFilter()}
@@ -215,16 +263,18 @@ const StockList: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                    setQuickFilterText('');
-                    dataGridRef.current?.instance.clearFilter();
+                    if (dataGridRef.current) {
+                        dataGridRef.current.instance.clearFilter();
+                        setQuickFilterText('');
+                    }
                 }}
             >
                 <Filter className="h-4 w-4 mr-2" />
-                Clear Filters
+                Filtreleri Temizle
             </Button>
             <Button variant="outline" size="sm" onClick={fetchData}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
+                Yenile
             </Button>
             <Button
                 variant="outline"
@@ -232,7 +282,7 @@ const StockList: React.FC = () => {
                 onClick={() => fileInputRef.current?.click()}
             >
                 <Upload className="h-4 w-4 mr-2" />
-                Import
+                İçeri Aktar
             </Button>
             <input
                 type="file"
@@ -247,10 +297,18 @@ const StockList: React.FC = () => {
                 onClick={() => setSettingsOpen(true)}
             >
                 <Settings className="h-4 w-4 mr-2" />
-                Settings
+                Ayarlar
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
+            >
+                <CheckSquare className="h-4 w-4 mr-2" />
+                Toplu İşlemler
             </Button>
         </div>
-    ), [quickFilterText, applyQuickFilter, fetchData, handleImport]);
+    ), [quickFilterText, applyQuickFilter, fetchData, handleImport, bulkActionsOpen]);
 
     if (error) {
         return (
@@ -264,6 +322,14 @@ const StockList: React.FC = () => {
     return (
         <div className="p-4 space-y-4">
             {renderToolbarContent()}
+
+            {bulkActionsOpen && (
+                <div className="bg-gray-100 p-4 rounded-md flex items-center">
+                    <Button variant="destructive" onClick={handleDeleteSelected}>
+                        Seçili Olanları Sil
+                    </Button>
+                </div>
+            )}
 
             <DataGrid
                 ref={dataGridRef}

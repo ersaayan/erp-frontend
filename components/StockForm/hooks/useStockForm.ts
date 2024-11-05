@@ -181,40 +181,63 @@ export const useStockForm = () => {
         return parseFloat(result.toFixed(2));
     };
 
-    const saveStockCard = async (priceLists: PriceList[]) => {
+    const saveStockCard = async (
+        priceLists: PriceList[],
+        updatedFormState: StockFormState // Yeni parametre
+    ) => {
         try {
             setLoading(true);
             setError(null);
 
-            const transformedPriceListItems = formState.priceListItems.map(item => {
-                const priceList = priceLists.find((pl: PriceList) => pl.id === item.priceListId);
-                return {
-                    priceListId: item.priceListId,
-                    priceWithVat: priceList?.isVatIncluded ? calculatePriceWithVat(item.price, item.vatRate) : item.price
-                };
-            });
+            const transformedPriceListItems = updatedFormState.priceListItems.map(
+                (item) => {
+                    const priceList = priceLists.find(
+                        (pl: PriceList) => pl.id === item.priceListId
+                    );
+                    return {
+                        priceListId: item.priceListId,
+                        price: priceList?.isVatIncluded
+                            ? calculatePriceWithVat(item.price, item.vatRate)
+                            : item.price,
+                    };
+                }
+            );
+
+            const transformedAttributes = updatedFormState.attributes.map(
+                ({ attributeId }) => ({
+                    attributeId,
+                })
+            );
 
             const dataToSend = {
-                ...formState,
-                priceListItems: transformedPriceListItems
+                ...updatedFormState,
+                attributes: transformedAttributes,
+                priceListItems: transformedPriceListItems,
             };
 
-            const response = await fetch('http://localhost:1303/stockcards/createStockCardsWithRelations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(dataToSend)
-            });
+            const response = await fetch(
+                "http://localhost:1303/stockcards/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(dataToSend),
+                }
+            );
 
             if (!response.ok) {
-                throw new Error('Failed to save stock card');
+                throw new Error("Failed to save stock card");
             }
 
             return await response.json();
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);
+                throw err;
+            } else {
+                setError("An unknown error occurred");
+                throw new Error("An unknown error occurred");
             }
         } finally {
             setLoading(false);

@@ -1,55 +1,68 @@
-'use client';
+"use client";
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Tag, TagInput } from 'emblor';
+import { Tag, TagInput } from "emblor";
 import { Card, CardContent } from "@/components/ui/card";
-import { RefreshCcw, AlertCircle, Loader2, ImagePlus, Trash2 } from 'lucide-react';
+import {
+  RefreshCcw,
+  AlertCircle,
+  Loader2,
+  ImagePlus,
+  Trash2,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import StockProperties from './StockProperties';
-import StockManufacturers from './StockManufacturers';
-import StockUnits from './StockUnits';
-import CategorySelector from './CategorySelector';
-import { Alert, AlertDescription } from '../ui/alert';
-import { useWarehouses } from './hooks/useWarehouses';
-import { useBrands } from './hooks/useBrands';
-import { useCategories } from './hooks/useCategories';
-import ImagePreview from './ImagePreview';
-import { useStockForm } from './hooks/useStockForm';
-import Image from 'next/image';
-import { SelectedProperty, Manufacturer, StockUnit } from './types';
-import { usePriceLists } from './hooks/usePriceLists';
+import StockProperties from "./StockProperties";
+import StockManufacturers from "./StockManufacturers";
+import StockUnits from "./StockUnits";
+import CategorySelector from "./CategorySelector";
+import { Alert, AlertDescription } from "../ui/alert";
+import { useWarehouses } from "./hooks/useWarehouses";
+import { useBrands } from "./hooks/useBrands";
+import { useCategories } from "./hooks/useCategories";
+import ImagePreview from "./ImagePreview";
+import { useStockForm } from "./hooks/useStockForm";
+import Image from "next/image";
+import { SelectedProperty, Manufacturer, StockUnit } from "./types";
+import { usePriceLists } from "./hooks/usePriceLists";
+import { useAttributes } from "./hooks/useAttributes";
 
 const currencies = [
-  { value: 'TRY', label: '₺ TRY' },
-  { value: 'USD', label: '$ USD' },
-  { value: 'EUR', label: '€ EUR' }
+  { value: "TRY", label: "₺ TRY" },
+  { value: "USD", label: "$ USD" },
+  { value: "EUR", label: "€ EUR" },
 ];
 
 const productTypes = [
-  { value: 'BasitUrun', label: 'Basit Ürün' },
-  { value: 'VaryasyonluUrun', label: 'Varyasyonlu Ürün' },
-  { value: 'DijitalUrun', label: 'Dijital Ürün' },
-  { value: 'Hizmet', label: 'Hizmet' }
+  { value: "BasitUrun", label: "Basit Ürün" },
+  { value: "VaryasyonluUrun", label: "Varyasyonlu Ürün" },
+  { value: "DijitalUrun", label: "Dijital Ürün" },
+  { value: "Hizmet", label: "Hizmet" },
 ];
 
 const units = [
-  { value: 'Adet', label: 'Adet' },
-  { value: 'Kg', label: 'Kg' },
-  { value: 'Lt', label: 'Lt' },
-  { value: 'M', label: 'M' },
-  { value: 'M2', label: 'M2' },
-  { value: 'M3', label: 'M3' },
-  { value: 'Paket', label: 'Paket' },
-  { value: 'Koli', label: 'Koli' },
-  { value: 'Kutu', label: 'Kutu' },
-  { value: 'Ton', label: 'Ton' }
+  { value: "Adet", label: "Adet" },
+  { value: "Kg", label: "Kg" },
+  { value: "Lt", label: "Lt" },
+  { value: "M", label: "M" },
+  { value: "M2", label: "M2" },
+  { value: "M3", label: "M3" },
+  { value: "Paket", label: "Paket" },
+  { value: "Koli", label: "Koli" },
+  { value: "Kutu", label: "Kutu" },
+  { value: "Ton", label: "Ton" },
 ];
 
 interface FormErrors {
@@ -73,10 +86,15 @@ const StockForm: React.FC = () => {
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<number | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const { warehouses, loading: warehousesLoading, error: warehousesError } = useWarehouses();
+  const {
+    warehouses,
+    loading: warehousesLoading,
+    error: warehousesError,
+  } = useWarehouses();
   const { brands, loading: brandsLoading, error: brandsError } = useBrands();
   const { refreshCategories, loading: categoriesLoading } = useCategories();
-  const [activeTab, setActiveTab] = useState('genel');
+  const [activeTab, setActiveTab] = useState("genel");
+  const { attributes } = useAttributes();
 
   const {
     formState,
@@ -91,73 +109,84 @@ const StockForm: React.FC = () => {
     updateAttributes,
     updateManufacturers,
     updatePriceListItems,
-    saveStockCard
+    saveStockCard,
   } = useStockForm();
 
   const { priceLists } = usePriceLists();
 
-  const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
+  const [selectedProperties, setSelectedProperties] = useState<
+    SelectedProperty[]
+  >([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [unitList, setUnitList] = useState<StockUnit[]>([]);
   // Initialize state from formState
   useEffect(() => {
-    if (formState.attributes.length > 0) {
-      setSelectedProperties(formState.attributes.map(attr => ({
-        propertyName: attr.attributeId || '', // Use 'attributeId' if available
-        selectedValues: [attr.value]
-      })));
+    if (formState.attributes.length > 0 && attributes.length > 0) {
+      setSelectedProperties(
+        formState.attributes.map(attr => {
+          const attribute = attributes.find(attribute => attribute.id === attr.attributeId);
+          return {
+            propertyName: attribute ? attribute.attributeName : '',
+            selectedValues: [attr.value],
+          };
+        })
+      );
     }
     if (formState.manufacturers.length > 0) {
-      setManufacturers(formState.manufacturers.map((m, index) => ({
-        id: index + 1, // Ensure 'id' is a number
-        brandName: '',
-        brandCode: '',
-        currentId: m.currentId,
-        stockName: m.productName,
-        code: m.productCode,
-        barcode: m.barcode,
-        brandId: m.brandId
-      })));
+      setManufacturers(
+        formState.manufacturers.map((m, index) => ({
+          id: index + 1, // Ensure 'id' is a number
+          brandName: "",
+          brandCode: "",
+          currentId: m.currentId,
+          stockName: m.productName,
+          code: m.productCode,
+          barcode: m.barcode,
+          brandId: m.brandId,
+        }))
+      );
     }
     if (formState.priceListItems.length > 0) {
-      setUnitList(formState.priceListItems.map((item, index) => ({
-        id: index + 1, // Ensure 'id' is a number
-        value: '',
-        label: '',
-        priceListId: item.priceListId,
-        vatRate: item.vatRate,
-        price: item.price,
-        priceWithVat: item.priceWithVat,
-        barcode: item.barcode
-      })));
+      setUnitList(
+        formState.priceListItems.map((item, index) => ({
+          id: index + 1, // Ensure 'id' is a number
+          value: "",
+          label: "",
+          priceListId: item.priceListId,
+          vatRate: item.vatRate,
+          price: item.price,
+          priceWithVat: item.priceWithVat,
+          barcode: item.barcode,
+        }))
+      );
     }
-  }, [formState.attributes, formState.manufacturers, formState.priceListItems]);
+  }, [formState.attributes, attributes, formState.manufacturers, formState.priceListItems]);
 
   const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
 
     if (!formState.stockCard.productName.trim()) {
-      errors.productName = 'Stok adı zorunludur';
+      errors.productName = "Stok adı zorunludur";
     }
 
     if (!formState.stockCard.productCode.trim()) {
-      errors.productCode = 'Stok kodu zorunludur';
+      errors.productCode = "Stok kodu zorunludur";
     }
 
     if (!formState.stockCard.unit) {
-      errors.unit = 'Birim seçimi zorunludur';
+      errors.unit = "Birim seçimi zorunludur";
     }
 
     if (!formState.stockCard.brandId) {
-      errors.brandId = 'Marka seçimi zorunludur';
+      errors.brandId = "Marka seçimi zorunludur";
     }
 
     if (formState.stockCard.maliyetFiyat < 0) {
-      errors.maliyetFiyat = 'Maliyet fiyatı 0\'dan küçük olamaz';
+      errors.maliyetFiyat = "Maliyet fiyatı 0'dan küçük olamaz";
     }
 
     if (selectedCategories.length === 0) {
-      errors.categories = 'En az bir kategori seçilmelidir';
+      errors.categories = "En az bir kategori seçilmelidir";
     }
 
     setFormErrors(errors);
@@ -165,50 +194,91 @@ const StockForm: React.FC = () => {
   }, [formState, selectedCategories]);
 
   const handleSave = useCallback(async () => {
+    console.log("Doğrulama hatası tespit edildi");
     if (!validateForm()) {
       toast({
         variant: "destructive",
-        title: "Validation Error",
+        title: "Doğrulama Hatası",
         description: "Lütfen zorunlu alanları doldurun",
       });
       return;
     }
 
-    try {
+    if (attributes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Özellikler henüz yüklenmedi",
+      });
+      return;
+    }
 
-      updateMarketNames(marketNames.map(tag => tag.text));
-      updateCategories(selectedCategories);
-      updateAttributes(selectedProperties.map(prop => ({
-        attributeId: prop.propertyName,
-        value: prop.selectedValues[0]
-      }))
-      );
-      updateManufacturers(manufacturers.map(m => ({
+    try {
+      // Yeni değerleri lokal değişkenlerde saklayın
+      const updatedMarketNames = marketNames.map((tag) => ({ marketName: tag.text }));
+      const updatedMarketNamesState = marketNames.map((tag) => tag.text);
+
+      const updatedCategoryItems = selectedCategories.map((categoryId) => ({ categoryId: categoryId }));
+      const updatedCategoryItemsState = selectedCategories;
+
+      const updatedAttributes = selectedProperties.flatMap((prop) => {
+        const attribute = attributes.find(
+          (attr) => attr.attributeName === prop.propertyName
+        );
+        return prop.selectedValues.map((value) => ({
+          attributeId: attribute ? attribute.id : "",
+          value: value,
+        }));
+      });
+
+      const updatedManufacturers = manufacturers.map((m) => ({
         productCode: m.code,
         productName: m.stockName,
         barcode: m.barcode,
         brandId: m.brandId,
         currentId: m.currentId,
-      })));
-      updatePriceListItems(unitList.map(unit => ({
+      }));
+
+      const updatedPriceListItems = unitList.map((unit) => ({
         priceListId: unit.priceListId,
         price: unit.price,
         vatRate: unit.vatRate,
         priceWithVat: unit.priceWithVat,
         barcode: unit.barcode,
-      })));
+      }));
 
       const updatedBarcodes = [
-        ...barcodes.map(tag => tag.text),
-        ...unitList.map(unit => unit.barcode)
+        ...barcodes.map((tag) => ({ barcode: tag.text })),
+        ...unitList.map((unit) => ({ barcode: unit.barcode })),
+      ];
+      const updatedBarcodesState = [
+        ...barcodes.map((tag) => tag.text),
+        ...unitList.map((unit) => unit.barcode),
       ];
 
-      updateBarcodes(updatedBarcodes);
+      // State'i güncelleyin (opsiyonel)
+      updateAttributes(updatedAttributes);
+      updateManufacturers(updatedManufacturers);
+      updatePriceListItems(updatedPriceListItems);
+      updateBarcodes(updatedBarcodesState);
+      updateMarketNames(updatedMarketNamesState);
+      updateCategories(updatedCategoryItemsState);
 
-      await saveStockCard(priceLists);
+      // Güncel form verisini oluşturun
+      const updatedFormState = {
+        ...formState,
+        marketNames: updatedMarketNames,
+        attributes: updatedAttributes,
+        manufacturers: updatedManufacturers,
+        priceListItems: updatedPriceListItems,
+        barcodes: updatedBarcodes,
+        categoryItem: updatedCategoryItems,
+      };
+
+      await saveStockCard(priceLists, updatedFormState);
 
       toast({
-        variant: "default",
+        variant: "success",
         title: "Başarılı",
         description: "Stok kartı başarıyla kaydedildi",
       });
@@ -219,14 +289,31 @@ const StockForm: React.FC = () => {
         description: error.message,
       });
     }
-  }, [barcodes, formState.attributes, formState.manufacturers, formState.priceListItems, marketNames, saveStockCard, selectedCategories, toast, updateAttributes, updateBarcodes, updateCategories, updateManufacturers, updateMarketNames, updatePriceListItems, validateForm, priceLists]);
+  }, [
+    attributes,
+    barcodes,
+    formState,
+    manufacturers,
+    marketNames,
+    priceLists,
+    selectedCategories,
+    selectedProperties,
+    unitList,
+    updateAttributes,
+    updateBarcodes,
+    updateCategories,
+    updateManufacturers,
+    updateMarketNames,
+    updatePriceListItems,
+    validateForm,
+  ]);
 
   const handleImageUpload = async () => {
     try {
       setImageUploadLoading(true);
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
       input.multiple = true;
 
       input.onchange = async (e) => {
@@ -252,7 +339,6 @@ const StockForm: React.FC = () => {
 
       input.click();
     } catch (error) {
-      console.error('Error uploading images:', error);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -263,12 +349,12 @@ const StockForm: React.FC = () => {
     }
   };
 
-  const handleNavigatePreview = (direction: 'prev' | 'next') => {
+  const handleNavigatePreview = (direction: "prev" | "next") => {
     if (previewImage === null) return;
 
-    if (direction === 'prev' && previewImage > 0) {
+    if (direction === "prev" && previewImage > 0) {
       setPreviewImage(previewImage - 1);
-    } else if (direction === 'next' && previewImage < images.length - 1) {
+    } else if (direction === "next" && previewImage < images.length - 1) {
       setPreviewImage(previewImage + 1);
     }
   };
@@ -281,30 +367,21 @@ const StockForm: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Switch
               checked={formState.stockCard.stockStatus}
-              onCheckedChange={(checked) => updateStockCard('stockStatus', checked)}
+              onCheckedChange={(checked) =>
+                updateStockCard("stockStatus", checked)
+              }
               id="active-status"
             />
             <Label htmlFor="active-status" className="font-medium">
-              {formState.stockCard.stockStatus ? 'Aktif' : 'Pasif'}
+              {formState.stockCard.stockStatus ? "Aktif" : "Pasif"}
             </Label>
           </div>
         </div>
-        <Button
-          variant="default"
-          onClick={handleSave}
-          disabled={saveLoading}
-        >
+        <Button variant="default" onClick={handleSave} disabled={saveLoading}>
           {saveLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Kaydet
         </Button>
       </div>
-
-      {saveError && (
-        <Alert variant="destructive" className="mx-4 mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{saveError}</AlertDescription>
-        </Alert>
-      )}
 
       <div className="flex-grow overflow-auto px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -324,7 +401,9 @@ const StockForm: React.FC = () => {
                   {/* Categories Section */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label className="text-lg font-semibold">Kategoriler</Label>
+                      <Label className="text-lg font-semibold">
+                        Kategoriler
+                      </Label>
                       <div className="flex space-x-2">
                         <Button
                           size="sm"
@@ -332,7 +411,10 @@ const StockForm: React.FC = () => {
                           onClick={refreshCategories}
                           disabled={categoriesLoading}
                         >
-                          <RefreshCcw className={`h-4 w-4 mr-2 ${categoriesLoading ? 'animate-spin' : ''}`} />
+                          <RefreshCcw
+                            className={`h-4 w-4 mr-2 ${categoriesLoading ? "animate-spin" : ""
+                              }`}
+                          />
                           Yenile
                         </Button>
                       </div>
@@ -342,7 +424,9 @@ const StockForm: React.FC = () => {
                       onCategoryChange={setSelectedCategories}
                     />
                     {formErrors.categories && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.categories}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.categories}
+                      </p>
                     )}
                   </div>
 
@@ -353,12 +437,18 @@ const StockForm: React.FC = () => {
                       <Input
                         id="productName"
                         value={formState.stockCard.productName}
-                        onChange={(e) => updateStockCard('productName', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("productName", e.target.value)
+                        }
                         placeholder="Stok adını giriniz"
-                        className={formErrors.productName ? 'border-destructive' : ''}
+                        className={
+                          formErrors.productName ? "border-destructive" : ""
+                        }
                       />
                       {formErrors.productName && (
-                        <p className="text-sm text-destructive mt-1">{formErrors.productName}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.productName}
+                        </p>
                       )}
                     </div>
                     <div>
@@ -366,12 +456,18 @@ const StockForm: React.FC = () => {
                       <Input
                         id="productCode"
                         value={formState.stockCard.productCode}
-                        onChange={(e) => updateStockCard('productCode', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("productCode", e.target.value)
+                        }
                         placeholder="Stok kodunu giriniz"
-                        className={formErrors.productCode ? 'border-destructive' : ''}
+                        className={
+                          formErrors.productCode ? "border-destructive" : ""
+                        }
                       />
                       {formErrors.productCode && (
-                        <p className="text-sm text-destructive mt-1">{formErrors.productCode}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.productCode}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -381,9 +477,15 @@ const StockForm: React.FC = () => {
                       <Label htmlFor="unit">Birim</Label>
                       <Select
                         value={formState.stockCard.unit}
-                        onValueChange={(value) => updateStockCard('unit', value)}
+                        onValueChange={(value) =>
+                          updateStockCard("unit", value)
+                        }
                       >
-                        <SelectTrigger className={formErrors.unit ? 'border-destructive' : ''}>
+                        <SelectTrigger
+                          className={
+                            formErrors.unit ? "border-destructive" : ""
+                          }
+                        >
                           <SelectValue placeholder="Birim seçin" />
                         </SelectTrigger>
                         <SelectContent>
@@ -395,7 +497,9 @@ const StockForm: React.FC = () => {
                         </SelectContent>
                       </Select>
                       {formErrors.unit && (
-                        <p className="text-sm text-destructive mt-1">{formErrors.unit}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.unit}
+                        </p>
                       )}
                     </div>
                     <div>
@@ -403,7 +507,9 @@ const StockForm: React.FC = () => {
                       {brandsLoading ? (
                         <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">Y��kleniyor...</span>
+                          <span className="text-muted-foreground">
+                            Y��kleniyor...
+                          </span>
                         </div>
                       ) : brandsError ? (
                         <Alert variant="destructive">
@@ -413,9 +519,15 @@ const StockForm: React.FC = () => {
                       ) : (
                         <Select
                           value={formState.stockCard.brandId}
-                          onValueChange={(value) => updateStockCard('brandId', value)}
+                          onValueChange={(value) =>
+                            updateStockCard("brandId", value)
+                          }
                         >
-                          <SelectTrigger className={formErrors.brandId ? 'border-destructive' : ''}>
+                          <SelectTrigger
+                            className={
+                              formErrors.brandId ? "border-destructive" : ""
+                            }
+                          >
                             <SelectValue placeholder="Marka seçin" />
                           </SelectTrigger>
                           <SelectContent>
@@ -428,14 +540,18 @@ const StockForm: React.FC = () => {
                         </Select>
                       )}
                       {formErrors.brandId && (
-                        <p className="text-sm text-destructive mt-1">{formErrors.brandId}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.brandId}
+                        </p>
                       )}
                     </div>
                     <div>
                       <Label>Stok Tipi</Label>
                       <Select
                         value={formState.stockCard.productType}
-                        onValueChange={(value) => updateStockCard('productType', value)}
+                        onValueChange={(value) =>
+                          updateStockCard("productType", value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Stok tipi seçin" />
@@ -460,25 +576,38 @@ const StockForm: React.FC = () => {
                         min="0"
                         step="0.01"
                         value={formState.stockCard.maliyetFiyat}
-                        onChange={(e) => updateStockCard('maliyetFiyat', parseFloat(e.target.value))}
-                        className={`text-right ${formErrors.maliyetFiyat ? 'border-destructive' : ''}`}
+                        onChange={(e) =>
+                          updateStockCard(
+                            "maliyetFiyat",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        className={`text-right ${formErrors.maliyetFiyat ? "border-destructive" : ""
+                          }`}
                       />
                       {formErrors.maliyetFiyat && (
-                        <p className="text-sm text-destructive mt-1">{formErrors.maliyetFiyat}</p>
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.maliyetFiyat}
+                        </p>
                       )}
                     </div>
                     <div>
                       <Label>Maliyet Dövizi</Label>
                       <Select
                         value={formState.stockCard.maliyetDoviz}
-                        onValueChange={(value) => updateStockCard('maliyetDoviz', value)}
+                        onValueChange={(value) =>
+                          updateStockCard("maliyetDoviz", value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {currencies.map((currency) => (
-                            <SelectItem key={currency.value} value={currency.value}>
+                            <SelectItem
+                              key={currency.value}
+                              value={currency.value}
+                            >
                               {currency.label}
                             </SelectItem>
                           ))}
@@ -490,7 +619,9 @@ const StockForm: React.FC = () => {
                       {warehousesLoading ? (
                         <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">Yükleniyor...</span>
+                          <span className="text-muted-foreground">
+                            Yükleniyor...
+                          </span>
                         </div>
                       ) : warehousesError ? (
                         <Alert variant="destructive">
@@ -500,15 +631,24 @@ const StockForm: React.FC = () => {
                       ) : (
                         <Select
                           value={formState.stockCardWarehouse[0]?.id}
-                          onValueChange={(value) => updateWarehouse(value, formState.stockCardWarehouse[0]?.quantity || 0)}
+                          onValueChange={(value) =>
+                            updateWarehouse(
+                              value,
+                              formState.stockCardWarehouse[0]?.quantity || 0
+                            )
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Depo seçin" />
                           </SelectTrigger>
                           <SelectContent>
                             {warehouses.map((warehouse) => (
-                              <SelectItem key={warehouse.id} value={warehouse.id}>
-                                {warehouse.warehouseName} ({warehouse.warehouseCode})
+                              <SelectItem
+                                key={warehouse.id}
+                                value={warehouse.id}
+                              >
+                                {warehouse.warehouseName} (
+                                {warehouse.warehouseCode})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -523,9 +663,13 @@ const StockForm: React.FC = () => {
                         min="0"
                         value={formState.stockCardWarehouse[0]?.quantity || 0}
                         onChange={(e) => {
-                          const warehouseId = formState.stockCardWarehouse[0]?.id;
+                          const warehouseId =
+                            formState.stockCardWarehouse[0]?.id;
                           if (warehouseId) {
-                            updateWarehouse(warehouseId, parseInt(e.target.value));
+                            updateWarehouse(
+                              warehouseId,
+                              parseInt(e.target.value)
+                            );
                           }
                         }}
                         className="text-right"
@@ -610,7 +754,7 @@ const StockForm: React.FC = () => {
                         checked={isSerili}
                         onCheckedChange={(checked) => {
                           setIsSerili(checked);
-                          updateStockCard('hasExpirationDate', checked);
+                          updateStockCard("hasExpirationDate", checked);
                         }}
                         id="serili"
                       />
@@ -621,7 +765,7 @@ const StockForm: React.FC = () => {
                         checked={isYerli}
                         onCheckedChange={(checked) => {
                           setIsYerli(checked);
-                          updateStockCard('allowNegativeStock', checked);
+                          updateStockCard("allowNegativeStock", checked);
                         }}
                         id="eksiSeviye"
                       />
@@ -635,7 +779,9 @@ const StockForm: React.FC = () => {
                       <Label>Sıra</Label>
                       <Input
                         value={formState.stockCard.siraNo}
-                        onChange={(e) => updateStockCard('siraNo', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("siraNo", e.target.value)
+                        }
                         placeholder="Sıra numarası giriniz"
                       />
                     </div>
@@ -643,7 +789,7 @@ const StockForm: React.FC = () => {
                       <Label>Raf</Label>
                       <Input
                         value={formState.stockCard.raf}
-                        onChange={(e) => updateStockCard('raf', e.target.value)}
+                        onChange={(e) => updateStockCard("raf", e.target.value)}
                         placeholder="Raf numarası giriniz"
                       />
                     </div>
@@ -658,8 +804,8 @@ const StockForm: React.FC = () => {
                         setTags={setBarcodes}
                         placeholder="Barkod girin ve Enter'a basın"
                         styleClasses={{
-                          input: 'w-full',
-                          tag: { body: 'bg-red-500/10 text-red-500' },
+                          input: "w-full",
+                          tag: { body: "bg-red-500/10 text-red-500" },
                         }}
                         activeTagIndex={activeTagIndex}
                         setActiveTagIndex={setActiveTagIndex}
@@ -672,8 +818,8 @@ const StockForm: React.FC = () => {
                         setTags={setMarketNames}
                         placeholder="Piyasa adı girin ve Enter'a basın"
                         styleClasses={{
-                          input: 'w-full',
-                          tag: { body: 'bg-blue-500/10 text-blue-500' },
+                          input: "w-full",
+                          tag: { body: "bg-blue-500/10 text-blue-500" },
                         }}
                         activeTagIndex={activeTagIndex}
                         setActiveTagIndex={setActiveTagIndex}
@@ -687,7 +833,9 @@ const StockForm: React.FC = () => {
                       <Label>GTIP</Label>
                       <Input
                         value={formState.stockCard.gtip}
-                        onChange={(e) => updateStockCard('gtip', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("gtip", e.target.value)
+                        }
                         placeholder="GTIP kodunu giriniz"
                       />
                     </div>
@@ -695,7 +843,9 @@ const StockForm: React.FC = () => {
                       <Label>PLU Kodu</Label>
                       <Input
                         value={formState.stockCard.pluCode}
-                        onChange={(e) => updateStockCard('pluCode', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("pluCode", e.target.value)
+                        }
                         placeholder="PLU kodunu giriniz"
                       />
                     </div>
@@ -705,7 +855,12 @@ const StockForm: React.FC = () => {
                         type="number"
                         min="0"
                         value={formState.stockCard.karMarji}
-                        onChange={(e) => updateStockCard('karMarji', parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          updateStockCard(
+                            "karMarji",
+                            parseFloat(e.target.value)
+                          )
+                        }
                         className="text-right"
                       />
                     </div>
@@ -715,7 +870,9 @@ const StockForm: React.FC = () => {
                         type="number"
                         min="0"
                         value={formState.stockCard.desi}
-                        onChange={(e) => updateStockCard('desi', parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          updateStockCard("desi", parseFloat(e.target.value))
+                        }
                         className="text-right"
                       />
                     </div>
@@ -725,7 +882,12 @@ const StockForm: React.FC = () => {
                         type="number"
                         min="1"
                         value={formState.stockCard.adetBoleni}
-                        onChange={(e) => updateStockCard('adetBoleni', parseInt(e.target.value))}
+                        onChange={(e) =>
+                          updateStockCard(
+                            "adetBoleni",
+                            parseInt(e.target.value)
+                          )
+                        }
                         className="text-right"
                       />
                     </div>
@@ -735,7 +897,12 @@ const StockForm: React.FC = () => {
                         type="number"
                         min="0"
                         value={formState.stockCard.riskQuantities}
-                        onChange={(e) => updateStockCard('riskQuantities', parseInt(e.target.value))}
+                        onChange={(e) =>
+                          updateStockCard(
+                            "riskQuantities",
+                            parseInt(e.target.value)
+                          )
+                        }
                         className="text-right"
                       />
                     </div>
@@ -747,7 +914,9 @@ const StockForm: React.FC = () => {
                       <Label>Kısa Açıklama</Label>
                       <Input
                         value={formState.stockCard.shortDescription}
-                        onChange={(e) => updateStockCard('shortDescription', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("shortDescription", e.target.value)
+                        }
                         placeholder="Kısa açıklama giriniz"
                       />
                     </div>
@@ -755,7 +924,9 @@ const StockForm: React.FC = () => {
                       <Label>Açıklama</Label>
                       <Textarea
                         value={formState.stockCard.description}
-                        onChange={(e) => updateStockCard('description', e.target.value)}
+                        onChange={(e) =>
+                          updateStockCard("description", e.target.value)
+                        }
                         placeholder="Detaylı açıklama giriniz"
                         className="min-h-[120px] resize-none"
                       />
@@ -777,12 +948,14 @@ const StockForm: React.FC = () => {
                         <Label htmlFor="eFaturaProductName">Ürün Adı</Label>
                         <Input
                           id="eFaturaProductName"
-                          value={formState.eFatura[0]?.productName || ''}
-                          onChange={(e) => updateEFatura(
-                            formState.eFatura[0]?.productCode || '',
-                            e.target.value,
-                            formState.eFatura[0]?.stockCardPriceListId || ''
-                          )}
+                          value={formState.eFatura[0]?.productName || ""}
+                          onChange={(e) =>
+                            updateEFatura(
+                              formState.eFatura[0]?.productCode || "",
+                              e.target.value,
+                              formState.eFatura[0]?.stockCardPriceListId || ""
+                            )
+                          }
                           placeholder="Ürün adını giriniz"
                         />
                       </div>
@@ -791,12 +964,14 @@ const StockForm: React.FC = () => {
                         <Label htmlFor="eFaturaProductCode">Ürün Kodu</Label>
                         <Input
                           id="eFaturaProductCode"
-                          value={formState.eFatura[0]?.productCode || ''}
-                          onChange={(e) => updateEFatura(
-                            e.target.value,
-                            formState.eFatura[0]?.productName || '',
-                            formState.eFatura[0]?.stockCardPriceListId || ''
-                          )}
+                          value={formState.eFatura[0]?.productCode || ""}
+                          onChange={(e) =>
+                            updateEFatura(
+                              e.target.value,
+                              formState.eFatura[0]?.productName || "",
+                              formState.eFatura[0]?.stockCardPriceListId || ""
+                            )
+                          }
                           placeholder="Ürün kodunu giriniz"
                         />
                       </div>
@@ -822,10 +997,7 @@ const StockForm: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="birimler">
-            <StockUnits
-              units={unitList}
-              setUnits={setUnitList}
-            />
+            <StockUnits units={unitList} setUnits={setUnitList} />
           </TabsContent>
         </Tabs>
       </div>

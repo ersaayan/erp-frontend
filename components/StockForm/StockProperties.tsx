@@ -40,6 +40,9 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
     const [activePropertyName, setActivePropertyName] = useState<string | null>(null);
     const { formState, updateAttributes } = useStockForm();
 
+    // Extract unique attribute names
+    const uniqueAttributeNames = Array.from(new Set(attributes.map(attr => attr.attributeName)));
+
     // Initialize properties from form state
     useEffect(() => {
         if (formState.attributes.length > 0 && selectedProperties.length === 0) {
@@ -92,15 +95,15 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
 
     const handleAddProperty = useCallback(() => {
         try {
-            const availableProperty = attributes.find(
-                prop => !selectedProperties.some(selected => selected.propertyName === prop.attributeName)
+            const availableProperty = uniqueAttributeNames.find(
+                name => !selectedProperties.some(selected => selected.propertyName === name)
             );
 
             if (availableProperty) {
                 const newProperties = [
                     ...selectedProperties,
                     {
-                        propertyName: availableProperty.attributeName,
+                        propertyName: availableProperty,
                         selectedValues: []
                     }
                 ];
@@ -115,7 +118,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
                 description: "Failed to add property"
             });
         }
-    }, [attributes, selectedProperties, updateFormState, toast, setSelectedProperties]);
+    }, [uniqueAttributeNames, selectedProperties, updateFormState, toast, setSelectedProperties]);
 
     const handleRemoveProperty = useCallback((propertyName: string) => {
         try {
@@ -190,7 +193,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
                         <Button
                             variant="outline"
                             onClick={handleAddProperty}
-                            disabled={selectedProperties.length === attributes.length}
+                            disabled={selectedProperties.length === uniqueAttributeNames.length}
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Add Property
@@ -225,12 +228,15 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
                                                 <SelectValue>{property.propertyName}</SelectValue>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {attributes
-                                                    .filter(p => p.attributeName === property.propertyName ||
-                                                        !selectedProperties.some(sp => sp.propertyName === p.attributeName))
-                                                    .map(p => (
-                                                        <SelectItem key={p.attributeName} value={p.attributeName}>
-                                                            {p.attributeName}
+                                                {uniqueAttributeNames
+                                                    .filter(
+                                                        (name) =>
+                                                            name === property.propertyName ||
+                                                            !selectedProperties.some((sp) => sp.propertyName === name)
+                                                    )
+                                                    .map((name) => (
+                                                        <SelectItem key={name} value={name}>
+                                                            {name}
                                                         </SelectItem>
                                                     ))}
                                             </SelectContent>
