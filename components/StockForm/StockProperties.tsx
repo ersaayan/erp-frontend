@@ -21,61 +21,83 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useAttributes } from './hooks/useAttributes';
-import { SelectedProperty } from './types';
+import { useStockForm } from './hooks/useStockForm';
+import { useToast } from '@/hooks/use-toast';
 import PropertyValueDialog from './PropertyValueDialog';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { useStockForm } from './hooks/useStockForm';
-import { useToast } from '@/hooks/use-toast';
 
-const StockProperties: React.FC = () => {
+interface SelectedProperty {
+    attributeId: string;
+    propertyName: string;
+    selectedValues: string[];
+}
+
+interface StockPropertiesProps {
+    selectedProperties: SelectedProperty[];
+    setSelectedProperties: React.Dispatch<React.SetStateAction<SelectedProperty[]>>;
+}
+
+const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, setSelectedProperties }) => {
     const { toast } = useToast();
     const { attributes, loading, error } = useAttributes();
     const [valueDialogOpen, setValueDialogOpen] = useState(false);
-    const [activePropertyName, setActivePropertyName] = useState<string | null>(null);
-    const { formState, updateAttributes, selectedProperties, setSelectedProperties } = useStockForm();
+    const [activeAttributeId, setActiveAttributeId] = useState<string | null>(null);
+    const { formState, updateAttributes } = useStockForm();
 
-    // Extract unique attribute names
-    const uniqueAttributeNames = Array.from(new Set(attributes.map(attr => attr.attributeName)));
+    // Benzersiz attributeId'leri çıkarın
+    const uniqueAttributeIds = Array.from(new Set(attributes.map(attr => attr.id)));
 
-    // Initialize properties from form state
+    // Form durumundan özellikleri başlatın
     useEffect(() => {
-        if (formState.attributes.length > 0 && selectedProperties.length === 0) {
+        if (
+            !loading &&
+            attributes.length > 0 &&
+            formState.attributes.length > 0 &&
+            selectedProperties.length === 0
+        ) {
             setSelectedProperties(
-                formState.attributes.map(attr => ({
-                    propertyName: attr.attributeId || '',
+                formState.attributes.map((attr) => ({
+                    attributeId: attr.attributeId,
+                    propertyName:
+                        attributes.find((attribute) => attribute.id === attr.attributeId)
+                            ?.attributeName || '',
                     selectedValues: [attr.value],
                 }))
             );
         }
-    }, [formState.attributes]);
+    }, [loading, attributes, formState.attributes, selectedProperties.length]);
 
-    // Update form state when properties change
+    // Özellikler değiştiğinde form durumunu güncelleyin
     const updateFormState = useCallback((properties: SelectedProperty[]) => {
         try {
-            const newAttributes = properties.flatMap(property => {
-                const propertyAttributes = attributes.filter(attr => attr.attributeName === property.propertyName);
-                return property.selectedValues.map(value => {
-                    const attributeValue = propertyAttributes.find(attr => attr.value === value);
-                    return attributeValue ? {
-                        attributeId: attributeValue.id,
-                        value: value
-                    } : null;
-                }).filter((attr): attr is { attributeId: string; value: string } => attr !== null);
+            const newAttributes: Array<{ attributeId: string; value: string }> = [];
+
+            properties.forEach(property => {
+                const propertyAttributes = attributes.filter(attr => attr.id === property.attributeId);
+                property.selectedValues.forEach(value => {
+                    const attributeValue = propertyAttributes.find(v => v.value === value);
+                    if (attributeValue) {
+                        newAttributes.push({
+                            attributeId: attributeValue.id,
+                            value: value
+                        });
+                    }
+                });
             });
 
             updateAttributes(newAttributes);
         } catch (err) {
-            console.error('Error updating form state:', err);
+            console.error('Form durumu güncellenirken hata oluştu:', err);
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to update properties"
+                title: "Hata",
+                description: "Özellikler güncellenemedi"
             });
         }
     }, [attributes, updateAttributes, toast]);
 
-    // Save state before unmounting
+    // Bileşen unmount olmadan önce durumu kaydedin
     useEffect(() => {
         return () => {
             if (selectedProperties.length > 0) {
@@ -86,15 +108,16 @@ const StockProperties: React.FC = () => {
 
     const handleAddProperty = useCallback(() => {
         try {
-            const availableProperty = uniqueAttributeNames.find(
-                name => !selectedProperties.some(selected => selected.propertyName === name)
+            const availableAttribute = attributes.find(
+                attr => !selectedProperties.some(selected => selected.attributeId === attr.id)
             );
 
-            if (availableProperty) {
+            if (availableAttribute) {
                 const newProperties = [
                     ...selectedProperties,
                     {
-                        propertyName: availableProperty,
+                        attributeId: availableAttribute.id,
+                        propertyName: availableAttribute.attributeName || '',
                         selectedValues: []
                     }
                 ];
@@ -102,34 +125,34 @@ const StockProperties: React.FC = () => {
                 updateFormState(newProperties);
             }
         } catch (err) {
-            console.error('Error adding property:', err);
+            console.error('Özellik eklenirken hata oluştu:', err);
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to add property"
+                title: "Hata",
+                description: "Özellik eklenemedi"
             });
         }
-    }, [uniqueAttributeNames, selectedProperties, updateFormState, toast, setSelectedProperties]);
+    }, [attributes, selectedProperties, updateFormState, toast, setSelectedProperties]);
 
-    const handleRemoveProperty = useCallback((propertyName: string) => {
+    const handleRemoveProperty = useCallback((attributeId: string) => {
         try {
-            const newProperties = selectedProperties.filter(prop => prop.propertyName !== propertyName);
+            const newProperties = selectedProperties.filter(prop => prop.attributeId !== attributeId);
             setSelectedProperties(newProperties);
             updateFormState(newProperties);
         } catch (err) {
-            console.error('Error removing property:', err);
+            console.error('Özellik silinirken hata oluştu:', err);
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to remove property"
+                title: "Hata",
+                description: "Özellik silinemedi"
             });
         }
     }, [selectedProperties, updateFormState, toast, setSelectedProperties]);
 
-    const handleValueChange = useCallback((propertyName: string, value: string) => {
+    const handleValueChange = useCallback((attributeId: string, value: string) => {
         try {
             const newProperties = selectedProperties.map(prop => {
-                if (prop.propertyName === propertyName) {
+                if (prop.attributeId === attributeId) {
                     const newValues = prop.selectedValues.includes(value)
                         ? prop.selectedValues.filter(v => v !== value)
                         : [...prop.selectedValues, value];
@@ -140,11 +163,11 @@ const StockProperties: React.FC = () => {
             setSelectedProperties(newProperties);
             updateFormState(newProperties);
         } catch (err) {
-            console.error('Error updating value:', err);
+            console.error('Değer güncellenirken hata oluştu:', err);
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to update value"
+                title: "Hata",
+                description: "Değer güncellenemedi"
             });
         }
     }, [selectedProperties, updateFormState, toast, setSelectedProperties]);
@@ -155,7 +178,7 @@ const StockProperties: React.FC = () => {
                 <CardContent className="pt-6">
                     <div className="flex items-center justify-center h-32">
                         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span>Loading properties...</span>
+                        <span>Özellikler yükleniyor...</span>
                     </div>
                 </CardContent>
             </Card>
@@ -180,56 +203,42 @@ const StockProperties: React.FC = () => {
             <CardContent className="pt-6">
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Properties</h3>
+                        <h3 className="text-lg font-semibold">Özellikler</h3>
                         <Button
                             variant="outline"
                             onClick={handleAddProperty}
-                            disabled={selectedProperties.length === uniqueAttributeNames.length}
+                            disabled={selectedProperties.length === uniqueAttributeIds.length}
                         >
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Property
+                            Özellik Ekle
                         </Button>
                     </div>
 
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Property</TableHead>
-                                <TableHead>Values</TableHead>
-                                <TableHead className="w-[100px]">Actions</TableHead>
+                                <TableHead>Özellik</TableHead>
+                                <TableHead>Değerler</TableHead>
+                                <TableHead className="w-[100px]">İşlemler</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {selectedProperties.map((property) => (
-                                <TableRow key={property.propertyName}>
+                                <TableRow key={property.attributeId}>
                                     <TableCell className="font-medium">
                                         <Select
-                                            value={property.propertyName}
-                                            onValueChange={(value) => {
-                                                const newProperties = selectedProperties.map(p =>
-                                                    p.propertyName === property.propertyName
-                                                        ? { propertyName: value, selectedValues: [] }
-                                                        : p
-                                                );
-                                                setSelectedProperties(newProperties);
-                                                updateFormState(newProperties);
-                                            }}
+                                            value={property.attributeId}
+                                            onValueChange={(value) => { property.propertyName }}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue>{property.propertyName}</SelectValue>
+                                                <SelectValue placeholder="Özellik seçin" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {uniqueAttributeNames
-                                                    .filter(
-                                                        (name) =>
-                                                            name === property.propertyName ||
-                                                            !selectedProperties.some((sp) => sp.propertyName === name)
-                                                    )
-                                                    .map((name) => (
-                                                        <SelectItem key={name} value={name}>
-                                                            {name}
-                                                        </SelectItem>
-                                                    ))}
+                                                {attributes.map(attr => (
+                                                    <SelectItem key={attr.id} value={attr.id}>
+                                                        {attr.attributeName}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </TableCell>
@@ -238,20 +247,20 @@ const StockProperties: React.FC = () => {
                                             variant="outline"
                                             className="w-full justify-start"
                                             onClick={() => {
-                                                setActivePropertyName(property.propertyName);
+                                                setActiveAttributeId(property.attributeId);
                                                 setValueDialogOpen(true);
                                             }}
                                         >
                                             {property.selectedValues.length > 0 ? (
                                                 <div className="flex flex-wrap gap-1">
-                                                    {property.selectedValues.map(value => (
-                                                        <Badge key={value} variant="secondary">
+                                                    {property.selectedValues.map((value) => (
+                                                        <Badge key={`${property.attributeId}-${value}`}>
                                                             {value}
                                                         </Badge>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                "Select values..."
+                                                'Değerleri Seçin'
                                             )}
                                         </Button>
                                     </TableCell>
@@ -259,7 +268,7 @@ const StockProperties: React.FC = () => {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => handleRemoveProperty(property.propertyName)}
+                                            onClick={() => handleRemoveProperty(property.attributeId)}
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
@@ -269,24 +278,28 @@ const StockProperties: React.FC = () => {
                             {selectedProperties.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                        No properties added yet
+                                        Henüz özellik eklenmedi
                                     </TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
 
-                    {activePropertyName && (
+                    {activeAttributeId && (
                         <PropertyValueDialog
                             open={valueDialogOpen}
                             onClose={() => {
                                 setValueDialogOpen(false);
-                                setActivePropertyName(null);
+                                setActiveAttributeId(null);
                             }}
-                            title={activePropertyName}
-                            values={attributes.filter(attr => attr.attributeName === activePropertyName)}
-                            selectedValues={selectedProperties.find(p => p.propertyName === activePropertyName)?.selectedValues || []}
-                            onValueChange={(value) => handleValueChange(activePropertyName, value)}
+                            title={
+                                attributes.find(attr => attr.id === activeAttributeId)?.attributeName || ''
+                            }
+                            values={attributes.filter(attr => attr.id === activeAttributeId)}
+                            selectedValues={
+                                selectedProperties.find(p => p.attributeId === activeAttributeId)?.selectedValues || []
+                            }
+                            onValueChange={(value) => handleValueChange(activeAttributeId, value)}
                         />
                     )}
                 </div>

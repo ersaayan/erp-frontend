@@ -1,0 +1,530 @@
+[
+    {
+        "id": "cm34fcrdd003eup7kmn7hugqi",
+        "productCode": "SC1",
+        "productName": "Product 1",
+        "unit": "Adet",
+        "shortDescription": "Short Description 1",
+        "description": "Description 1",
+        "companyCode": "C1",
+        "branchCode": "B1",
+        "brandId": "cm34fcrda003cup7kjc59ulvu",
+        "productType": "BasitUrun",
+        "gtip": "GTIP 1",
+        "pluCode": "PLU 1",
+        "desi": "1",
+        "adetBoleni": "1",
+        "siraNo": "Sira No 1",
+        "raf": "Raf 1",
+        "karMarji": "10",
+        "riskQuantities": "10",
+        "maliyet": "10",
+        "maliyetDoviz": "USD",
+        "stockStatus": true,
+        "hasExpirationDate": false,
+        "allowNegativeStock": false,
+        "createdAt": "2024-11-05T12:26:51.410Z",
+        "updatedAt": "2024-11-05T12:26:51.410Z",
+        "createdBy": null,
+        "updatedBy": null,
+        "barcodes": [
+            {
+                "id": "cm34fcrdd003fup7kojj7ov5f",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "barcode": "Barcode 1"
+            },
+            {
+                "id": "cm34fcrdd003gup7k3c9zfo8j",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "barcode": "Barcode 2"
+            }
+        ],
+        "brand": {
+            "id": "cm34fcrda003cup7kjc59ulvu",
+            "brandName": "Brand 1",
+            "brandCode": "B1",
+            "createdAt": "2024-11-05T12:26:51.407Z",
+            "updatedAt": "2024-11-05T12:26:51.407Z",
+            "createdBy": null,
+            "updatedBy": null
+        },
+        "stockCardAttributeItems": [
+            {
+                "id": "cm34fcrde003iup7kmo7iybg4",
+                "attributeId": "cm34fcrd50036up7kmbyy9qw2",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "attribute": {
+                    "id": "cm34fcrd50036up7kmbyy9qw2",
+                    "attributeName": "Attribute 1",
+                    "value": "Value 1"
+                }
+            },
+            {
+                "id": "cm34fcrde003jup7kluuh35sa",
+                "attributeId": "cm34fcrd60037up7knj8pkcbg",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "attribute": {
+                    "id": "cm34fcrd60037up7knj8pkcbg",
+                    "attributeName": "Attribute 1",
+                    "value": "Value 2"
+                }
+            },
+            {
+                "id": "cm34fcrde003kup7k7l6grbwe",
+                "attributeId": "cm34fcrd70038up7kg6ibf3p3",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "attribute": {
+                    "id": "cm34fcrd70038up7kg6ibf3p3",
+                    "attributeName": "Attribute 1",
+                    "value": "Value 3"
+                }
+            }
+        ],
+        "stockCardEFatura": [
+            {
+                "id": "cm34fcrde003lup7k14x01lc7",
+                "productCode": "SC1",
+                "productName": "Product 1",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "createdAt": "2024-11-05T12:26:51.410Z",
+                "updatedAt": "2024-11-05T12:26:51.410Z",
+                "createdBy": null,
+                "updatedBy": null
+            }
+        ],
+        "stockCardManufacturer": [
+            {
+                "id": "cm34fcrde003mup7kpt7qkkfb",
+                "productCode": "SC1",
+                "productName": "Product 1",
+                "barcode": "Barcode 1",
+                "brandId": "cm34fcrda003cup7kjc59ulvu",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "currentId": "cm34fcr7j000aup7kcesheoqx",
+                "createdAt": "2024-11-05T12:26:51.410Z",
+                "updatedAt": "2024-11-05T12:26:51.410Z",
+                "createdBy": null,
+                "updatedBy": null,
+                "brand": {
+                    "id": "cm34fcrda003cup7kjc59ulvu",
+                    "brandName": "Brand 1",
+                    "brandCode": "B1",
+                    "createdAt": "2024-11-05T12:26:51.407Z",
+                    "updatedAt": "2024-11-05T12:26:51.407Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                },
+                "current": {
+                    "id": "cm34fcr7j000aup7kcesheoqx",
+                    "currentCode": "C2",
+                    "currentName": "Current 2",
+                    "currentType": "Tedarikci",
+                    "institution": "Sirket",
+                    "identityNo": "1234567890",
+                    "taxNumber": "1234567890",
+                    "taxOffice": "Kadikoy",
+                    "title": "Unvan",
+                    "name": "Name",
+                    "surname": "Surname",
+                    "webSite": "www.current2.com",
+                    "birthOfDate": "2024-11-05T12:26:51.199Z",
+                    "kepAddress": "Kep Address",
+                    "mersisNo": "1234567890",
+                    "sicilNo": "1234567890",
+                    "priceListId": "cm34fcr770004up7kk0nk1gwo",
+                    "createdAt": "2024-11-05T12:26:51.200Z",
+                    "updatedAt": "2024-11-05T12:26:51.200Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                }
+            }
+        ],
+        "stockCardMarketNames": [
+            {
+                "id": "cm34fcrde003nup7kfmfa9cr1",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "marketName": "Market 1"
+            },
+            {
+                "id": "cm34fcrde003oup7kj9wdlygw",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "marketName": "Market 2"
+            }
+        ],
+        "stockCardPriceLists": [
+            {
+                "id": "cm34fcrde003qup7kpxkendpz",
+                "priceListId": "cm34fcr770004up7kk0nk1gwo",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "price": "10",
+                "priceList": {
+                    "id": "cm34fcr770004up7kk0nk1gwo",
+                    "priceListName": "Tip 1 Bayiler",
+                    "currency": "USD",
+                    "isVatIncluded": true,
+                    "isActive": true
+                }
+            },
+            {
+                "id": "cm34fcrde003rup7kdtex07qx",
+                "priceListId": "cm34fcr790005up7kz3bb1cbr",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "price": "20",
+                "priceList": {
+                    "id": "cm34fcr790005up7kz3bb1cbr",
+                    "priceListName": "Tip 2 Bayiler",
+                    "currency": "USD",
+                    "isVatIncluded": true,
+                    "isActive": true
+                }
+            }
+        ],
+        "stockCardWarehouse": [
+            {
+                "id": "cm34fcrde003sup7kh9vc7fa4",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "warehouseId": "cm34fcr6y0002up7krcackuyj",
+                "quantity": "10",
+                "warehouse": {
+                    "id": "cm34fcr6y0002up7krcackuyj",
+                    "warehouseName": "Warehouse 1",
+                    "warehouseCode": "W1",
+                    "address": "Warehouse 1 Address",
+                    "countryCode": "TR",
+                    "city": "Istanbul",
+                    "district": "Kadikoy",
+                    "phone": "1234567890",
+                    "email": "warehouse@mail.com",
+                    "companyCode": "C1",
+                    "createdAt": "2024-11-05T12:26:51.178Z",
+                    "updatedAt": "2024-11-05T12:26:51.178Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                }
+            },
+            {
+                "id": "cm34fhy9v0003tg2na2adkpug",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "warehouseId": "cm34fhcw10002tg2nmbhkuh5h",
+                "quantity": "50",
+                "warehouse": {
+                    "id": "cm34fhcw10002tg2nmbhkuh5h",
+                    "warehouseName": "Warehouse 2",
+                    "warehouseCode": "W2",
+                    "address": "Warehouse 2 Address",
+                    "countryCode": "TR",
+                    "city": "",
+                    "district": "",
+                    "phone": "",
+                    "email": "",
+                    "companyCode": "C1",
+                    "createdAt": "2024-11-05T12:30:25.922Z",
+                    "updatedAt": "2024-11-05T12:29:30.770Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                }
+            }
+        ],
+        "taxRates": [
+            {
+                "id": "cm34fcrde003tup7k5tok1cx7",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "taxName": "Tax 1",
+                "taxRate": "10"
+            }
+        ],
+        "stockCardCategoryItem": [
+            {
+                "id": "cm34fcrde003vup7kt2syxgn8",
+                "stockCardId": "cm34fcrdd003eup7kmn7hugqi",
+                "categoryId": "cm34fcrd40035up7kbakot73r",
+                "stockCardCategory": {
+                    "id": "cm34fcrd40035up7kbakot73r",
+                    "categoryName": "Category 7",
+                    "categoryCode": "SCC7",
+                    "parentCategoryId": "cm34fcrcz0032up7kjh9vc9ky"
+                },
+                "parentCategories": [
+                    {
+                        "id": "cm34fcrd40035up7kbakot73r",
+                        "categoryName": "Category 7",
+                        "categoryCode": "SCC7",
+                        "parentCategoryId": "cm34fcrcz0032up7kjh9vc9ky",
+                        "parentCategory": {
+                            "id": "cm34fcrcz0032up7kjh9vc9ky",
+                            "categoryName": "Category 4",
+                            "categoryCode": "SCC4",
+                            "parentCategoryId": "cm34fcrcw002zup7k2kal0pzt"
+                        }
+                    },
+                    {
+                        "id": "cm34fcrcz0032up7kjh9vc9ky",
+                        "categoryName": "Category 4",
+                        "categoryCode": "SCC4",
+                        "parentCategoryId": "cm34fcrcw002zup7k2kal0pzt",
+                        "parentCategory": {
+                            "id": "cm34fcrcw002zup7k2kal0pzt",
+                            "categoryName": "Category 1",
+                            "categoryCode": "SCC1",
+                            "parentCategoryId": null
+                        }
+                    },
+                    {
+                        "id": "cm34fcrcw002zup7k2kal0pzt",
+                        "categoryName": "Category 1",
+                        "categoryCode": "SCC1",
+                        "parentCategoryId": null,
+                        "parentCategory": null
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "cm34fcrdu003wup7kb6wn24li",
+        "productCode": "SC2",
+        "productName": "Product 2",
+        "unit": "Adet",
+        "shortDescription": "Short Description 2",
+        "description": "Description 2",
+        "companyCode": "C1",
+        "branchCode": "B1",
+        "brandId": "cm34fcrdc003dup7k43e7i4m6",
+        "productType": "BasitUrun",
+        "gtip": "GTIP 2",
+        "pluCode": "PLU 2",
+        "desi": "2",
+        "adetBoleni": "2",
+        "siraNo": "Sira No 2",
+        "raf": "Raf 2",
+        "karMarji": "20",
+        "riskQuantities": "20",
+        "maliyet": "20",
+        "maliyetDoviz": "USD",
+        "stockStatus": true,
+        "hasExpirationDate": false,
+        "allowNegativeStock": false,
+        "createdAt": "2024-11-05T12:26:51.426Z",
+        "updatedAt": "2024-11-05T12:26:51.426Z",
+        "createdBy": null,
+        "updatedBy": null,
+        "barcodes": [
+            {
+                "id": "cm34fcrdu003xup7k3um2b2bs",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "barcode": "Barcode 3"
+            },
+            {
+                "id": "cm34fcrdu003yup7k5j8d6ahx",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "barcode": "Barcode 4"
+            }
+        ],
+        "brand": {
+            "id": "cm34fcrdc003dup7k43e7i4m6",
+            "brandName": "Brand 2",
+            "brandCode": "B2",
+            "createdAt": "2024-11-05T12:26:51.408Z",
+            "updatedAt": "2024-11-05T12:26:51.408Z",
+            "createdBy": null,
+            "updatedBy": null
+        },
+        "stockCardAttributeItems": [
+            {
+                "id": "cm34fcrdu0040up7ks8vysqgk",
+                "attributeId": "cm34fcrd80039up7kw5rcxobw",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "attribute": {
+                    "id": "cm34fcrd80039up7kw5rcxobw",
+                    "attributeName": "Attribute 2",
+                    "value": "Value 1"
+                }
+            },
+            {
+                "id": "cm34fcrdu0041up7kc0wd1pfa",
+                "attributeId": "cm34fcrd9003aup7kqeqbw9oe",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "attribute": {
+                    "id": "cm34fcrd9003aup7kqeqbw9oe",
+                    "attributeName": "Attribute 2",
+                    "value": "Value 2"
+                }
+            },
+            {
+                "id": "cm34fcrdu0042up7k5j9n5k1u",
+                "attributeId": "cm34fcrda003bup7kr3espi6q",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "attribute": {
+                    "id": "cm34fcrda003bup7kr3espi6q",
+                    "attributeName": "Attribute 2",
+                    "value": "Value 3"
+                }
+            }
+        ],
+        "stockCardEFatura": [
+            {
+                "id": "cm34fcrdu0043up7kyxwpforp",
+                "productCode": "SC2",
+                "productName": "Product 2",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "createdAt": "2024-11-05T12:26:51.426Z",
+                "updatedAt": "2024-11-05T12:26:51.426Z",
+                "createdBy": null,
+                "updatedBy": null
+            }
+        ],
+        "stockCardManufacturer": [
+            {
+                "id": "cm34fcrdu0044up7k661y1dfo",
+                "productCode": "SC2",
+                "productName": "Product 2",
+                "barcode": "Barcode 3",
+                "brandId": "cm34fcrdc003dup7k43e7i4m6",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "currentId": "cm34fcr7l000bup7ka6zeof5r",
+                "createdAt": "2024-11-05T12:26:51.426Z",
+                "updatedAt": "2024-11-05T12:26:51.426Z",
+                "createdBy": null,
+                "updatedBy": null,
+                "brand": {
+                    "id": "cm34fcrdc003dup7k43e7i4m6",
+                    "brandName": "Brand 2",
+                    "brandCode": "B2",
+                    "createdAt": "2024-11-05T12:26:51.408Z",
+                    "updatedAt": "2024-11-05T12:26:51.408Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                },
+                "current": {
+                    "id": "cm34fcr7l000bup7ka6zeof5r",
+                    "currentCode": "C3",
+                    "currentName": "Current 3",
+                    "currentType": "Alici",
+                    "institution": "Sirket",
+                    "identityNo": "1234567890",
+                    "taxNumber": "1234567890",
+                    "taxOffice": "Kadikoy",
+                    "title": "Unvan",
+                    "name": "Name",
+                    "surname": "Surname",
+                    "webSite": "www.current3.com",
+                    "birthOfDate": "2024-11-05T12:26:51.201Z",
+                    "kepAddress": "Kep Address",
+                    "mersisNo": "1234567890",
+                    "sicilNo": "1234567890",
+                    "priceListId": "cm34fcr770004up7kk0nk1gwo",
+                    "createdAt": "2024-11-05T12:26:51.202Z",
+                    "updatedAt": "2024-11-05T12:26:51.202Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                }
+            }
+        ],
+        "stockCardMarketNames": [
+            {
+                "id": "cm34fcrdu0045up7kja766s0u",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "marketName": "Market 3"
+            },
+            {
+                "id": "cm34fcrdu0046up7k345qe3u7",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "marketName": "Market 4"
+            }
+        ],
+        "stockCardPriceLists": [
+            {
+                "id": "cm34fcrdu0048up7klz9hc166",
+                "priceListId": "cm34fcr770004up7kk0nk1gwo",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "price": "30",
+                "priceList": {
+                    "id": "cm34fcr770004up7kk0nk1gwo",
+                    "priceListName": "Tip 1 Bayiler",
+                    "currency": "USD",
+                    "isVatIncluded": true,
+                    "isActive": true
+                }
+            },
+            {
+                "id": "cm34fcrdu0049up7k13k8s80k",
+                "priceListId": "cm34fcr790005up7kz3bb1cbr",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "price": "40",
+                "priceList": {
+                    "id": "cm34fcr790005up7kz3bb1cbr",
+                    "priceListName": "Tip 2 Bayiler",
+                    "currency": "USD",
+                    "isVatIncluded": true,
+                    "isActive": true
+                }
+            }
+        ],
+        "stockCardWarehouse": [
+            {
+                "id": "cm34fievh0004tg2nltogeqof",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "warehouseId": "cm34fhcw10002tg2nmbhkuh5h",
+                "quantity": "100",
+                "warehouse": {
+                    "id": "cm34fhcw10002tg2nmbhkuh5h",
+                    "warehouseName": "Warehouse 2",
+                    "warehouseCode": "W2",
+                    "address": "Warehouse 2 Address",
+                    "countryCode": "TR",
+                    "city": "",
+                    "district": "",
+                    "phone": "",
+                    "email": "",
+                    "companyCode": "C1",
+                    "createdAt": "2024-11-05T12:30:25.922Z",
+                    "updatedAt": "2024-11-05T12:29:30.770Z",
+                    "createdBy": null,
+                    "updatedBy": null
+                }
+            }
+        ],
+        "taxRates": [
+            {
+                "id": "cm34fcrdu004bup7krew61ang",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "taxName": "Tax 2",
+                "taxRate": "20"
+            }
+        ],
+        "stockCardCategoryItem": [
+            {
+                "id": "cm34fcrdu004dup7kugi4t5u4",
+                "stockCardId": "cm34fcrdu003wup7kb6wn24li",
+                "categoryId": "cm34fcrcz0032up7kjh9vc9ky",
+                "stockCardCategory": {
+                    "id": "cm34fcrcz0032up7kjh9vc9ky",
+                    "categoryName": "Category 4",
+                    "categoryCode": "SCC4",
+                    "parentCategoryId": "cm34fcrcw002zup7k2kal0pzt"
+                },
+                "parentCategories": [
+                    {
+                        "id": "cm34fcrcz0032up7kjh9vc9ky",
+                        "categoryName": "Category 4",
+                        "categoryCode": "SCC4",
+                        "parentCategoryId": "cm34fcrcw002zup7k2kal0pzt",
+                        "parentCategory": {
+                            "id": "cm34fcrcw002zup7k2kal0pzt",
+                            "categoryName": "Category 1",
+                            "categoryCode": "SCC1",
+                            "parentCategoryId": null
+                        }
+                    },
+                    {
+                        "id": "cm34fcrcw002zup7k2kal0pzt",
+                        "categoryName": "Category 1",
+                        "categoryCode": "SCC1",
+                        "parentCategoryId": null,
+                        "parentCategory": null
+                    }
+                ]
+            }
+        ]
+    }
+]

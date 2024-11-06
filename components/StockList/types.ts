@@ -13,6 +13,9 @@ export interface StockCard {
     pluCode: string;
     desi: string;
     adetBoleni: string;
+    karMarji: number;
+    maliyet: number;
+    maliyetDoviz: string;
     siraNo: string;
     raf: string;
     riskQuantities: string;
@@ -81,7 +84,6 @@ export interface StockCard {
         productCode: string;
         productName: string;
         stockCardId: string;
-        stockCardPriceListId: string;
     }>;
     stockCardManufacturer: Array<{
         id: string;
@@ -98,6 +100,7 @@ export interface StockCard {
         marketName: string;
     }>;
     stockCardPriceLists: Array<{
+        barcode: string;
         id: string;
         priceListId: string;
         stockCardId: string;
