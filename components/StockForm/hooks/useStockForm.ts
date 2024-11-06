@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PriceList } from './usePriceLists';
+import { StockCard } from '@/components/StockList/types';
+import { SelectedProperty } from '../types';
 interface StockFormState {
     stockCard: {
         productCode: string;
@@ -96,6 +98,103 @@ export const useStockForm = () => {
     const [formState, setFormState] = useState<StockFormState>(initialState);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
+
+    // Load data from localStorage on mount
+    useEffect(() => {
+        const savedData = localStorage.getItem('currentStockData');
+        if (savedData) {
+            try {
+                const stockData: StockCard = JSON.parse(savedData);
+
+                // Create a map to group attributes by name
+                const attributeMap = new Map<string, Set<string>>();
+
+                stockData.stockCardAttributeItems.forEach(item => {
+                    const name = item.attribute.attributeName;
+                    if (!attributeMap.has(name)) {
+                        attributeMap.set(name, new Set());
+                    }
+                    attributeMap.get(name)?.add(item.attribute.value);
+                });
+
+                // Convert map to SelectedProperty array
+                const properties: SelectedProperty[] = Array.from(attributeMap.entries()).map(([propertyName, values]) => ({
+                    propertyName,
+                    selectedValues: Array.from(values)
+                }));
+
+                // Transform the data to match the form state structure
+                const transformedState: StockFormState = {
+                    stockCard: {
+                        productCode: stockData.productCode,
+                        productName: stockData.productName,
+                        unit: stockData.unit,
+                        shortDescription: stockData.shortDescription,
+                        description: stockData.description,
+                        productType: stockData.productType,
+                        gtip: stockData.gtip,
+                        pluCode: stockData.pluCode,
+                        desi: Number(stockData.desi),
+                        adetBoleni: Number(stockData.adetBoleni),
+                        siraNo: stockData.siraNo || '',
+                        raf: stockData.raf || '',
+                        karMarji: 0, // Add default values or transform as needed
+                        riskQuantities: Number(stockData.riskQuantities),
+                        stockStatus: stockData.stockStatus,
+                        hasExpirationDate: stockData.hasExpirationDate,
+                        allowNegativeStock: stockData.allowNegativeStock,
+                        maliyetFiyat: 0, // Add default values or transform as needed
+                        maliyetDoviz: 'USD',
+                        brandId: stockData.brandId,
+                    },
+                    attributes: stockData.stockCardAttributeItems.map(item => ({
+                        attributeId: item.attributeId,
+                        value: item.attribute.value,
+                    })),
+                    barcodes: stockData.barcodes,
+                    categoryItem: stockData.stockCardCategoryItem.map(item => ({
+                        categoryId: item.categoryId,
+                    })),
+                    priceListItems: stockData.stockCardPriceLists.map(item => ({
+                        priceListId: item.priceListId,
+                        price: Number(item.price),
+                        vatRate: item.priceList.isVatIncluded ? 20 : null, // Default VAT rate or get from data
+                        priceWithVat: item.priceList.isVatIncluded ? Number(item.price) * 1.2 : null,
+                        barcode: '', // Add barcode if available
+                    })),
+                    stockCardWarehouse: stockData.stockCardWarehouse.map(item => ({
+                        id: item.warehouseId,
+                        quantity: Number(item.quantity),
+                    })),
+                    eFatura: stockData.stockCardEFatura.map(item => ({
+                        productCode: item.productCode,
+                        productName: item.productName,
+                        stockCardPriceListId: '',
+                    })),
+                    manufacturers: stockData.stockCardManufacturer.map(item => ({
+                        productCode: item.productCode,
+                        productName: item.productName,
+                        barcode: item.barcode,
+                        brandId: item.brandId,
+                        currentId: item.currentId,
+                    })),
+                    marketNames: stockData.stockCardMarketNames.map(item => ({
+                        marketName: item.marketName,
+                    })),
+                };
+
+                setFormState(transformedState);
+                setSelectedProperties(properties);
+
+                // Clear the localStorage after loading
+                localStorage.removeItem('currentStockData');
+            } catch (err) {
+                setError('Error loading stock data');
+                console.error('Error parsing stock data:', err);
+            }
+        }
+    }, []);
 
     const updateStockCard = useCallback(<K extends keyof StockFormState['stockCard']>(
         field: K,
@@ -138,12 +237,12 @@ export const useStockForm = () => {
         }));
     }, []);
 
-    const updatePriceListItems = (priceListItems: PriceListItem[]) => {
-        setFormState(prevState => ({
-            ...prevState,
-            priceListItems
+    const updatePriceListItems = useCallback((items: StockFormState['priceListItems']) => {
+        setFormState(prev => ({
+            ...prev,
+            priceListItems: items
         }));
-    };
+    }, []);
 
     const updateWarehouse = useCallback((warehouseId: string, quantity: number) => {
         setFormState(prev => ({
@@ -152,16 +251,10 @@ export const useStockForm = () => {
         }));
     }, []);
 
-    const updateManufacturers = useCallback((manufacturers: Array<{
-        productCode: string;
-        productName: string;
-        barcode: string;
-        brandId: string;
-        currentId: string;
-    }>) => {
+    const updateManufacturers = useCallback((manufacturers: StockFormState['manufacturers']) => {
         setFormState(prev => ({
             ...prev,
-            manufacturers: [...manufacturers]
+            manufacturers
         }));
     }, []);
 
@@ -248,6 +341,8 @@ export const useStockForm = () => {
         formState,
         loading,
         error,
+        selectedProperties,
+        setSelectedProperties,
         updateStockCard,
         updateAttributes,
         updateBarcodes,

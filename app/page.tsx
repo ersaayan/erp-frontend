@@ -143,7 +143,7 @@ export default function Home() {
               onCloseTab={handleCloseTab}
               sidebarCollapsed={isSidebarCollapsed}
             >
-              {activeTab === 'Stok Listesi' && <StockList />}
+              {activeTab === 'Stok Listesi' && <StockList onMenuItemClick={handleMenuItemClick} />}
               {activeTab === 'Stok Formu' && <StockForm />}
               {activeTab === 'Bundle/Set Stoklar' && <BundleSetStocks />}
               {activeTab === 'Bundle/Set Stok Formu' && <BundleSetStockForm />}

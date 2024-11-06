@@ -46,7 +46,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const StockList: React.FC = () => {
+interface StockListProps {
+    onMenuItemClick: (itemName: string) => void;
+}
+
+const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     const { toast } = useToast();
     const [stockData, setStockData] = useState<StockCard[]>([]);
     const [loading, setLoading] = useState(true);
@@ -59,7 +63,6 @@ const StockList: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
 
-    // Settings state
     const [settings, setSettings] = useState({
         showGroupPanel: true,
         showFilterRow: true,
@@ -69,9 +72,6 @@ const StockList: React.FC = () => {
         virtualScrolling: true
     });
 
-
-
-    // Fetch data and exchange rates
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
@@ -104,7 +104,70 @@ const StockList: React.FC = () => {
         fetchData();
     }, [fetchData]);
 
-    // Export functionality
+    const handleRowDblClick = useCallback(async (e: any) => {
+        try {
+            // Store the stock data in localStorage
+            localStorage.setItem('currentStockData', JSON.stringify(e.data));
+
+            // Open the stock form in a new tab
+            onMenuItemClick('Stok Formu');
+
+            toast({
+                title: "Success",
+                description: "Opening stock form...",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to open stock form. Please try again.",
+            });
+            console.error(error);
+        }
+    }, [onMenuItemClick, toast]);
+
+    const handleDeleteSelected = useCallback(async () => {
+        if (selectedRowKeys.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Hata',
+                description: 'Lütfen silmek için en az bir stok seçin.',
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:1303/stockcards/deleteManyStockCardsWithRelations/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedRowKeys }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Silme işlemi başarısız oldu.');
+            }
+
+            toast({
+                title: 'Başarılı',
+                description: 'Seçili stoklar başarıyla silindi.',
+            });
+
+            await fetchData();
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Hata',
+                description: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu.',
+            });
+        } finally {
+            setLoading(false);
+            setBulkActionsOpen(false);
+        }
+    }, [selectedRowKeys, fetchData, toast]);
+
     const onExporting = React.useCallback((e: any) => {
         const workbook = new Workbook();
         const worksheet = workbook.addWorksheet('Stock List');
@@ -127,7 +190,6 @@ const StockList: React.FC = () => {
         });
     }, []);
 
-    // Quick filter functionality
     const applyQuickFilter = useCallback(() => {
         if (!dataGridRef.current) return;
 
@@ -138,22 +200,20 @@ const StockList: React.FC = () => {
                 'or',
                 ['productName', 'contains', quickFilterText],
                 'or',
-                ['Barcodes.barcode', 'contains', quickFilterText]
+                ['barcodes[0].barcode', 'contains', quickFilterText]
             ]);
         } else {
             instance.clearFilter();
         }
     }, [quickFilterText]);
 
-    // Handle file import
     const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        // Simulate file processing
         setLoading(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
             toast({
                 title: "Success",
                 description: `File "${file.name}" imported successfully.`,
@@ -162,7 +222,7 @@ const StockList: React.FC = () => {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Failed to import file. Please try again. Message: " + (error instanceof Error ? error.message : 'Unknown error'),
+                description: "Failed to import file. Please try again.",
             });
         } finally {
             setLoading(false);
@@ -172,14 +232,12 @@ const StockList: React.FC = () => {
         }
     }, [toast]);
 
-    // Calculate total quantity for a stock item
     const calculateTotalQuantity = useCallback((rowData: StockCard) => {
-        return rowData.StockCardWarehouse.reduce((total, warehouse) => {
+        return rowData.stockCardWarehouse.reduce((total, warehouse) => {
             return total + parseInt(warehouse.quantity, 10);
         }, 0);
     }, []);
 
-    // Render price with TRY equivalent
     const renderPriceWithTRY = useCallback((price: number, currency: string) => {
         if (!exchangeRates || currency === 'TRY') return price.toFixed(2);
 
@@ -188,12 +246,11 @@ const StockList: React.FC = () => {
         return `${price.toFixed(2)} (₺${tryPrice.toFixed(2)})`;
     }, [exchangeRates]);
 
-    // Get category path
     const getCategoryPath = useCallback((rowData: StockCard) => {
-        if (!rowData.Categories?.length) return '';
+        if (!rowData.stockCardCategoryItem?.length) return '';
 
-        const category = rowData.Categories[0];
-        if (!category.parentCategories) return category.category.categoryName;
+        const category = rowData.stockCardCategoryItem[0];
+        if (!category.parentCategories) return category.stockCardCategory.categoryName;
 
         return category.parentCategories
             .slice()
@@ -202,52 +259,6 @@ const StockList: React.FC = () => {
             .join(' > ');
     }, []);
 
-    const handleDeleteSelected = useCallback(async () => {
-        if (selectedRowKeys.length === 0) {
-            toast({
-                variant: 'destructive',
-                title: 'Hata',
-                description: 'Lütfen silmek için en az bir stok seçin.',
-            });
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const selectedStockCards = selectedRowKeys.map((id) => id);
-            const selectedStockCardIds = selectedStockCards.map((stockCard: any) => stockCard.id);
-            const response = await fetch('http://localhost:1303/stockcards/deleteManyStockCardsWithRelations/', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ids: selectedStockCardIds }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Silme işlemi başarısız oldu.');
-            }
-
-            toast({
-                title: 'Başarılı',
-                description: 'Seçili stoklar başarıyla silindi.',
-            });
-
-            // Silme işleminden sonra verileri yeniden yükleyin
-            await fetchData();
-        } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Hata',
-                description: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu.',
-            });
-        } finally {
-            setLoading(false);
-            setBulkActionsOpen(false);
-        }
-    }, [selectedRowKeys, fetchData, toast]);
-
-    // Toolbar content
     const renderToolbarContent = useCallback(() => (
         <div className="flex items-center gap-2">
             <div className="flex-1">
@@ -346,6 +357,7 @@ const StockList: React.FC = () => {
                 height="calc(100vh - 200px)"
                 selectedRowKeys={selectedRowKeys}
                 onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys as string[])}
+                onRowDblClick={handleRowDblClick}
                 loadPanel={{
                     enabled: loading,
                     showIndicator: true,
@@ -370,7 +382,6 @@ const StockList: React.FC = () => {
                 <Export enabled={true} allowExportSelectedData={true} />
                 <ColumnChooser enabled={true} mode="select" />
 
-                {/* Columns configuration remains the same */}
                 <Column
                     dataField="productCode"
                     caption="Stock Code"
@@ -383,7 +394,7 @@ const StockList: React.FC = () => {
                     width={200}
                 />
                 <Column
-                    dataField="Brand.brandName"
+                    dataField="brand.brandName"
                     caption="Brand"
                     width={120}
                 />
@@ -395,7 +406,6 @@ const StockList: React.FC = () => {
                 <Column
                     caption="Category"
                     calculateCellValue={getCategoryPath}
-                    dataField='Categories'
                     width={200}
                 />
                 <Column
@@ -407,12 +417,12 @@ const StockList: React.FC = () => {
                 />
 
                 <Column caption="Warehouses">
-                    {stockData[0]?.StockCardWarehouse.map(warehouse => (
+                    {stockData[0]?.stockCardWarehouse.map(warehouse => (
                         <Column
                             key={warehouse.warehouse.id}
                             caption={warehouse.warehouse.warehouseName}
                             calculateCellValue={(rowData: StockCard) => {
-                                const warehouseData = rowData.StockCardWarehouse.find(
+                                const warehouseData = rowData.stockCardWarehouse.find(
                                     w => w.warehouse.id === warehouse.warehouse.id
                                 );
                                 return warehouseData ? parseInt(warehouseData.quantity, 10) : 0;
@@ -425,12 +435,12 @@ const StockList: React.FC = () => {
                 </Column>
 
                 <Column caption="Prices">
-                    {stockData[0]?.StockCardPriceLists.map(priceList => (
+                    {stockData[0]?.stockCardPriceLists.map(priceList => (
                         <Column
                             key={priceList.priceList.id}
                             caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
                             calculateCellValue={(rowData: StockCard) => {
-                                const priceData = rowData.StockCardPriceLists.find(
+                                const priceData = rowData.stockCardPriceLists.find(
                                     p => p.priceList.id === priceList.priceList.id
                                 );
                                 if (!priceData) return 0;

@@ -28,17 +28,12 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { useStockForm } from './hooks/useStockForm';
 import { useToast } from '@/hooks/use-toast';
 
-interface StockPropertiesProps {
-    selectedProperties: SelectedProperty[];
-    setSelectedProperties: React.Dispatch<React.SetStateAction<SelectedProperty[]>>;
-}
-
-const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, setSelectedProperties }) => {
+const StockProperties: React.FC = () => {
     const { toast } = useToast();
     const { attributes, loading, error } = useAttributes();
     const [valueDialogOpen, setValueDialogOpen] = useState(false);
     const [activePropertyName, setActivePropertyName] = useState<string | null>(null);
-    const { formState, updateAttributes } = useStockForm();
+    const { formState, updateAttributes, selectedProperties, setSelectedProperties } = useStockForm();
 
     // Extract unique attribute names
     const uniqueAttributeNames = Array.from(new Set(attributes.map(attr => attr.attributeName)));
@@ -58,19 +53,15 @@ const StockProperties: React.FC<StockPropertiesProps> = ({ selectedProperties, s
     // Update form state when properties change
     const updateFormState = useCallback((properties: SelectedProperty[]) => {
         try {
-            const newAttributes: Array<{ attributeId: string; value: string }> = [];
-
-            properties.forEach(property => {
+            const newAttributes = properties.flatMap(property => {
                 const propertyAttributes = attributes.filter(attr => attr.attributeName === property.propertyName);
-                property.selectedValues.forEach(value => {
-                    const attributeValue = propertyAttributes.find(v => v.value === value);
-                    if (attributeValue) {
-                        newAttributes.push({
-                            attributeId: attributeValue.id,
-                            value: value
-                        });
-                    }
-                });
+                return property.selectedValues.map(value => {
+                    const attributeValue = propertyAttributes.find(attr => attr.value === value);
+                    return attributeValue ? {
+                        attributeId: attributeValue.id,
+                        value: value
+                    } : null;
+                }).filter((attr): attr is { attributeId: string; value: string } => attr !== null);
             });
 
             updateAttributes(newAttributes);

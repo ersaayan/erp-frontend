@@ -13,6 +13,8 @@ export interface StockCard {
     pluCode: string;
     desi: string;
     adetBoleni: string;
+    siraNo: string;
+    raf: string;
     riskQuantities: string;
     stockStatus: boolean;
     hasExpirationDate: boolean;
@@ -21,7 +23,7 @@ export interface StockCard {
     updatedAt: string;
     createdBy: string | null;
     updatedBy: string | null;
-    Branch: {
+    branch: {
         id: string;
         branchName: string;
         branchCode: string;
@@ -34,7 +36,7 @@ export interface StockCard {
         website: string;
         companyCode: string;
     };
-    Company: {
+    company: {
         id: string;
         companyName: string;
         name: string;
@@ -54,17 +56,17 @@ export interface StockCard {
         email: string;
         website: string;
     };
-    Barcodes: Array<{
+    barcodes: Array<{
         id: string;
         stockCardId: string;
         barcode: string;
     }>;
-    Brand: {
+    brand: {
         id: string;
         brandName: string;
         brandCode: string;
     };
-    StockCardAttributeItems: Array<{
+    stockCardAttributeItems: Array<{
         id: string;
         attributeId: string;
         stockCardId: string;
@@ -74,14 +76,14 @@ export interface StockCard {
             value: string;
         };
     }>;
-    StockCardEFatura: Array<{
+    stockCardEFatura: Array<{
         id: string;
         productCode: string;
         productName: string;
         stockCardId: string;
         stockCardPriceListId: string;
     }>;
-    StockCardManufacturer: Array<{
+    stockCardManufacturer: Array<{
         id: string;
         productCode: string;
         productName: string;
@@ -90,12 +92,12 @@ export interface StockCard {
         stockCardId: string;
         currentId: string;
     }>;
-    StockCardMarketNames: Array<{
+    stockCardMarketNames: Array<{
         id: string;
         stockCardId: string;
         marketName: string;
     }>;
-    StockCardPriceLists: Array<{
+    stockCardPriceLists: Array<{
         id: string;
         priceListId: string;
         stockCardId: string;
@@ -108,7 +110,7 @@ export interface StockCard {
             isActive: boolean;
         };
     }>;
-    StockCardWarehouse: Array<{
+    stockCardWarehouse: Array<{
         id: string;
         stockCardId: string;
         warehouseId: string;
@@ -126,17 +128,17 @@ export interface StockCard {
             companyCode: string;
         };
     }>;
-    TaxRates: Array<{
+    taxRates: Array<{
         id: string;
         stockCardId: string;
         taxName: string;
         taxRate: string;
     }>;
-    Categories: Array<{
+    stockCardCategoryItem: Array<{
         id: string;
         stockCardId: string;
         categoryId: string;
-        category: {
+        stockCardCategory: {
             id: string;
             categoryName: string;
             categoryCode: string;
