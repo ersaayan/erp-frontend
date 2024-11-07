@@ -113,24 +113,32 @@ const StockForm: React.FC = () => {
   } = useStockForm();
 
   const { priceLists } = usePriceLists();
+  const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
 
-  const [selectedProperties, setSelectedProperties] = useState<
-    SelectedProperty[]
-  >([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [unitList, setUnitList] = useState<StockUnit[]>([]);
   // Initialize state from formState
   useEffect(() => {
     if (formState.attributes.length > 0 && attributes.length > 0) {
-      setSelectedProperties(
-        formState.attributes.map(attr => {
-          const attribute = attributes.find(attribute => attribute.id === attr.attributeId);
-          return {
-            propertyName: attribute ? attribute.attributeName : '',
+      const transformedProperties: SelectedProperty[] = formState.attributes.reduce((acc, attr) => {
+        const attribute = attributes.find(a => a.id === attr.attributeId);
+        if (!attribute) return acc;
+
+        const existingProperty = acc.find(p => p.propertyName === attribute.attributeName);
+        if (existingProperty) {
+          existingProperty.selectedValues.push(attr.value);
+          existingProperty.attributeIds.push(attr.attributeId);
+        } else {
+          acc.push({
+            propertyName: attribute.attributeName,
             selectedValues: [attr.value],
-          };
-        })
-      );
+            attributeIds: [attr.attributeId]
+          });
+        }
+        return acc;
+      }, [] as SelectedProperty[]);
+
+      setSelectedProperties(transformedProperties);
     }
     if (formState.manufacturers.length > 0) {
       setManufacturers(
@@ -160,7 +168,19 @@ const StockForm: React.FC = () => {
         }))
       );
     }
-  }, [formState.attributes, attributes, formState.manufacturers, formState.priceListItems]);
+
+    if (formState.barcodes.length > 0) {
+      setBarcodes(formState.barcodes.map(b => ({ id: Math.random().toString(), text: b.barcode })));
+    }
+
+    if (formState.marketNames.length > 0) {
+      setMarketNames(formState.marketNames.map(m => ({ id: Math.random().toString(), text: m.marketName })));
+    }
+
+    if (formState.categoryItem.length > 0) {
+      setSelectedCategories(formState.categoryItem.map(c => c.categoryId));
+    }
+  }, [formState.attributes, attributes, formState.manufacturers, formState.priceListItems, formState.barcodes, formState.marketNames, formState.categoryItem]);
 
   const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
@@ -953,7 +973,6 @@ const StockForm: React.FC = () => {
                             updateEFatura(
                               formState.eFatura[0]?.productCode || "",
                               e.target.value,
-                              formState.eFatura[0]?.stockCardPriceListId || ""
                             )
                           }
                           placeholder="Ürün adını giriniz"
@@ -969,7 +988,6 @@ const StockForm: React.FC = () => {
                             updateEFatura(
                               e.target.value,
                               formState.eFatura[0]?.productName || "",
-                              formState.eFatura[0]?.stockCardPriceListId || ""
                             )
                           }
                           placeholder="Ürün kodunu giriniz"

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { PriceList } from './usePriceLists';
 import { StockCard } from '@/components/StockList/types';
 import { SelectedProperty } from '../types';
+
 interface StockFormState {
     stockCard: {
         productCode: string;
@@ -52,14 +53,6 @@ interface StockFormState {
     marketNames: Array<{ marketName: string }>;
 }
 
-interface PriceListItem {
-    priceListId: string;
-    price: number;
-    vatRate: number | null;
-    priceWithVat: number | null;
-    barcode: string;
-}
-
 const initialState: StockFormState = {
     stockCard: {
         productCode: '',
@@ -97,7 +90,6 @@ export const useStockForm = () => {
     const [formState, setFormState] = useState<StockFormState>(initialState);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
 
     // Load data from localStorage on mount
     useEffect(() => {
@@ -130,43 +122,52 @@ export const useStockForm = () => {
                         maliyetDoviz: stockData.maliyetDoviz || 'TRY',
                         brandId: stockData.brandId,
                     },
+                    // Transform attributes with their values
                     attributes: stockData.stockCardAttributeItems.map(item => ({
                         attributeId: item.attributeId,
                         value: item.attribute.value,
                     })),
-                    barcodes: stockData.barcodes,
+                    // Transform barcodes
+                    barcodes: stockData.barcodes.map(item => ({
+                        barcode: item.barcode,
+                    })),
+                    // Transform categories
                     categoryItem: stockData.stockCardCategoryItem.map(item => ({
                         categoryId: item.categoryId,
                     })),
-                    priceListItems: stockData.stockCardPriceLists.map((priceList: any) => ({
-                        priceListId: priceList.priceListId,
-                        price: parseFloat(priceList.price),
-                        vatRate: null, // Update if VAT rate is available
-                        priceWithVat: null, // Update if price with VAT is available
-                        barcode: '', // Update if barcode is associated
+                    // Transform price lists
+                    priceListItems: stockData.stockCardPriceLists.map(item => ({
+                        priceListId: item.priceListId,
+                        price: parseFloat(item.price),
+                        vatRate: null,
+                        priceWithVat: null,
+                        barcode: '',
                     })),
+                    // Transform warehouse data
                     stockCardWarehouse: stockData.stockCardWarehouse.map(item => ({
                         id: item.warehouseId,
                         quantity: Number(item.quantity),
                     })),
+                    // Transform e-invoice data
                     eFatura: stockData.stockCardEFatura.map(item => ({
                         productCode: item.productCode,
                         productName: item.productName,
                     })),
-                    manufacturers: stockData.stockCardManufacturer.map((manufacturer: any) => ({
-                        productCode: manufacturer.productCode,
-                        productName: manufacturer.productName,
-                        barcode: manufacturer.barcode,
-                        brandId: manufacturer.brandId,
-                        currentId: manufacturer.currentId,
+                    // Transform manufacturer data
+                    manufacturers: stockData.stockCardManufacturer.map(item => ({
+                        productCode: item.productCode,
+                        productName: item.productName,
+                        barcode: item.barcode,
+                        brandId: item.brandId,
+                        currentId: item.currentId,
                     })),
+                    // Transform market names
                     marketNames: stockData.stockCardMarketNames.map(item => ({
                         marketName: item.marketName,
                     })),
                 };
 
                 setFormState(transformedState);
-
                 // Clear the localStorage after loading
                 localStorage.removeItem('currentStockData');
             } catch (err) {
@@ -217,12 +218,18 @@ export const useStockForm = () => {
         }));
     }, []);
 
-    const updatePriceListItems = (priceListItems: PriceListItem[]) => {
-        setFormState(prevState => ({
-            ...prevState,
-            priceListItems
+    const updatePriceListItems = useCallback((items: Array<{
+        priceListId: string;
+        price: number;
+        vatRate: number | null;
+        priceWithVat: number | null;
+        barcode: string;
+    }>) => {
+        setFormState(prev => ({
+            ...prev,
+            priceListItems: items
         }));
-    };
+    }, []);
 
     const updateWarehouse = useCallback((warehouseId: string, quantity: number) => {
         setFormState(prev => ({
@@ -244,79 +251,42 @@ export const useStockForm = () => {
         }));
     }, []);
 
-    const updateEFatura = useCallback((productCode: string, productName: string, priceListId: string) => {
+    const updateEFatura = useCallback((productCode: string, productName: string) => {
         setFormState(prev => ({
             ...prev,
             eFatura: [{
                 productCode,
                 productName,
-                stockCardPriceListId: priceListId
             }]
         }));
     }, []);
 
-    const calculatePriceWithVat = (price: number, vatRate: number | null) => {
-        const result = price * (1 + (vatRate ?? 0) / 100);
-        return parseFloat(result.toFixed(2));
-    };
-
-    const saveStockCard = async (
-        priceLists: PriceList[],
-        updatedFormState: StockFormState // Yeni parametre
-    ) => {
+    const saveStockCard = async (priceLists: PriceList[], updatedFormState: StockFormState) => {
         try {
             setLoading(true);
             setError(null);
 
-            const transformedPriceListItems = updatedFormState.priceListItems.map(
-                (item) => {
-                    const priceList = priceLists.find(
-                        (pl: PriceList) => pl.id === item.priceListId
-                    );
-                    return {
-                        priceListId: item.priceListId,
-                        price: priceList?.isVatIncluded
-                            ? calculatePriceWithVat(item.price, item.vatRate)
-                            : item.price,
-                    };
-                }
-            );
-
-            const transformedAttributes = updatedFormState.attributes.map(
-                ({ attributeId }) => ({
-                    attributeId,
-                })
-            );
-
-            const dataToSend = {
-                ...updatedFormState,
-                attributes: transformedAttributes,
-                priceListItems: transformedPriceListItems,
-            };
-
-            const response = await fetch(
-                "http://localhost:1303/stockcards/",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(dataToSend),
-                }
-            );
+            const response = await fetch("http://localhost:1303/stockcards/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedFormState),
+            });
 
             if (!response.ok) {
                 throw new Error("Failed to save stock card");
             }
 
             return await response.json();
-        } catch (err: unknown) {
+        } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
                 throw err;
             } else {
-                setError("An unknown error occurred");
-                throw new Error("An unknown error occurred");
+                const error = new Error("An unknown error occurred");
+                setError(error.message);
+                throw error;
             }
         } finally {
             setLoading(false);

@@ -26,25 +26,27 @@ import { useToast } from '@/hooks/use-toast';
 import PropertyValueDialog from './PropertyValueDialog';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
-
-interface SelectedProperty {
-    propertyName: string;
-    selectedValues: string[];
-    attributeIds: string[];
-}
+import { SelectedProperty } from './types';
 
 interface GroupedAttribute {
     name: string;
     values: Array<{ id: string; value: string }>;
 }
 
-const StockProperties: React.FC = () => {
+interface StockPropertiesProps {
+    selectedProperties: SelectedProperty[];
+    setSelectedProperties: React.Dispatch<React.SetStateAction<SelectedProperty[]>>;
+}
+
+const StockProperties: React.FC<StockPropertiesProps> = ({
+    selectedProperties,
+    setSelectedProperties
+}) => {
     const { toast } = useToast();
     const { attributes, loading, error } = useAttributes();
     const [valueDialogOpen, setValueDialogOpen] = useState(false);
     const [activeAttributeName, setActiveAttributeName] = useState<string | null>(null);
     const { formState, updateAttributes } = useStockForm();
-    const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
 
     // Group attributes by name
     const groupedAttributes = React.useMemo(() => {

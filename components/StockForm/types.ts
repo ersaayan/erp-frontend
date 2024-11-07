@@ -5,9 +5,9 @@ export interface Attribute {
 }
 
 export interface SelectedProperty {
-    attributeId: string;
     propertyName: string;
     selectedValues: string[];
+    attributeIds: string[];
 }
 
 export interface GroupedAttribute {
