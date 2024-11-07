@@ -28,14 +28,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { SelectedProperty } from './types';
 
-interface GroupedAttribute {
-    name: string;
-    values: Array<{ id: string; value: string }>;
-}
-
 interface StockPropertiesProps {
     selectedProperties: SelectedProperty[];
-    setSelectedProperties: React.Dispatch<React.SetStateAction<SelectedProperty[]>>;
+    setSelectedProperties: (properties: SelectedProperty[]) => void;
 }
 
 const StockProperties: React.FC<StockPropertiesProps> = ({
@@ -50,7 +45,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
 
     // Group attributes by name
     const groupedAttributes = React.useMemo(() => {
-        const groups = new Map<string, GroupedAttribute>();
+        const groups = new Map<string, { name: string; values: Array<{ id: string; value: string }> }>();
 
         attributes.forEach(attr => {
             if (!groups.has(attr.attributeName)) {
@@ -109,7 +104,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
 
             setSelectedProperties(initialProperties);
         }
-    }, [loading, attributes, formState.attributes]);
+    }, [loading, attributes]);
 
     const updateFormState = useCallback((properties: SelectedProperty[]) => {
         try {
@@ -156,16 +151,14 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
             );
 
             if (availableAttribute) {
-                const newProperties = [
+                setSelectedProperties([
                     ...selectedProperties,
                     {
                         propertyName: availableAttribute.name,
                         selectedValues: [],
                         attributeIds: availableAttribute.values.map(v => v.id)
                     }
-                ];
-                setSelectedProperties(newProperties);
-                updateFormState(newProperties);
+                ]);
             }
         } catch (err) {
             console.error('Add property error:', err);
@@ -175,13 +168,13 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik eklenemedi"
             });
         }
-    }, [groupedAttributes, selectedProperties, updateFormState, toast]);
+    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateFormState, toast]);
 
     const handleRemoveProperty = useCallback((propertyName: string) => {
         try {
-            const newProperties = selectedProperties.filter(prop => prop.propertyName !== propertyName);
-            setSelectedProperties(newProperties);
-            updateFormState(newProperties);
+            setSelectedProperties(
+                selectedProperties.filter(prop => prop.propertyName !== propertyName)
+            );
         } catch (err) {
             console.error('Remove property error:', err);
             toast({
@@ -190,21 +183,41 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik silinemedi"
             });
         }
-    }, [selectedProperties, updateFormState, toast]);
+    }, [selectedProperties, setSelectedProperties, updateFormState, toast]);
 
     const handleValueChange = useCallback((propertyName: string, value: string) => {
         try {
-            const newProperties = selectedProperties.map(prop => {
-                if (prop.propertyName === propertyName) {
-                    const newValues = prop.selectedValues.includes(value)
-                        ? prop.selectedValues.filter(v => v !== value)
-                        : [...prop.selectedValues, value];
-                    return { ...prop, selectedValues: newValues };
-                }
-                return prop;
-            });
-            setSelectedProperties(newProperties);
-            updateFormState(newProperties);
+            const attributeGroup = groupedAttributes.find(group => group.name === propertyName);
+            if (!attributeGroup) return;
+
+            const attributeValue = attributeGroup.values.find(v => v.value === value);
+            if (!attributeValue) return;
+
+            setSelectedProperties(
+                selectedProperties.map(prop => {
+                    if (prop.propertyName === propertyName) {
+                        const valueIndex = prop.selectedValues.indexOf(value);
+                        if (valueIndex === -1) {
+                            return {
+                                ...prop,
+                                selectedValues: [...prop.selectedValues, value],
+                                attributeIds: [...prop.attributeIds, attributeValue.id]
+                            };
+                        } else {
+                            const newValues = [...prop.selectedValues];
+                            const newIds = [...prop.attributeIds];
+                            newValues.splice(valueIndex, 1);
+                            newIds.splice(valueIndex, 1);
+                            return {
+                                ...prop,
+                                selectedValues: newValues,
+                                attributeIds: newIds
+                            };
+                        }
+                    }
+                    return prop;
+                })
+            );
         } catch (err) {
             console.error('Value change error:', err);
             toast({
@@ -213,7 +226,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Değer güncellenemedi"
             });
         }
-    }, [selectedProperties, updateFormState, toast]);
+    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateFormState, toast]);
 
     if (loading) {
         return (

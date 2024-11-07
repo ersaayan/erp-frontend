@@ -120,14 +120,16 @@ const StockForm: React.FC = () => {
   // Initialize state from formState
   useEffect(() => {
     if (formState.attributes.length > 0 && attributes.length > 0) {
-      const transformedProperties: SelectedProperty[] = formState.attributes.reduce((acc, attr) => {
+      const transformedProperties = formState.attributes.reduce((acc, attr) => {
         const attribute = attributes.find(a => a.id === attr.attributeId);
         if (!attribute) return acc;
 
         const existingProperty = acc.find(p => p.propertyName === attribute.attributeName);
         if (existingProperty) {
-          existingProperty.selectedValues.push(attr.value);
-          existingProperty.attributeIds.push(attr.attributeId);
+          if (!existingProperty.selectedValues.includes(attr.value)) {
+            existingProperty.selectedValues.push(attr.value);
+            existingProperty.attributeIds.push(attr.attributeId);
+          }
         } else {
           acc.push({
             propertyName: attribute.attributeName,
@@ -378,6 +380,24 @@ const StockForm: React.FC = () => {
       setPreviewImage(previewImage + 1);
     }
   };
+
+  const handlePropertiesChange = useCallback((newProperties: SelectedProperty[]) => {
+    setSelectedProperties(newProperties);
+
+    // Transform selected properties back to attributes format
+    const newAttributes = newProperties.flatMap(property => {
+      const propertyAttributes = attributes.filter(attr =>
+        attr.attributeName === property.propertyName
+      );
+
+      return property.selectedValues.map((value, index) => ({
+        attributeId: property.attributeIds[index] || propertyAttributes[index]?.id || '',
+        value: value
+      }));
+    });
+
+    updateAttributes(newAttributes);
+  }, [attributes, updateAttributes]);
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -1003,7 +1023,7 @@ const StockForm: React.FC = () => {
           <TabsContent value="ozellikler">
             <StockProperties
               selectedProperties={selectedProperties}
-              setSelectedProperties={setSelectedProperties}
+              setSelectedProperties={handlePropertiesChange}
             />
           </TabsContent>
 
