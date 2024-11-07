@@ -250,17 +250,48 @@ export const useStockForm = () => {
         }));
     }, []);
 
+    const calculatePriceWithVat = (price: number, vatRate: number | null) => {
+        const result = price * (1 + (vatRate ?? 0) / 100);
+        return parseFloat(result.toFixed(2));
+    };
+
     const saveStockCard = async (priceLists: PriceList[], updatedFormState: StockFormState) => {
         try {
             setLoading(true);
             setError(null);
+
+            const transformedPriceListItems = updatedFormState.priceListItems.map(
+                (item) => {
+                    const priceList = priceLists.find(
+                        (pl: PriceList) => pl.id === item.priceListId
+                    );
+                    return {
+                        priceListId: item.priceListId,
+                        price: priceList?.isVatIncluded
+                            ? calculatePriceWithVat(item.price, item.vatRate)
+                            : item.price,
+                    };
+                }
+            );
+
+            const transformedAttributes = updatedFormState.attributes.map(
+                ({ attributeId }) => ({
+                    attributeId,
+                })
+            );
+
+            const dataToSend = {
+                ...updatedFormState,
+                attributes: transformedAttributes,
+                priceListItems: transformedPriceListItems,
+            };
 
             const response = await fetch("http://localhost:1303/stockcards/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(updatedFormState),
+                body: JSON.stringify(dataToSend),
             });
 
             if (!response.ok) {

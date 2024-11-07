@@ -74,7 +74,13 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
 
     // Initialize from form state
     useEffect(() => {
-        if (!loading && attributes.length > 0 && formState.attributes.length > 0) {
+        if (
+            !loading &&
+            attributes.length > 0 &&
+            formState.attributes.length > 0 &&
+            selectedProperties.length === 0
+        ) {
+            // Group attributes and initialize selectedProperties
             const propertyMap = new Map<string, {
                 values: Set<string>;
                 attributeIds: Set<string>;
@@ -87,7 +93,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                     if (!propertyMap.has(name)) {
                         propertyMap.set(name, {
                             values: new Set(),
-                            attributeIds: new Set()
+                            attributeIds: new Set(),
                         });
                     }
                     const property = propertyMap.get(name)!;
@@ -96,11 +102,13 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 }
             });
 
-            const initialProperties = Array.from(propertyMap.entries()).map(([name, { values, attributeIds }]) => ({
-                propertyName: name,
-                selectedValues: Array.from(values),
-                attributeIds: Array.from(attributeIds)
-            }));
+            const initialProperties = Array.from(propertyMap.entries()).map(
+                ([name, { values, attributeIds }]) => ({
+                    propertyName: name,
+                    selectedValues: Array.from(values),
+                    attributeIds: Array.from(attributeIds),
+                })
+            );
 
             setSelectedProperties(initialProperties);
         }
