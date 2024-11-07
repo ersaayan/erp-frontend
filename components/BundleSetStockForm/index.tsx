@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Save } from 'lucide-react';
@@ -9,8 +9,10 @@ import StockProperties from '@/components/StockForm/StockProperties';
 import StockUnits from '@/components/StockForm/StockUnits';
 import GroupStocks from './GroupStocks';
 import { Card, CardContent } from '../ui/card';
+import { StockUnit } from '@/components/StockForm/types';
 
 const BundleSetStockForm: React.FC = () => {
+    const [units, setUnits] = useState<StockUnit[]>([]);
 
     return (
         <div className="flex flex-col h-auto">
@@ -42,7 +44,10 @@ const BundleSetStockForm: React.FC = () => {
                             </TabsContent>
 
                             <TabsContent value="units">
-                                <StockUnits />
+                                <StockUnits
+                                    units={units}
+                                    setUnits={setUnits}
+                                />
                             </TabsContent>
                         </Tabs>
 
@@ -59,7 +64,6 @@ const BundleSetStockForm: React.FC = () => {
                         </Card>
                     </div>
                 </div>
-
             </div>
         </div>
     );

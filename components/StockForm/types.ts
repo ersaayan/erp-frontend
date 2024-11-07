@@ -1,6 +1,6 @@
 export interface Attribute {
     id: string;
-    attributeName: string;  // Use 'attributeId' consistently
+    attributeName: string;
     value: string;
 }
 
@@ -19,7 +19,7 @@ export interface GroupedAttribute {
 }
 
 export interface Manufacturer {
-    id: number; // Changed from string to number
+    id: number;
     brandName: string;
     brandCode: string;
     currentId: string;
@@ -30,7 +30,7 @@ export interface Manufacturer {
 }
 
 export interface StockUnit {
-    id: number; // Ensure 'id' is a number
+    id: number;
     value: string;
     label: string;
     priceListId: string;
@@ -38,4 +38,11 @@ export interface StockUnit {
     price: number;
     priceWithVat: number | null;
     barcode: string;
+}
+
+export interface FilterBuilderPopupPosition {
+    of?: string | Element;
+    at?: string;
+    my?: string;
+    offset?: string;
 }

@@ -124,7 +124,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
         updatePriceListItems(updatedUnits);
     };
 
-    const updateFormState = () => {
+    const updateFormState = React.useCallback(() => {
         updatePriceListItems(units.map(unit => ({
             priceListId: unit.priceListId,
             vatRate: unit.vatRate,
@@ -132,7 +132,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
             priceWithVat: unit.priceWithVat,
             barcode: unit.barcode
         })));
-    };
+    }, [units, updatePriceListItems]);
 
     // Save state before unmounting
     useEffect(() => {
