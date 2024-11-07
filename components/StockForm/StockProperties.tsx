@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -20,28 +20,33 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from 'lucide-react';
 import { useAttributes } from './hooks/useAttributes';
 import { useStockForm } from './hooks/useStockForm';
 import { useToast } from '@/hooks/use-toast';
 import PropertyValueDialog from './PropertyValueDialog';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from 'lucide-react';
 import { SelectedProperty } from './types';
 
 interface StockPropertiesProps {
-    selectedProperties: SelectedProperty[];
-    setSelectedProperties: (properties: SelectedProperty[]) => void;
+    selectedProperties?: SelectedProperty[];
+    setSelectedProperties?: (properties: SelectedProperty[]) => void;
 }
 
 const StockProperties: React.FC<StockPropertiesProps> = ({
-    selectedProperties,
-    setSelectedProperties
+    selectedProperties: externalSelectedProperties,
+    setSelectedProperties: externalSetSelectedProperties,
 }) => {
     const { toast } = useToast();
     const { attributes, loading, error } = useAttributes();
     const [valueDialogOpen, setValueDialogOpen] = useState(false);
     const [activeAttributeName, setActiveAttributeName] = useState<string | null>(null);
     const { formState, updateAttributes } = useStockForm();
+    const [internalSelectedProperties, setInternalSelectedProperties] = useState<SelectedProperty[]>([]);
+
+    // Use either external or internal state
+    const selectedProperties = externalSelectedProperties || internalSelectedProperties;
+    const setSelectedProperties = externalSetSelectedProperties || setInternalSelectedProperties;
 
     // Group attributes by name
     const groupedAttributes = React.useMemo(() => {
@@ -72,6 +77,119 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
         [groupedAttributes]
     );
 
+    // Get available attribute names (not already selected)
+    const availableAttributeNames = React.useMemo(() =>
+        uniqueAttributeNames.filter(name =>
+            !selectedProperties.some(prop => prop.propertyName === name)
+        ),
+        [uniqueAttributeNames, selectedProperties]
+    );
+
+    const handleAddProperty = useCallback(() => {
+        try {
+            if (availableAttributeNames.length > 0) {
+                const newPropertyName = availableAttributeNames[0];
+                const attributeGroup = groupedAttributes.find(group => group.name === newPropertyName);
+
+                if (attributeGroup) {
+                    setSelectedProperties([
+                        ...selectedProperties,
+                        {
+                            propertyName: newPropertyName,
+                            selectedValues: [],
+                            attributeIds: attributeGroup.values.map(v => v.id)
+                        }
+                    ]);
+                }
+            }
+        } catch (err) {
+            console.error('Add property error:', err);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Özellik eklenemedi"
+            });
+        }
+    }, [availableAttributeNames, groupedAttributes, selectedProperties, setSelectedProperties, toast]);
+
+    const handleRemoveProperty = useCallback((propertyName: string) => {
+        try {
+            const updatedProperties = selectedProperties.filter(prop => prop.propertyName !== propertyName);
+            setSelectedProperties(updatedProperties);
+
+            // Update form state
+            const newAttributes = updatedProperties.flatMap(property => {
+                const attributeGroup = groupedAttributes.find(group => group.name === property.propertyName);
+                return property.selectedValues.map((value, index) => ({
+                    attributeId: property.attributeIds[index] || '',
+                    value: value
+                }));
+            });
+
+            updateAttributes(newAttributes);
+        } catch (err) {
+            console.error('Remove property error:', err);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Özellik silinemedi"
+            });
+        }
+    }, [selectedProperties, setSelectedProperties, groupedAttributes, updateAttributes, toast]);
+
+    const handleValueChange = useCallback((propertyName: string, value: string) => {
+        try {
+            const attributeGroup = groupedAttributes.find(group => group.name === propertyName);
+            if (!attributeGroup) return;
+
+            const attributeValue = attributeGroup.values.find(v => v.value === value);
+            if (!attributeValue) return;
+
+            const updatedProperties = selectedProperties.map(prop => {
+                if (prop.propertyName === propertyName) {
+                    const valueIndex = prop.selectedValues.indexOf(value);
+                    if (valueIndex === -1) {
+                        return {
+                            ...prop,
+                            selectedValues: [...prop.selectedValues, value],
+                            attributeIds: [...prop.attributeIds, attributeValue.id]
+                        };
+                    } else {
+                        const newValues = [...prop.selectedValues];
+                        const newIds = [...prop.attributeIds];
+                        newValues.splice(valueIndex, 1);
+                        newIds.splice(valueIndex, 1);
+                        return {
+                            ...prop,
+                            selectedValues: newValues,
+                            attributeIds: newIds
+                        };
+                    }
+                }
+                return prop;
+            });
+
+            setSelectedProperties(updatedProperties);
+
+            // Update form state
+            const newAttributes = updatedProperties.flatMap(property => {
+                return property.selectedValues.map((value, index) => ({
+                    attributeId: property.attributeIds[index],
+                    value: value
+                }));
+            });
+
+            updateAttributes(newAttributes);
+        } catch (err) {
+            console.error('Value change error:', err);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Değer güncellenemedi"
+            });
+        }
+    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateAttributes, toast]);
+
     // Initialize from form state
     useEffect(() => {
         if (
@@ -80,7 +198,6 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
             formState.attributes.length > 0 &&
             selectedProperties.length === 0
         ) {
-            // Group attributes and initialize selectedProperties
             const propertyMap = new Map<string, {
                 values: Set<string>;
                 attributeIds: Set<string>;
@@ -112,129 +229,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
 
             setSelectedProperties(initialProperties);
         }
-    }, [loading, attributes]);
-
-    const updateFormState = useCallback((properties: SelectedProperty[]) => {
-        try {
-            const newAttributes: Array<{ attributeId: string; value: string }> = [];
-
-            properties.forEach(property => {
-                const attributeGroup = groupedAttributes.find(group => group.name === property.propertyName);
-                if (attributeGroup) {
-                    property.selectedValues.forEach(value => {
-                        const attributeValue = attributeGroup.values.find(v => v.value === value);
-                        if (attributeValue) {
-                            newAttributes.push({
-                                attributeId: attributeValue.id,
-                                value: value
-                            });
-                        }
-                    });
-                }
-            });
-
-            updateAttributes(newAttributes);
-        } catch (err) {
-            console.error('Form state update error:', err);
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Özellikler güncellenemedi"
-            });
-        }
-    }, [groupedAttributes, updateAttributes, toast]);
-
-    useEffect(() => {
-        return () => {
-            if (selectedProperties.length > 0) {
-                updateFormState(selectedProperties);
-            }
-        };
-    }, [selectedProperties, updateFormState]);
-
-    const handleAddProperty = useCallback(() => {
-        try {
-            const availableAttribute = groupedAttributes.find(
-                attr => !selectedProperties.some(selected => selected.propertyName === attr.name)
-            );
-
-            if (availableAttribute) {
-                setSelectedProperties([
-                    ...selectedProperties,
-                    {
-                        propertyName: availableAttribute.name,
-                        selectedValues: [],
-                        attributeIds: availableAttribute.values.map(v => v.id)
-                    }
-                ]);
-            }
-        } catch (err) {
-            console.error('Add property error:', err);
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Özellik eklenemedi"
-            });
-        }
-    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateFormState, toast]);
-
-    const handleRemoveProperty = useCallback((propertyName: string) => {
-        try {
-            setSelectedProperties(
-                selectedProperties.filter(prop => prop.propertyName !== propertyName)
-            );
-        } catch (err) {
-            console.error('Remove property error:', err);
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Özellik silinemedi"
-            });
-        }
-    }, [selectedProperties, setSelectedProperties, updateFormState, toast]);
-
-    const handleValueChange = useCallback((propertyName: string, value: string) => {
-        try {
-            const attributeGroup = groupedAttributes.find(group => group.name === propertyName);
-            if (!attributeGroup) return;
-
-            const attributeValue = attributeGroup.values.find(v => v.value === value);
-            if (!attributeValue) return;
-
-            setSelectedProperties(
-                selectedProperties.map(prop => {
-                    if (prop.propertyName === propertyName) {
-                        const valueIndex = prop.selectedValues.indexOf(value);
-                        if (valueIndex === -1) {
-                            return {
-                                ...prop,
-                                selectedValues: [...prop.selectedValues, value],
-                                attributeIds: [...prop.attributeIds, attributeValue.id]
-                            };
-                        } else {
-                            const newValues = [...prop.selectedValues];
-                            const newIds = [...prop.attributeIds];
-                            newValues.splice(valueIndex, 1);
-                            newIds.splice(valueIndex, 1);
-                            return {
-                                ...prop,
-                                selectedValues: newValues,
-                                attributeIds: newIds
-                            };
-                        }
-                    }
-                    return prop;
-                })
-            );
-        } catch (err) {
-            console.error('Value change error:', err);
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Değer güncellenemedi"
-            });
-        }
-    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateFormState, toast]);
+    }, [loading, attributes, formState.attributes, selectedProperties.length, setSelectedProperties]);
 
     if (loading) {
         return (
@@ -271,7 +266,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                         <Button
                             variant="outline"
                             onClick={handleAddProperty}
-                            disabled={selectedProperties.length === uniqueAttributeNames.length}
+                            disabled={availableAttributeNames.length === 0}
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Özellik Ekle
@@ -305,7 +300,6 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                                                         : prop
                                                 );
                                                 setSelectedProperties(newProperties);
-                                                updateFormState(newProperties);
                                             }}
                                         >
                                             <SelectTrigger>
