@@ -92,14 +92,13 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 const attributeGroup = groupedAttributes.find(group => group.name === newPropertyName);
 
                 if (attributeGroup) {
-                    setSelectedProperties([
-                        ...selectedProperties,
-                        {
-                            propertyName: newPropertyName,
-                            selectedValues: [],
-                            attributeIds: attributeGroup.values.map(v => v.id)
-                        }
-                    ]);
+                    const newProperties = [...selectedProperties];
+                    newProperties.push({
+                        propertyName: newPropertyName,
+                        selectedValues: [],
+                        attributeIds: []
+                    });
+                    setSelectedProperties(newProperties);
                 }
             }
         } catch (err) {
@@ -119,7 +118,6 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
 
             // Update form state
             const newAttributes = updatedProperties.flatMap(property => {
-                const attributeGroup = groupedAttributes.find(group => group.name === property.propertyName);
                 return property.selectedValues.map((value, index) => ({
                     attributeId: property.attributeIds[index] || '',
                     value: value
@@ -135,7 +133,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik silinemedi"
             });
         }
-    }, [selectedProperties, setSelectedProperties, groupedAttributes, updateAttributes, toast]);
+    }, [selectedProperties, setSelectedProperties, updateAttributes, toast]);
 
     const handleValueChange = useCallback((propertyName: string, value: string) => {
         try {
@@ -149,12 +147,14 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 if (prop.propertyName === propertyName) {
                     const valueIndex = prop.selectedValues.indexOf(value);
                     if (valueIndex === -1) {
+                        // Add value
                         return {
                             ...prop,
                             selectedValues: [...prop.selectedValues, value],
                             attributeIds: [...prop.attributeIds, attributeValue.id]
                         };
                     } else {
+                        // Remove value
                         const newValues = [...prop.selectedValues];
                         const newIds = [...prop.attributeIds];
                         newValues.splice(valueIndex, 1);
@@ -189,6 +189,32 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
             });
         }
     }, [groupedAttributes, selectedProperties, setSelectedProperties, updateAttributes, toast]);
+
+    const handlePropertyNameChange = useCallback((oldName: string, newName: string) => {
+        try {
+            const attributeGroup = groupedAttributes.find(group => group.name === newName);
+            if (!attributeGroup) return;
+
+            const updatedProperties = selectedProperties.map(prop =>
+                prop.propertyName === oldName
+                    ? {
+                        propertyName: newName,
+                        selectedValues: [],
+                        attributeIds: []
+                    }
+                    : prop
+            );
+
+            setSelectedProperties(updatedProperties);
+        } catch (err) {
+            console.error('Property name change error:', err);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Özellik adı değiştirilemedi"
+            });
+        }
+    }, [groupedAttributes, selectedProperties, setSelectedProperties, toast]);
 
     // Initialize from form state
     useEffect(() => {
@@ -287,30 +313,23 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                                     <TableCell className="font-medium">
                                         <Select
                                             value={property.propertyName}
-                                            onValueChange={(value) => {
-                                                const newProperties = selectedProperties.map(prop =>
-                                                    prop.propertyName === property.propertyName
-                                                        ? {
-                                                            propertyName: value,
-                                                            selectedValues: [],
-                                                            attributeIds: groupedAttributes
-                                                                .find(attr => attr.name === value)?.values
-                                                                .map(v => v.id) || []
-                                                        }
-                                                        : prop
-                                                );
-                                                setSelectedProperties(newProperties);
-                                            }}
+                                            onValueChange={(value) => handlePropertyNameChange(property.propertyName, value)}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Özellik seçin" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {uniqueAttributeNames.map(name => (
-                                                    <SelectItem key={name} value={name}>
-                                                        {name}
-                                                    </SelectItem>
-                                                ))}
+                                                {uniqueAttributeNames
+                                                    .filter(name =>
+                                                        name === property.propertyName ||
+                                                        !selectedProperties.some(p => p.propertyName === name)
+                                                    )
+                                                    .map(name => (
+                                                        <SelectItem key={name} value={name}>
+                                                            {name}
+                                                        </SelectItem>
+                                                    ))
+                                                }
                                             </SelectContent>
                                         </Select>
                                     </TableCell>
