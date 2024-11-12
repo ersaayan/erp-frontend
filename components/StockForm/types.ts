@@ -1,3 +1,5 @@
+import { number } from "prop-types";
+
 export interface Attribute {
     id: string;
     attributeName: string;
@@ -19,7 +21,7 @@ export interface GroupedAttribute {
 }
 
 export interface Manufacturer {
-    id: number;
+    id: string;
     brandName: string;
     brandCode: string;
     currentId: string;
@@ -30,7 +32,7 @@ export interface Manufacturer {
 }
 
 export interface StockUnit {
-    id: number;
+    id?: string;
     value: string;
     label: string;
     priceListId: string;

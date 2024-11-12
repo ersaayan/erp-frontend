@@ -100,11 +100,12 @@ export interface StockCard {
         marketName: string;
     }>;
     stockCardPriceLists: Array<{
-        barcode: string;
         id: string;
         priceListId: string;
         stockCardId: string;
         price: string;
+        barcode: string;
+        vatRate: string;
         priceList: {
             id: string;
             priceListName: string;

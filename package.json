@@ -70,6 +70,7 @@
   },
   "devDependencies": {
     "@types/file-saver-es": "^2.0.3",
+    "@types/jasmine": "^5.1.4",
     "@types/node": "^20",
     "@types/prop-types": "^15.7.13",
     "@types/react": "^18",

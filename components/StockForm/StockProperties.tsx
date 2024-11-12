@@ -89,17 +89,11 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
         try {
             if (availableAttributeNames.length > 0) {
                 const newPropertyName = availableAttributeNames[0];
-                const attributeGroup = groupedAttributes.find(group => group.name === newPropertyName);
-
-                if (attributeGroup) {
-                    const newProperties = [...selectedProperties];
-                    newProperties.push({
-                        propertyName: newPropertyName,
-                        selectedValues: [],
-                        attributeIds: []
-                    });
-                    setSelectedProperties(newProperties);
-                }
+                setSelectedProperties(prevProperties => [...prevProperties, {
+                    propertyName: newPropertyName,
+                    selectedValues: [],
+                    attributeIds: []
+                }]);
             }
         } catch (err) {
             console.error('Add property error:', err);
@@ -109,22 +103,11 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik eklenemedi"
             });
         }
-    }, [availableAttributeNames, groupedAttributes, selectedProperties, setSelectedProperties, toast]);
+    }, [availableAttributeNames, setSelectedProperties, toast]);
 
     const handleRemoveProperty = useCallback((propertyName: string) => {
         try {
-            const updatedProperties = selectedProperties.filter(prop => prop.propertyName !== propertyName);
-            setSelectedProperties(updatedProperties);
-
-            // Update form state
-            const newAttributes = updatedProperties.flatMap(property => {
-                return property.selectedValues.map((value, index) => ({
-                    attributeId: property.attributeIds[index] || '',
-                    value: value
-                }));
-            });
-
-            updateAttributes(newAttributes);
+            setSelectedProperties(prevProperties => prevProperties.filter(prop => prop.propertyName !== propertyName));
         } catch (err) {
             console.error('Remove property error:', err);
             toast({
@@ -133,7 +116,7 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik silinemedi"
             });
         }
-    }, [selectedProperties, setSelectedProperties, updateAttributes, toast]);
+    }, [setSelectedProperties, toast]);
 
     const handleValueChange = useCallback((propertyName: string, value: string) => {
         try {
@@ -143,43 +126,34 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
             const attributeValue = attributeGroup.values.find(v => v.value === value);
             if (!attributeValue) return;
 
-            const updatedProperties = selectedProperties.map(prop => {
-                if (prop.propertyName === propertyName) {
-                    const valueIndex = prop.selectedValues.indexOf(value);
-                    if (valueIndex === -1) {
-                        // Add value
-                        return {
-                            ...prop,
-                            selectedValues: [...prop.selectedValues, value],
-                            attributeIds: [...prop.attributeIds, attributeValue.id]
-                        };
-                    } else {
-                        // Remove value
-                        const newValues = [...prop.selectedValues];
-                        const newIds = [...prop.attributeIds];
-                        newValues.splice(valueIndex, 1);
-                        newIds.splice(valueIndex, 1);
-                        return {
-                            ...prop,
-                            selectedValues: newValues,
-                            attributeIds: newIds
-                        };
+            setSelectedProperties(prevProperties => {
+                const updatedProperties = prevProperties.map(prop => {
+                    if (prop.propertyName === propertyName) {
+                        const valueIndex = prop.selectedValues.indexOf(value);
+                        if (valueIndex === -1) {
+                            // Add value
+                            return {
+                                ...prop,
+                                selectedValues: [...prop.selectedValues, value],
+                                attributeIds: [...prop.attributeIds, attributeValue.id]
+                            };
+                        } else {
+                            // Remove value
+                            const newValues = [...prop.selectedValues];
+                            const newIds = [...prop.attributeIds];
+                            newValues.splice(valueIndex, 1);
+                            newIds.splice(valueIndex, 1);
+                            return {
+                                ...prop,
+                                selectedValues: newValues,
+                                attributeIds: newIds
+                            };
+                        }
                     }
-                }
-                return prop;
+                    return prop;
+                });
+                return updatedProperties;
             });
-
-            setSelectedProperties(updatedProperties);
-
-            // Update form state
-            const newAttributes = updatedProperties.flatMap(property => {
-                return property.selectedValues.map((value, index) => ({
-                    attributeId: property.attributeIds[index],
-                    value: value
-                }));
-            });
-
-            updateAttributes(newAttributes);
         } catch (err) {
             console.error('Value change error:', err);
             toast({
@@ -188,24 +162,24 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Değer güncellenemedi"
             });
         }
-    }, [groupedAttributes, selectedProperties, setSelectedProperties, updateAttributes, toast]);
+    }, [groupedAttributes, setSelectedProperties, toast]);
 
     const handlePropertyNameChange = useCallback((oldName: string, newName: string) => {
         try {
             const attributeGroup = groupedAttributes.find(group => group.name === newName);
             if (!attributeGroup) return;
 
-            const updatedProperties = selectedProperties.map(prop =>
-                prop.propertyName === oldName
-                    ? {
-                        propertyName: newName,
-                        selectedValues: [],
-                        attributeIds: []
-                    }
-                    : prop
-            );
-
-            setSelectedProperties(updatedProperties);
+            setSelectedProperties(prevProperties => {
+                return prevProperties.map(prop =>
+                    prop.propertyName === oldName
+                        ? {
+                            propertyName: newName,
+                            selectedValues: [],
+                            attributeIds: []
+                        }
+                        : prop
+                );
+            });
         } catch (err) {
             console.error('Property name change error:', err);
             toast({
@@ -214,7 +188,18 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 description: "Özellik adı değiştirilemedi"
             });
         }
-    }, [groupedAttributes, selectedProperties, setSelectedProperties, toast]);
+    }, [groupedAttributes, setSelectedProperties, toast]);
+
+    // Update form state whenever selectedProperties changes
+    useEffect(() => {
+        const newAttributes = selectedProperties.flatMap(property => {
+            return property.selectedValues.map((value, index) => ({
+                attributeId: property.attributeIds[index],
+                value: value,
+            }));
+        });
+        updateAttributes(newAttributes);
+    }, [selectedProperties, updateAttributes]);
 
     // Initialize from form state
     useEffect(() => {
@@ -245,15 +230,16 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
                 }
             });
 
-            const initialProperties = Array.from(propertyMap.entries()).map(
-                ([name, { values, attributeIds }]) => ({
-                    propertyName: name,
-                    selectedValues: Array.from(values),
-                    attributeIds: Array.from(attributeIds),
-                })
-            );
-
-            setSelectedProperties(initialProperties);
+            if (selectedProperties.length === 0) {
+                const initialProperties = Array.from(propertyMap.entries()).map(
+                    ([name, { values, attributeIds }]) => ({
+                        propertyName: name,
+                        selectedValues: Array.from(values),
+                        attributeIds: Array.from(attributeIds),
+                    })
+                );
+                setSelectedProperties(initialProperties);
+            }
         }
     }, [loading, attributes, formState.attributes, selectedProperties.length, setSelectedProperties]);
 
@@ -397,4 +383,4 @@ const StockProperties: React.FC<StockPropertiesProps> = ({
     );
 };
 
-export default StockProperties;
+export default StockProperties;  

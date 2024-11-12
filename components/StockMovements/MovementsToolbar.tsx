@@ -42,11 +42,6 @@ const MovementsToolbar: React.FC = () => {
                 </Button>
 
                 <Button variant="outline" size="sm">
-                    <List className="h-4 w-4 mr-2" />
-                    Tüm Hareketler
-                </Button>
-
-                <Button variant="outline" size="sm">
                     <Import className="h-4 w-4 mr-2" />
                     İçe Aktar
                 </Button>

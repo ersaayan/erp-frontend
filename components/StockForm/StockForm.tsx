@@ -113,18 +113,25 @@ const StockForm: React.FC = () => {
   } = useStockForm();
 
   const { priceLists } = usePriceLists();
-  const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
+  const [selectedProperties, setSelectedProperties] = useState([]);
+
+  const memoizedSetSelectedProperties = useCallback(
+    (properties) => setSelectedProperties(properties),
+    []
+  );
 
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [unitList, setUnitList] = useState<StockUnit[]>([]);
   // Initialize state from formState
   useEffect(() => {
-    if (formState.attributes.length > 0 && attributes.length > 0) {
+    if (formState.attributes.length > 0 && attributes.length > 0 && selectedProperties.length === 0) {
       const transformedProperties = formState.attributes.reduce((acc, attr) => {
-        const attribute = attributes.find(a => a.id === attr.attributeId);
+        const attribute = attributes.find((a) => a.id === attr.attributeId);
         if (!attribute) return acc;
 
-        const existingProperty = acc.find(p => p.propertyName === attribute.attributeName);
+        const existingProperty = acc.find(
+          (p) => p.propertyName === attribute.attributeName
+        );
         if (existingProperty) {
           if (!existingProperty.selectedValues.includes(attr.value)) {
             existingProperty.selectedValues.push(attr.value);
@@ -134,7 +141,7 @@ const StockForm: React.FC = () => {
           acc.push({
             propertyName: attribute.attributeName,
             selectedValues: [attr.value],
-            attributeIds: [attr.attributeId]
+            attributeIds: [attr.attributeId],
           });
         }
         return acc;
@@ -144,8 +151,8 @@ const StockForm: React.FC = () => {
     }
     if (formState.manufacturers.length > 0) {
       setManufacturers(
-        formState.manufacturers.map((m, index) => ({
-          id: index + 1, // Ensure 'id' is a number
+        formState.manufacturers.map((m) => ({
+          id: m.id?.toString() || '', // Ensure 'id' is a string
           brandName: "",
           brandCode: "",
           currentId: m.currentId,
@@ -158,16 +165,20 @@ const StockForm: React.FC = () => {
     }
     if (formState.priceListItems.length > 0) {
       setUnitList(
-        formState.priceListItems.map((item, index) => ({
-          id: index + 1, // Ensure 'id' is a number
-          value: "",
-          label: "",
-          priceListId: item.priceListId,
-          vatRate: item.vatRate,
-          price: item.price,
-          priceWithVat: item.priceWithVat,
-          barcode: item.barcode,
-        }))
+        formState.priceListItems.map((item) => {
+          const calculatedPriceWithVat = item.price * (1 + (item.vatRate ?? 0) / 100);
+
+          return {
+            id: item.id?.toString() || '', // Ensure 'id' is a string
+            value: "",
+            label: "",
+            priceListId: item.priceListId,
+            vatRate: item.vatRate,
+            price: item.price,
+            priceWithVat: parseFloat(calculatedPriceWithVat.toFixed(2)),
+            barcode: item.barcode,
+          };
+        })
       );
     }
 
@@ -244,16 +255,14 @@ const StockForm: React.FC = () => {
       const updatedCategoryItemsState = selectedCategories;
 
       const updatedAttributes = selectedProperties.flatMap((prop) => {
-        const attribute = attributes.find(
-          (attr) => attr.attributeName === prop.propertyName
-        );
-        return prop.selectedValues.map((value) => ({
-          attributeId: attribute ? attribute.id : "",
+        return prop.selectedValues.map((value, index) => ({
+          attributeId: prop.attributeIds[index],
           value: value,
         }));
       });
 
       const updatedManufacturers = manufacturers.map((m) => ({
+        id: m.id?.toString() || '', // Ensure 'id' is a string
         productCode: m.code,
         productName: m.stockName,
         barcode: m.barcode,
@@ -261,21 +270,24 @@ const StockForm: React.FC = () => {
         currentId: m.currentId,
       }));
 
-      const updatedPriceListItems = unitList.map((unit) => ({
-        priceListId: unit.priceListId,
-        price: unit.price,
-        vatRate: unit.vatRate,
-        priceWithVat: unit.priceWithVat,
-        barcode: unit.barcode,
-      }));
+      const updatedPriceListItems = unitList.map((unit) => {
+        const calculatedPriceWithVat = unit.price * (1 + (unit.vatRate ?? 0) / 100);
+
+        return {
+          id: unit.id?.toString() || '', // Ensure 'id' is a string
+          priceListId: unit.priceListId,
+          price: unit.price,
+          vatRate: unit.vatRate,
+          priceWithVat: parseFloat(calculatedPriceWithVat.toFixed(2)),
+          barcode: unit.barcode,
+        };
+      });
 
       const updatedBarcodes = [
-        ...barcodes.map((tag) => ({ barcode: tag.text })),
-        ...unitList.map((unit) => ({ barcode: unit.barcode })),
+        ...barcodes.map((tag) => ({ barcode: tag.text }))
       ];
       const updatedBarcodesState = [
-        ...barcodes.map((tag) => tag.text),
-        ...unitList.map((unit) => unit.barcode),
+        ...barcodes.map((tag) => tag.text)
       ];
 
       // State'i güncelleyin (opsiyonel)
@@ -380,25 +392,6 @@ const StockForm: React.FC = () => {
       setPreviewImage(previewImage + 1);
     }
   };
-
-  const handlePropertiesChange = useCallback((newProperties: SelectedProperty[]) => {
-    setSelectedProperties(newProperties);
-
-    // Transform selected properties back to attributes format
-    const newAttributes = newProperties.flatMap(property => {
-      const propertyAttributes = attributes.filter(attr =>
-        attr.attributeName === property.propertyName
-      );
-
-      return property.selectedValues.map((value, index) => ({
-        attributeId: property.attributeIds[index] || propertyAttributes[index]?.id || '',
-        value: value
-      }));
-    });
-
-    updateAttributes(newAttributes);
-  }, [attributes, updateAttributes]);
-
   return (
     <div className="flex flex-col h-full w-full">
       <div className="flex justify-between items-center mb-4 px-4 pt-4">
@@ -419,7 +412,7 @@ const StockForm: React.FC = () => {
         </div>
         <Button variant="default" onClick={handleSave} disabled={saveLoading}>
           {saveLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Kaydet
+          {formState.isUpdateMode ? "Güncelle" : "Kaydet"}
         </Button>
       </div>
 
@@ -670,7 +663,7 @@ const StockForm: React.FC = () => {
                         </Alert>
                       ) : (
                         <Select
-                          value={formState.stockCardWarehouse[0]?.id}
+                          value={formState.stockCardWarehouse[0]?.warehouseId}
                           onValueChange={(value) =>
                             updateWarehouse(
                               value,
@@ -704,7 +697,7 @@ const StockForm: React.FC = () => {
                         value={formState.stockCardWarehouse[0]?.quantity || 0}
                         onChange={(e) => {
                           const warehouseId =
-                            formState.stockCardWarehouse[0]?.id;
+                            formState.stockCardWarehouse[0]?.warehouseId;
                           if (warehouseId) {
                             updateWarehouse(
                               warehouseId,
@@ -791,7 +784,7 @@ const StockForm: React.FC = () => {
                   <div className="flex items-center justify-end space-x-4">
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={isSerili}
+                        checked={formState.stockCard.hasExpirationDate}
                         onCheckedChange={(checked) => {
                           setIsSerili(checked);
                           updateStockCard("hasExpirationDate", checked);
@@ -802,7 +795,7 @@ const StockForm: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={isYerli}
+                        checked={formState.stockCard.allowNegativeStock}
                         onCheckedChange={(checked) => {
                           setIsYerli(checked);
                           updateStockCard("allowNegativeStock", checked);
@@ -1023,7 +1016,7 @@ const StockForm: React.FC = () => {
           <TabsContent value="ozellikler">
             <StockProperties
               selectedProperties={selectedProperties}
-              setSelectedProperties={handlePropertiesChange}
+              setSelectedProperties={memoizedSetSelectedProperties}
             />
           </TabsContent>
 

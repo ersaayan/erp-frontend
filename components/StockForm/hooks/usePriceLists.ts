@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface PriceList {
     id: string;
@@ -17,26 +17,26 @@ export const usePriceLists = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchPriceLists = async () => {
-            try {
-                const response = await fetch('http://localhost:1303/priceLists');
-                const data: PriceList[] = await response.json();
-                
-                // Filter active price lists
-                const activePriceLists = data.filter(list => list.isActive);
-                setPriceLists(activePriceLists);
-                setError(null);
-            } catch (err) {
-                setError('Fiyat listeleri yüklenirken bir hata oluştu');
-                console.error('Error fetching price lists:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchPriceLists = useCallback(async () => {
+        try {
+            const response = await fetch('http://localhost:1303/priceLists');
+            const data: PriceList[] = await response.json();
 
-        fetchPriceLists();
+            // Filter active price lists
+            const activePriceLists = data.filter(list => list.isActive);
+            setPriceLists(activePriceLists);
+            setError(null);
+        } catch (err) {
+            setError('Fiyat listeleri yüklenirken bir hata oluştu');
+            console.error('Error fetching price lists:', err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    return { priceLists, loading, error };
+    useEffect(() => {
+        fetchPriceLists();
+    }, [fetchPriceLists]);
+
+    return { priceLists, loading, error, fetchPriceLists };
 };

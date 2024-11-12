@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
@@ -32,6 +33,9 @@ const PropertyValueDialog: React.FC<PropertyValueDialogProps> = ({
                 <DialogHeader>
                     <DialogTitle>{title} Değerleri</DialogTitle>
                 </DialogHeader>
+                <DialogDescription>
+                    Lütfen özellik için bir veya daha fazla değer seçin.
+                </DialogDescription>
                 <ScrollArea className="h-[300px] w-full rounded-md border p-4">
                     <div className="grid grid-cols-2 gap-2">
                         {values.map(({ id, value }) => (
@@ -41,8 +45,7 @@ const PropertyValueDialog: React.FC<PropertyValueDialogProps> = ({
                                 onClick={() => onValueChange(value)}
                                 className="justify-start"
                             >
-                                <Check className={`mr-2 h-4 w-4 ${selectedValues.includes(value) ? "opacity-100" : "opacity-0"
-                                    }`} />
+                                <Check className={`mr-2 h-4 w-4 ${selectedValues.includes(value) ? "opacity-100" : "opacity-0"}`} />
                                 {value}
                             </Button>
                         ))}

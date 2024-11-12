@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { useCurrents } from './hooks/useCurrents';
 import { useBrands } from './hooks/useBrands';
 import { useStockForm } from './hooks/useStockForm';
 import { Manufacturer } from './types'; // Import Manufacturer interface
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"; // Import Dialog components
 
 interface StockManufacturersProps {
     manufacturers: Manufacturer[];
@@ -28,12 +29,14 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
     const { currents, loading: currentsLoading, error: currentsError } = useCurrents();
     const { brands, loading: brandsLoading, error: brandsError } = useBrands();
     const { formState, updateManufacturers } = useStockForm();
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [manufacturerToDelete, setManufacturerToDelete] = useState<Manufacturer | null>(null);
 
     useEffect(() => {
         // Initialize manufacturers from formState if available
         if (formState.manufacturers.length > 0) {
             setManufacturers(formState.manufacturers.map((m, index) => ({
-                id: index + 1, // Ensure 'id' is a number
+                id: m.id?.toString() || '', // Ensure 'id' is a number
                 currentId: m.currentId,
                 stockName: m.productName,
                 code: m.productCode,
@@ -47,7 +50,7 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
 
     const addManufacturer = () => {
         const newManufacturer: Manufacturer = {
-            id: Date.now(),
+            id: Date.now().toString(), // Convert 'id' to string
             brandName: '',      // Added 'brandName'
             brandCode: '',      // Added 'brandCode'
             currentId: '',
@@ -61,13 +64,37 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
         updateFormState(updatedManufacturers);
     };
 
-    const removeManufacturer = (id: number) => {
-        const updatedManufacturers = manufacturers.filter(m => m.id !== id);
-        setManufacturers(updatedManufacturers);
-        updateFormState(updatedManufacturers);
+    const confirmDeleteManufacturer = (manufacturer: Manufacturer) => {
+        setManufacturerToDelete(manufacturer);
+        setDeleteDialogOpen(true);
     };
 
-    const updateManufacturer = (id: number, field: keyof Manufacturer, value: string) => {
+    const deleteManufacturer = async () => {
+        if (!manufacturerToDelete) return;
+
+        if (formState.isUpdateMode) {
+            try {
+                const response = await fetch(`http://localhost:1303/manufacturers/${manufacturerToDelete.id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error deleting manufacturer');
+                }
+            } catch (error) {
+                console.error('Error deleting manufacturer:', error);
+                return;
+            }
+        }
+
+        const updatedManufacturers = manufacturers.filter(m => m.id !== manufacturerToDelete.id);
+        setManufacturers(updatedManufacturers);
+        updateFormState(updatedManufacturers);
+        setDeleteDialogOpen(false);
+        setManufacturerToDelete(null);
+    };
+
+    const updateManufacturer = (id: string, field: keyof Manufacturer, value: string) => { // Change 'id' type to string
         const updatedManufacturers = manufacturers.map(m =>
             m.id === id ? { ...m, [field]: value } : m
         );
@@ -77,6 +104,7 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
 
     const updateFormState = (manufacturers: Manufacturer[]) => {
         updateManufacturers(manufacturers.map(m => ({
+            id: m.id, // id alanını koruyun
             productCode: m.code,
             productName: m.stockName,
             barcode: m.barcode,
@@ -123,7 +151,7 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeManufacturer(manufacturer.id)}
+                                onClick={() => confirmDeleteManufacturer(manufacturer)}
                                 className="text-muted-foreground hover:text-destructive"
                             >
                                 <X className="h-4 w-4" />
@@ -204,6 +232,25 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({ manufacturers, 
                 <Plus className="h-4 w-4 mr-2" />
                 Yeni Üretici Ekle
             </Button>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Üreticiyi Sil</DialogTitle>
+                        <DialogDescription>
+                            Bu üreticiyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                            İptal
+                        </Button>
+                        <Button variant="destructive" onClick={deleteManufacturer}>
+                            Sil
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

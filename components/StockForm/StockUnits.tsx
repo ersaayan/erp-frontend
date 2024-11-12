@@ -22,7 +22,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { usePriceLists } from './hooks/usePriceLists';
 import { useStockForm } from './hooks/useStockForm';
-import { StockUnit } from './types'; // Import StockUnit interface
+import { StockUnit } from './types';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface StockUnitsProps {
     units: StockUnit[];
@@ -49,37 +51,62 @@ const onExporting = (e: any) => {
 };
 
 const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
+    const { toast } = useToast();
     const { priceLists, loading, error } = usePriceLists();
-    const { formState, updatePriceListItems } = useStockForm();  // Get 'updatePriceListItems' from useStockForm
+    const { formState, updatePriceListItems } = useStockForm();
 
     useEffect(() => {
-        // Initialize units from formState if available, otherwise from priceLists
-        if (formState.priceListItems.length > 0) {
-            setUnits(formState.priceListItems.map((item, index) => ({
-                id: index + 1,
-                priceListId: item.priceListId,
-                vatRate: item.vatRate,
-                price: item.price,
-                priceWithVat: item.priceWithVat,
-                barcode: item.barcode,
-                value: '',
-                label: ''
-            })));
-        } else if (priceLists.length > 0) {
-            const initialUnits = priceLists.map((priceList, index) => ({
-                id: index + 1,
-                priceListId: priceList.id,
-                vatRate: priceList.isVatIncluded ? 20 : null,
-                price: 0,
-                priceWithVat: priceList.isVatIncluded ? 0 : null,
-                barcode: generateBarcode().toString(),
-                value: '',
-                label: '',
-            }));
-            setUnits(initialUnits);
-            updatePriceListItems(initialUnits);
+        if (priceLists.length > 0) {
+            const unitsFromPriceLists = priceLists.map((priceList) => {
+                const formItem = formState.priceListItems.find(item => item.priceListId === priceList.id);
+
+                if (formItem) {
+                    return {
+                        id: formItem.id?.toString() || '',
+                        value: '',
+                        label: '',
+                        priceListId: formItem.priceListId,
+                        vatRate: formItem.vatRate,
+                        price: formItem.price,
+                        priceWithVat: parseFloat((formItem.price * (1 + (formItem.vatRate ?? 0) / 100)).toFixed(2)),
+                        barcode: formItem.barcode,
+                    };
+                } else {
+                    return {
+                        id: '',
+                        value: '',
+                        label: '',
+                        priceListId: priceList.id,
+                        vatRate: priceList.isVatIncluded ? 20 : null,
+                        price: 0,
+                        priceWithVat: priceList.isVatIncluded ? 0 : null,
+                        barcode: generateBarcode().toString(),
+                    };
+                }
+            });
+
+            // Units değişti mi kontrol et
+            if (JSON.stringify(units) !== JSON.stringify(unitsFromPriceLists)) {
+                setUnits(unitsFromPriceLists);
+            }
         }
-    }, [priceLists]); // Removed formState.priceListItems from dependencies
+    }, [priceLists, formState.priceListItems]);
+
+    useEffect(() => {
+        const unitsToUpdate = units.map(unit => ({
+            id: unit.id,
+            priceListId: unit.priceListId,
+            vatRate: unit.vatRate,
+            price: unit.price,
+            priceWithVat: unit.priceWithVat,
+            barcode: unit.barcode,
+        }));
+
+        // FormState değişti mi kontrol et
+        if (JSON.stringify(formState.priceListItems) !== JSON.stringify(unitsToUpdate)) {
+            updatePriceListItems(unitsToUpdate);
+        }
+    }, [units]);
 
     const calculatePriceWithVat = (price: number, vatRate: number) => {
         return price * (1 + vatRate / 100);
@@ -99,15 +126,16 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
         }
     };
 
-    const onCellValueChanged = (e: any) => {
-        if (!e?.data?.id || !e?.dataField) {
+    const onRowUpdated = (e: any) => {
+        const { data } = e;
+        if (!data?.priceListId) {
             return;
         }
 
         const updatedUnits = units.map(unit => {
-            if (unit.id === e.data.id) {
+            if (unit.priceListId === data.priceListId) {
                 const priceList = priceLists.find(pl => pl.id === unit.priceListId);
-                const updatedUnit = { ...unit, [e.dataField]: e.value };
+                const updatedUnit = { ...unit, ...data };
 
                 if (priceList?.isVatIncluded && updatedUnit.vatRate !== null) {
                     updatedUnit.priceWithVat = calculatePriceWithVat(updatedUnit.price, updatedUnit.vatRate);
@@ -120,28 +148,27 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
             return unit;
         });
 
-        setUnits(updatedUnits);
-        updatePriceListItems(updatedUnits);
+        // Units değişti mi kontrol et
+        if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
+            setUnits(updatedUnits);
+        }
     };
 
-    const updateFormState = React.useCallback(() => {
-        updatePriceListItems(units.map(unit => ({
-            priceListId: unit.priceListId,
-            vatRate: unit.vatRate,
-            price: unit.price,
-            priceWithVat: unit.priceWithVat,
-            barcode: unit.barcode
-        })));
-    }, [units, updatePriceListItems]);
+    const onRowRemoving = (e: any) => {
+        e.cancel = true;
 
-    // Save state before unmounting
-    useEffect(() => {
-        return () => {
-            if (units.length > 0) {
-                updateFormState();
+        const updatedUnits = units.map(unit => {
+            if (unit.priceListId === e.data.priceListId) {
+                return { ...unit, price: 0, vatRate: 0, priceWithVat: 0 };
             }
-        };
-    }, [units]);
+            return unit;
+        });
+
+        // Units değişti mi kontrol et
+        if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
+            setUnits(updatedUnits);
+        }
+    };
 
     if (loading) {
         return (
@@ -172,10 +199,11 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
                     columnAutoWidth={true}
                     wordWrapEnabled={true}
                     onExporting={onExporting}
-                    onCellHoverChanged={onCellValueChanged}
+                    onRowUpdated={onRowUpdated} // Burada onCellValueChanged yerine onRowUpdated kullanıyoruz
                     onEditorPreparing={onEditorPreparing}
+                    onRowRemoving={onRowRemoving}
                 >
-                    <Selection mode="multiple" />
+                    <Selection mode="single" />
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
                     <Export enabled={true} />
@@ -218,7 +246,6 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
                         dataType="number"
                         format="#,##0"
                         allowEditing={true}
-                        visible={true}
                         calculateCellValue={(rowData: StockUnit) => {
                             const priceList = priceLists.find(pl => pl.id === rowData.priceListId);
                             return priceList?.isVatIncluded ? rowData.vatRate : 0;
