@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import DataGrid, {
     Column,
     FilterRow,
@@ -18,29 +18,106 @@ import DataGrid, {
     StateStoring,
     LoadPanel,
 } from 'devextreme-react/data-grid';
-import { properties } from './data';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { usePropertyDialog } from './usePropertyDialog';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from 'lucide-react';
+
+interface Attribute {
+    id: string;
+    attributeName: string;
+    value: string;
+}
+
+interface GroupedAttribute {
+    name: string;
+    values: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
+}
 
 const PropertiesGrid: React.FC = () => {
     const { openDialog } = usePropertyDialog();
+    const [attributes, setAttributes] = useState<GroupedAttribute[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAttributes = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('http://localhost:1303/attributes');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch attributes');
+                }
+                const data: Attribute[] = await response.json();
+
+                // Group attributes by name
+                const groupedData = data.reduce((acc, curr) => {
+                    const existing = acc.find(item => item.name === curr.attributeName);
+                    if (existing) {
+                        existing.values.push(curr.value);
+                    } else {
+                        acc.push({
+                            name: curr.attributeName,
+                            values: [curr.value],
+                        });
+                    }
+                    return acc;
+                }, [] as GroupedAttribute[]);
+
+                setAttributes(groupedData);
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred while fetching attributes');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAttributes();
+    }, []);
 
     const renderEditButton = (data: any) => {
         return (
             <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => openDialog(data.data)}
+                onClick={() => openDialog({
+                    id: data.data.id,
+                    name: data.data.name,
+                    values: data.data.values,
+                    createdAt: data.data.createdAt,
+                    updatedAt: data.data.updatedAt
+                })}
             >
                 <Edit className="h-4 w-4" />
             </Button>
         );
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Loading attributes...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
+
     return (
         <DataGrid
-            dataSource={properties}
+            dataSource={attributes}
             showBorders={true}
             showRowLines={true}
             showColumnLines={true}
@@ -81,8 +158,6 @@ const PropertiesGrid: React.FC = () => {
                     </div>
                 );
             }} />
-            <Column dataField="createdAt" caption="Oluşturma Tarihi" dataType="datetime" format="dd.MM.yyyy HH:mm" />
-            <Column dataField="updatedAt" caption="Güncelleme Tarihi" dataType="datetime" format="dd.MM.yyyy HH:mm" />
 
             <Toolbar>
                 <Item name='groupPanel' location='before' />

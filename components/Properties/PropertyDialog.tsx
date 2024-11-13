@@ -12,11 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TagInput } from "@/components/ui/tag-input";
 import { usePropertyDialog } from './usePropertyDialog';
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const PropertyDialog: React.FC = () => {
     const { isOpen, closeDialog, editingProperty } = usePropertyDialog();
     const [propertyName, setPropertyName] = useState('');
     const [propertyValues, setPropertyValues] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (editingProperty) {
@@ -34,9 +38,56 @@ const PropertyDialog: React.FC = () => {
         closeDialog();
     };
 
-    const handleSave = () => {
-        // TODO: Implement save logic
-        handleClose();
+    const handleSave = async () => {
+        try {
+            if (!propertyName || propertyValues.length === 0) {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Please fill in all required fields",
+                });
+                return;
+            }
+
+            setLoading(true);
+
+            // Transform the data into the required format
+            const attributesData = propertyValues.map(value => ({
+                attributeName: propertyName,
+                value: value
+            }));
+
+            const response = await fetch('http://localhost:1303/attributes/createMany', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(attributesData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create attributes');
+            }
+
+            toast({
+                title: "Success",
+                description: "Feature added successfully",
+            });
+
+            // Trigger a refresh of the properties list
+            const refreshEvent = new CustomEvent('refreshProperties');
+            window.dispatchEvent(refreshEvent);
+
+            handleClose();
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : 'Failed to create feature',
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -55,6 +106,7 @@ const PropertyDialog: React.FC = () => {
                             value={propertyName}
                             onChange={(e) => setPropertyName(e.target.value)}
                             placeholder="Özellik adını giriniz"
+                            disabled={loading}
                         />
                     </div>
                     <div>
@@ -64,7 +116,8 @@ const PropertyDialog: React.FC = () => {
                             placeholder="Değer girin ve Enter'a basın"
                             tags={propertyValues}
                             className="mt-1"
-                            onTagsChange={(newTags) => setPropertyValues(newTags || [])}
+                            onTagsChange={setPropertyValues}
+                            disabled={loading}
                         />
                         <p className="text-sm text-muted-foreground mt-1">
                             Her bir değeri girdikten sonra Enter tuşuna basın
@@ -72,13 +125,15 @@ const PropertyDialog: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={handleClose}>
+                    <Button variant="outline" onClick={handleClose} disabled={loading}>
                         İptal
                     </Button>
                     <Button
                         onClick={handleSave}
-                        disabled={!propertyName || propertyValues.length === 0}
+                        disabled={loading || !propertyName || propertyValues.length === 0}
+                        className="relative"
                     >
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {editingProperty ? 'Güncelle' : 'Ekle'}
                     </Button>
                 </div>
