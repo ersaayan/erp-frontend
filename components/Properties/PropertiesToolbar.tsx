@@ -39,7 +39,6 @@ const PropertiesToolbar: React.FC = () => {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Yenile
             </Button>
-
             <Button
                 variant="default"
                 size="sm"
