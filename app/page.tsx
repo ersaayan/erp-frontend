@@ -33,6 +33,8 @@ import { ToastProvider } from "@/components/ui/toast";
 import CurrentList from "@/components/CurrentList";
 import CurrentCategories from "@/components/CurrentCategories";
 import AccountSummary from "@/components/AccountSummary";
+import Warehouses from "@/components/Warehouses";
+import InvoiceList from "@/components/InvoiceList";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -179,6 +181,8 @@ export default function Home() {
               )}
               {activeTab === "Cari Kategorileri" && <CurrentCategories />}
               {activeTab === "Hesap Özeti" && <AccountSummary />}
+              {activeTab === "Depo Listesi" && <Warehouses />}
+              {activeTab === "Fatura/İrsaliye Listesi" && <InvoiceList />}
             </TabContainer>
           </main>
         </div>

@@ -1,0 +1,31 @@
+export interface Invoice {
+    id: string;
+    invoiceNo: string;
+    gibInvoiceNo: string;
+    invoiceDate: string;
+    invoiceType: 'Purchase' | 'Sales' | 'Return' | 'Cancel' | 'Other';
+    documentType: 'Invoice' | 'Order' | 'Waybill' | 'Other';
+    currentCode: string;
+    companyCode: string;
+    branchCode: string;
+    outBranchCode: string | null;
+    warehouseCode: string;
+    description: string;
+    genelIskontoTutar: string;
+    genelIskontoOran: string;
+    paymentDate: string | null;
+    paymentDay: number | null;
+    priceListId: string;
+    totalAmount: string;
+    totalVat: string;
+    totalDiscount: string;
+    totalNet: string;
+    totalPaid: string;
+    totalDebt: string;
+    totalBalance: string;
+    createdAt: string;
+    updatedAt: string;
+    canceledAt: string | null;
+    createdBy: string | null;
+    updatedBy: string | null;
+}

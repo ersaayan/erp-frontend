@@ -115,3 +115,15 @@ body {
 .sidebar.collapsed + .main-content {
   margin-left: 80px; /* Sidebar daraldığında */
 }
+
+.bg-light-blue {
+  background-color: rgba(147, 197, 253, 1) !important;
+}
+
+.bg-light-green {
+  background-color: rgba(134, 239, 172, 1) !important;
+}
+
+.bg-light-red {
+  background-color: rgba(252, 165, 165, 1) !important;
+}

@@ -98,8 +98,7 @@ const menuItems = [
     name: "Fatura / İrsaliye",
     icon: <File className="h-5 w-5" />,
     subItems: [
-      { name: "Fatura Listesi", disabled: false },
-      { name: "İrsaliye Listesi", disabled: false },
+      { name: "Fatura/İrsaliye Listesi", disabled: false },
       //  { name: 'Planlı Fatura', disabled: false },
       // { name: "BA/BS", disabled: true },
       // { name: "Gelen E-Faturalar", disabled: true },
