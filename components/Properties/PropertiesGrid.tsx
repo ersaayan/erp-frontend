@@ -44,43 +44,43 @@ const PropertiesGrid: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAttributes = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:1303/attributes");
-        if (!response.ok) {
-          throw new Error("Failed to fetch attributes");
-        }
-        const data: Attribute[] = await response.json();
-
-        // Group attributes by name
-        const groupedData = data.reduce((acc, curr) => {
-          const existing = acc.find((item) => item.name === curr.attributeName);
-          if (existing) {
-            existing.values.push(curr.value);
-          } else {
-            acc.push({
-              name: curr.attributeName,
-              values: [curr.value],
-            });
-          }
-          return acc;
-        }, [] as GroupedAttribute[]);
-
-        setAttributes(groupedData);
-        setError(null);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred while fetching attributes"
-        );
-      } finally {
-        setLoading(false);
+  const fetchAttributes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:1303/attributes");
+      if (!response.ok) {
+        throw new Error("Failed to fetch attributes");
       }
-    };
+      const data: Attribute[] = await response.json();
 
+      // Group attributes by name
+      const groupedData = data.reduce((acc, curr) => {
+        const existing = acc.find((item) => item.name === curr.attributeName);
+        if (existing) {
+          existing.values.push(curr.value);
+        } else {
+          acc.push({
+            name: curr.attributeName,
+            values: [curr.value],
+          });
+        }
+        return acc;
+      }, [] as GroupedAttribute[]);
+
+      setAttributes(groupedData);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching attributes"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAttributes();
 
     const handleRefresh = () => {
@@ -96,19 +96,7 @@ const PropertiesGrid: React.FC = () => {
 
   const renderEditButton = (data: any) => {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() =>
-          openDialog({
-            id: data.data.id,
-            name: data.data.name,
-            values: data.data.values,
-            createdAt: data.data.createdAt,
-            updatedAt: data.data.updatedAt,
-          })
-        }
-      >
+      <Button variant="ghost" size="icon" onClick={() => openDialog(data.data)}>
         <Edit className="h-4 w-4" />
       </Button>
     );

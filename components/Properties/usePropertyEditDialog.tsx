@@ -3,11 +3,10 @@
 import { create } from "zustand";
 
 interface Property {
-  id: number;
   name: string;
   values: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface PropertyEditDialogStore {

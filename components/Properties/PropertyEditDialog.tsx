@@ -22,11 +22,26 @@ import { usePropertyEditDialog } from "./usePropertyEditDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
+interface Attribute {
+  id: string;
+  attributeName: string;
+  value: string;
+}
+
+interface GroupedAttribute {
+  name: string;
+  values: Array<{ id: string; value: string }>;
+}
+
 const PropertyEditDialog: React.FC = () => {
   const { isOpen, closeDialog, editingProperty } = usePropertyEditDialog();
-  const [attributes, setAttributes] = useState([]);
-  const [selectedAttribute, setSelectedAttribute] = useState(null);
-  const [selectedValue, setSelectedValue] = useState(null);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [groupedAttributes, setGroupedAttributes] = useState<
+    GroupedAttribute[]
+  >([]);
+  const [selectedAttributeName, setSelectedAttributeName] =
+    useState<string>("");
+  const [selectedValueId, setSelectedValueId] = useState<string>("");
   const [newValue, setNewValue] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -35,35 +50,85 @@ const PropertyEditDialog: React.FC = () => {
     const fetchAttributes = async () => {
       try {
         const response = await fetch("http://localhost:1303/attributes");
-        const data = await response.json();
+        const data: Attribute[] = await response.json();
         setAttributes(data);
+
+        // Group attributes by name
+        const groups = data.reduce((acc, curr) => {
+          const existing = acc.find((g) => g.name === curr.attributeName);
+          if (existing) {
+            existing.values.push({ id: curr.id, value: curr.value });
+          } else {
+            acc.push({
+              name: curr.attributeName,
+              values: [{ id: curr.id, value: curr.value }],
+            });
+          }
+          return acc;
+        }, [] as GroupedAttribute[]);
+
+        setGroupedAttributes(groups);
       } catch (error) {
         console.error("Failed to fetch attributes", error);
       }
     };
 
-    fetchAttributes();
-  }, []);
+    if (isOpen) {
+      fetchAttributes();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (editingProperty) {
-      setSelectedAttribute(editingProperty.name);
-      setSelectedValue(editingProperty.values[0]);
-      setNewValue(editingProperty.values[0]);
-    } else {
-      setSelectedAttribute(null);
-      setSelectedValue(null);
-      setNewValue("");
+      setSelectedAttributeName(editingProperty.name);
+      const attributeGroup = groupedAttributes.find(
+        (g) => g.name === editingProperty.name
+      );
+      if (attributeGroup && attributeGroup.values.length > 0) {
+        const firstValue = attributeGroup.values.find(
+          (v) => v.value === editingProperty.values[0]
+        );
+        if (firstValue) {
+          setSelectedValueId(firstValue.id);
+          setNewValue(firstValue.value);
+        }
+      }
     }
-  }, [editingProperty]);
+  }, [editingProperty, groupedAttributes]);
+
+  const handleAttributeNameChange = (name: string) => {
+    setSelectedAttributeName(name);
+    setSelectedValueId("");
+    setNewValue("");
+  };
+
+  const handleValueChange = (id: string) => {
+    setSelectedValueId(id);
+    const attributeGroup = groupedAttributes.find(
+      (g) => g.name === selectedAttributeName
+    );
+    if (attributeGroup) {
+      const value = attributeGroup.values.find((v) => v.id === id);
+      if (value) {
+        setNewValue(value.value);
+      }
+    }
+  };
 
   const handleUpdate = async () => {
-    if (!selectedAttribute || !selectedValue) return;
+    if (!selectedValueId || !newValue.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select an attribute and enter a new value",
+      });
+      return;
+    }
 
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:1303/attributes/${selectedValue.id}`,
+        `http://localhost:1303/attributes/${selectedValueId}`,
         {
           method: "PUT",
           headers: {
@@ -88,7 +153,8 @@ const PropertyEditDialog: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -96,12 +162,19 @@ const PropertyEditDialog: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!selectedAttribute || !selectedValue) return;
+    if (!selectedValueId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select an attribute value to delete",
+      });
+      return;
+    }
 
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:1303/attributes/${selectedValue.id}`,
+        `http://localhost:1303/attributes/${selectedValueId}`,
         {
           method: "DELETE",
         }
@@ -122,7 +195,8 @@ const PropertyEditDialog: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -139,20 +213,16 @@ const PropertyEditDialog: React.FC = () => {
           <div>
             <Label htmlFor="attributeName">Özellik Adı</Label>
             <Select
-              value={selectedAttribute}
-              onValueChange={(value) => {
-                setSelectedAttribute(value);
-                setSelectedValue(null);
-                setNewValue("");
-              }}
+              value={selectedAttributeName}
+              onValueChange={handleAttributeNameChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Özellik adı seçin" />
               </SelectTrigger>
               <SelectContent>
-                {attributes.map((attr) => (
-                  <SelectItem key={attr.id} value={attr.name}>
-                    {attr.name}
+                {groupedAttributes.map((group) => (
+                  <SelectItem key={group.name} value={group.name}>
+                    {group.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -161,24 +231,21 @@ const PropertyEditDialog: React.FC = () => {
           <div>
             <Label htmlFor="attributeValue">Özellik Değeri</Label>
             <Select
-              value={selectedValue}
-              onValueChange={(value) => {
-                setSelectedValue(value);
-                setNewValue(value);
-              }}
-              disabled={!selectedAttribute}
+              value={selectedValueId}
+              onValueChange={handleValueChange}
+              disabled={!selectedAttributeName}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Özellik değeri seçin" />
               </SelectTrigger>
               <SelectContent>
-                {attributes
-                  .find((attr) => attr.name === selectedAttribute)
-                  ?.values.map((val) => (
-                    <SelectItem key={val.id} value={val}>
-                      {val.value}
+                {groupedAttributes
+                  .find((g) => g.name === selectedAttributeName)
+                  ?.values.map((value) => (
+                    <SelectItem key={value.id} value={value.id}>
+                      {value.value}
                     </SelectItem>
-                  )) || []}
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -189,7 +256,7 @@ const PropertyEditDialog: React.FC = () => {
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               placeholder="Yeni değeri girin"
-              disabled={!selectedValue}
+              disabled={!selectedValueId}
             />
           </div>
         </div>
@@ -197,13 +264,13 @@ const PropertyEditDialog: React.FC = () => {
           <Button
             variant="outline"
             onClick={handleDelete}
-            disabled={loading || !selectedValue}
+            disabled={loading || !selectedValueId}
           >
             Sil
           </Button>
           <Button
             onClick={handleUpdate}
-            disabled={loading || !selectedValue}
+            disabled={loading || !selectedValueId || !newValue.trim()}
             className="relative"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -9,7 +9,6 @@ export const mockStocks = [
         currency: "TRY",
         currentQuantity: 50,
         unit: "Adet",
-        imageUrl: "/stock-image.jpg"
     },
     // Add more mock stocks as needed
 ];
