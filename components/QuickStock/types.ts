@@ -1,5 +1,5 @@
 export interface Stock {
-    id: number;
+    id: string;
     name: string;
     code: string;
     barcode: string;
@@ -8,5 +8,16 @@ export interface Stock {
     currency: string;
     currentQuantity: number;
     unit: string;
-    imageUrl?: string;
+    shortDescription?: string;
+    description?: string;
+    brand: string;
+    vatRate: number;
+    warehouseName: string;
+    prices: {
+        id: string;
+        priceListName: string;
+        price: number;
+        currency: string;
+        vatRate?: number;
+    }[];
 }

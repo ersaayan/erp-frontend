@@ -1,126 +1,181 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Loader2, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Stock } from "./types";
-import { mockStocks } from "./data";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useDebounce } from "./hooks/use-debounce";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SearchBarProps {
   onStockSelect: (stock: Stock) => void;
 }
 
+type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
+
 const SearchBar: React.FC<SearchBarProps> = ({ onStockSelect }) => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchOptions, setSearchOptions] = useState({
-    barcodeOnly: false,
-    stockCodeOnly: false,
-    stockNameOnly: false,
-    searchInBarcodes: false,
-    searchInCodes: false,
-    searchInXXL: false,
-  });
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<Stock[]>([]);
+  const [selectedOption, setSelectedOption] = useState<SearchOption>(null);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const handleSearch = () => {
-    // Mock search functionality
-    const foundStock = mockStocks.find(
-      (stock) =>
-        stock.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        stock.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        stock.barcode.includes(searchTerm)
-    );
+  const handleSearch = useCallback(async () => {
+    try {
+      if (!debouncedSearchTerm.trim()) {
+        setResults([]);
+        return;
+      }
 
-    if (foundStock) {
-      onStockSelect(foundStock);
+      setLoading(true);
+
+      let searchParams = new URLSearchParams();
+      if (selectedOption === "barcodeOnly")
+        searchParams.append("barcodes", debouncedSearchTerm);
+      else if (selectedOption === "stockCodeOnly")
+        searchParams.append("productCode", debouncedSearchTerm);
+      else if (selectedOption === "stockNameOnly")
+        searchParams.append("productName", debouncedSearchTerm);
+      else searchParams.append("query", debouncedSearchTerm);
+
+      const response = await fetch(
+        `http://localhost:1303/stockcards/search?${searchParams}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Stock search failed");
+      }
+
+      const data = await response.json();
+
+      if (data.length === 0) {
+        toast({
+          title: "No Results",
+          description: "No stocks found matching your search criteria",
+        });
+        setResults([]);
+        return;
+      }
+
+      const transformedResults: Stock[] = data.map((item: any) => ({
+        id: item.id,
+        name: item.productName,
+        code: item.productCode,
+        barcode: item.barcodes[0]?.barcode || "",
+        salePrice: parseFloat(item.stockCardPriceLists[0]?.price || "0"),
+        salePriceWithTax:
+          parseFloat(item.stockCardPriceLists[0]?.price || "0") *
+          (1 + parseFloat(item.stockCardPriceLists[0]?.vatRate || "0") / 100),
+        currency: item.stockCardPriceLists[0]?.priceList.currency || "TRY",
+        currentQuantity: parseInt(item.stockCardWarehouse[0]?.quantity || "0"),
+        unit: item.unit,
+        shortDescription: item.shortDescription,
+        description: item.description,
+        brand: item.brand?.brandName || "",
+        vatRate: parseFloat(item.stockCardPriceLists[0]?.vatRate || "0"),
+        warehouseName:
+          item.stockCardWarehouse[0]?.warehouse.warehouseName || "",
+        prices: item.stockCardPriceLists.map((priceList: any) => ({
+          id: priceList.id,
+          priceListName: priceList.priceList.priceListName,
+          price: parseFloat(priceList.price),
+          currency: priceList.priceList.currency,
+          vatRate: priceList.vatRate
+            ? parseFloat(priceList.vatRate)
+            : undefined,
+        })),
+      }));
+
+      setResults(transformedResults);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
+      setResults([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [debouncedSearchTerm, selectedOption, toast]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
+  React.useEffect(() => {
+    handleSearch();
+  }, [debouncedSearchTerm, handleSearch]);
+
+  const handleResultClick = (stock: Stock) => {
+    onStockSelect(stock);
+    setResults([]);
+    setSearchTerm("");
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+      <div className="relative">
         <Input
-          placeholder="20 Adet Stok İçinde Ara"
+          placeholder="Stok Ara..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={handleKeyPress}
+          disabled={loading}
+          className="pr-10"
         />
-        <Button variant="default" size="icon" onClick={handleSearch}>
-          <Search className="h-4 w-4" />
-        </Button>
+        {loading ? (
+          <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+        ) : (
+          <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+        )}
       </div>
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
-            Arama Seçenekleri
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <h4 className="font-medium leading-none">Arama Seçenekleri</h4>
-              <p className="text-sm text-muted-foreground">
-                Arama yapmak istediğiniz alanları seçin
-              </p>
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="barcodeOnly"
-                  checked={searchOptions.barcodeOnly}
-                  onCheckedChange={(checked) =>
-                    setSearchOptions((prev) => ({
-                      ...prev,
-                      barcodeOnly: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="barcodeOnly">Sadece Barkodda Ara</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="stockCodeOnly"
-                  checked={searchOptions.stockCodeOnly}
-                  onCheckedChange={(checked) =>
-                    setSearchOptions((prev) => ({
-                      ...prev,
-                      stockCodeOnly: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="stockCodeOnly">Sadece Stok Kodunda Ara</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="stockNameOnly"
-                  checked={searchOptions.stockNameOnly}
-                  onCheckedChange={(checked) =>
-                    setSearchOptions((prev) => ({
-                      ...prev,
-                      stockNameOnly: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="stockNameOnly">Sadece Stok Adında Ara</Label>
-              </div>
-            </div>
+      <RadioGroup
+        value={selectedOption || ""}
+        onValueChange={(value) => setSelectedOption(value as SearchOption)}
+        className="grid grid-cols-2 gap-2"
+      >
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="" id="general" />
+          <Label htmlFor="general">Genel Arama</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="barcodeOnly" id="barcode" />
+          <Label htmlFor="barcode">Barkod ile Ara</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="stockCodeOnly" id="stockCode" />
+          <Label htmlFor="stockCode">Stok Kodu ile Ara</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="stockNameOnly" id="stockName" />
+          <Label htmlFor="stockName">Stok Adı ile Ara</Label>
+        </div>
+      </RadioGroup>
+
+      {results.length > 0 && (
+        <ScrollArea className="h-[200px] rounded-md border">
+          <div className="p-4">
+            {results.map((stock) => (
+              <Button
+                key={stock.id}
+                variant="ghost"
+                className="w-full justify-start text-left mb-2"
+                onClick={() => handleResultClick(stock)}
+              >
+                <div>
+                  <div className="font-medium">{stock.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {stock.code} - {stock.barcode}
+                  </div>
+                </div>
+              </Button>
+            ))}
           </div>
-        </PopoverContent>
-      </Popover>
+        </ScrollArea>
+      )}
     </div>
   );
 };
