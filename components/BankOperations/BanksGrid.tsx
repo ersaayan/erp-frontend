@@ -1,29 +1,29 @@
-"use client";
-
 import React, { useCallback, useEffect, useState } from "react";
 import DataGrid, {
   Column,
+  Export,
   Selection,
   FilterRow,
   HeaderFilter,
+  FilterPanel,
+  FilterBuilderPopup,
   Scrolling,
-  LoadPanel,
-  StateStoring,
+  GroupPanel,
+  Grouping,
   Summary,
   TotalItem,
-  Export,
+  ColumnChooser,
   Toolbar,
   Item,
-  SearchPanel,
-  ColumnChooser,
+  Paging,
+  StateStoring,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { AlertCircle, Loader2, Pencil } from "lucide-react";
 import { Bank } from "./types";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver-es";
-import { exportDataGrid } from "devextreme/excel_exporter";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useBankDialog } from "./BankDialog/useBankDialog";
 
 interface BanksGridProps {
   onBankSelect: (bank: Bank) => void;
@@ -35,6 +35,7 @@ const BanksGrid: React.FC<BanksGridProps> = ({ onBankSelect }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const { openDialog } = useBankDialog();
 
   const fetchBanks = useCallback(async () => {
     try {
@@ -79,34 +80,6 @@ const BanksGrid: React.FC<BanksGridProps> = ({ onBankSelect }) => {
     onBankSelect(e.data);
   };
 
-  const onExporting = React.useCallback((e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Bankalar");
-
-    const selectedData = e.component.getSelectedRowsData();
-
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      selectedRowsOnly: selectedData.length > 0,
-      autoFilterEnabled: true,
-      customizeCell: ({ gridCell, excelCell }: any) => {
-        if (gridCell.rowType === "data") {
-          if (typeof gridCell.value === "number") {
-            excelCell.numFmt = "#,##0.00";
-          }
-        }
-      },
-    }).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "Bankalar.xlsx"
-        );
-      });
-    });
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -132,24 +105,27 @@ const BanksGrid: React.FC<BanksGridProps> = ({ onBankSelect }) => {
       showRowLines={true}
       showColumnLines={true}
       rowAlternationEnabled={true}
+      allowColumnReordering={true}
+      allowColumnResizing={true}
       columnAutoWidth={true}
-      columnMinWidth={100}
       wordWrapEnabled={true}
-      height="calc(100% - 2rem)"
+      height="calc(100vh - 250px)"
       onRowClick={handleRowClick}
-      onExporting={onExporting}
       selectedRowKeys={selectedRowKeys}
       onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
     >
       <StateStoring enabled={true} type="localStorage" storageKey="banksGrid" />
-      <LoadPanel enabled={true} />
       <Selection mode="multiple" showCheckBoxesMode="always" />
       <FilterRow visible={true} />
       <HeaderFilter visible={true} />
-      <SearchPanel visible={true} width={240} placeholder="Ara..." />
-      <ColumnChooser enabled={true} mode="select" />
+      <FilterPanel visible={true} />
+      <FilterBuilderPopup position={{ my: "top", at: "top", of: window }} />
+      <GroupPanel visible={true} />
+      <Grouping autoExpandAll={false} />
       <Scrolling mode="virtual" />
+      <Paging enabled={true} pageSize={50} />
       <Export enabled={true} allowExportSelectedData={true} />
+      <ColumnChooser enabled={true} mode="select" />
 
       <Column dataField="bankName" caption="Banka Adı" />
       <Column dataField="branchCode" caption="Şube Kodu" />
@@ -161,15 +137,32 @@ const BanksGrid: React.FC<BanksGridProps> = ({ onBankSelect }) => {
         calculateCellValue={(rowData: Bank) => parseFloat(rowData.balance)}
       />
       <Column dataField="currency" caption="Para Birimi" width={100} />
+      <Column
+        width={70}
+        caption="İşlemler"
+        cellRender={(cellData: any) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDialog(cellData.data);
+            }}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
+      />
 
       <Summary>
         <TotalItem column="balance" summaryType="sum" valueFormat="#,##0.00" />
       </Summary>
 
       <Toolbar>
-        <Item name="searchPanel" location="before" />
-        <Item name="exportButton" location="after" />
-        <Item name="columnChooserButton" location="after" />
+        <Item name="groupPanel" />
+        <Item name="exportButton" />
+        <Item name="columnChooserButton" />
       </Toolbar>
     </DataGrid>
   );

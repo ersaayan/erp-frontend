@@ -39,6 +39,7 @@ import InvoiceList from "@/components/InvoiceList";
 import QuickSales from "@/components/QuickSales";
 import VaultOperations from "@/components/VaultOperations";
 import BankOperations from "@/components/BankOperations";
+import PosOperations from "@/components/PosOperations";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -187,6 +188,7 @@ export default function Home() {
               {activeTab === "Hızlı Satış" && <QuickSales />}
               {activeTab === "Kasa İşlemleri" && <VaultOperations />}
               {activeTab === "Banka İşlemleri" && <BankOperations />}
+              {activeTab === "POS İşlemleri" && <PosOperations />}
             </TabContainer>
           </main>
         </div>

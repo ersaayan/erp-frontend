@@ -3,51 +3,51 @@
 import React, { useCallback, useEffect, useState } from "react";
 import DataGrid, {
   Column,
+  Export,
   Selection,
   FilterRow,
   HeaderFilter,
+  FilterPanel,
+  FilterBuilderPopup,
   Scrolling,
-  LoadPanel,
-  StateStoring,
+  GroupPanel,
+  Grouping,
   Summary,
   TotalItem,
-  Export,
+  ColumnChooser,
   Toolbar,
   Item,
-  SearchPanel,
-  ColumnChooser,
+  Paging,
+  StateStoring,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2, Pencil } from "lucide-react";
+import { Pos } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { Vault } from "./types";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver-es";
-import { exportDataGrid } from "devextreme/excel_exporter";
-import { useVaultDialog } from "./VaultDialog/useVaultDialog";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { usePosDialog } from "./PosDialog/usePosDialog";
 
-interface VaultsGridProps {
-  onVaultSelect: (vault: Vault) => void;
+interface PosGridProps {
+  onPosSelect: (pos: Pos) => void;
 }
 
-const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
+const PosGrid: React.FC<PosGridProps> = ({ onPosSelect }) => {
   const { toast } = useToast();
-  const { openDialog } = useVaultDialog();
-  const [vaults, setVaults] = useState<Vault[]>([]);
+  const [posDevices, setPosDevices] = useState<Pos[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const { openDialog } = usePosDialog();
 
-  const fetchVaults = useCallback(async () => {
+  const fetchPosDevices = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:1303/vaults");
+      const response = await fetch("http://localhost:1303/pos");
       if (!response.ok) {
-        throw new Error("Failed to fetch vaults");
+        throw new Error("Failed to fetch POS devices");
       }
       const data = await response.json();
-      setVaults(data);
+      setPosDevices(data);
       setError(null);
     } catch (err) {
       setError(
@@ -58,7 +58,7 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch vaults. Please try again.",
+        description: "Failed to fetch POS devices. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -66,55 +66,27 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
   }, [toast]);
 
   useEffect(() => {
-    fetchVaults();
+    fetchPosDevices();
 
     const handleRefresh = () => {
-      fetchVaults();
+      fetchPosDevices();
     };
 
-    window.addEventListener("refreshVaultOperations", handleRefresh);
+    window.addEventListener("refreshPosOperations", handleRefresh);
     return () => {
-      window.removeEventListener("refreshVaultOperations", handleRefresh);
+      window.removeEventListener("refreshPosOperations", handleRefresh);
     };
-  }, [fetchVaults]);
+  }, [fetchPosDevices]);
 
   const handleRowClick = (e: any) => {
-    onVaultSelect(e.data);
+    onPosSelect(e.data);
   };
-
-  const onExporting = React.useCallback((e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Kasalar");
-
-    const selectedData = e.component.getSelectedRowsData();
-
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      selectedRowsOnly: selectedData.length > 0,
-      autoFilterEnabled: true,
-      customizeCell: ({ gridCell, excelCell }: any) => {
-        if (gridCell.rowType === "data") {
-          if (typeof gridCell.value === "number") {
-            excelCell.numFmt = "#,##0.00";
-          }
-        }
-      },
-    }).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "Kasalar.xlsx"
-        );
-      });
-    });
-  }, []);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-32">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        <span>Loading vaults...</span>
+        <span>Loading POS devices...</span>
       </div>
     );
   }
@@ -130,42 +102,41 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
 
   return (
     <DataGrid
-      dataSource={vaults}
+      dataSource={posDevices}
       showBorders={true}
       showRowLines={true}
       showColumnLines={true}
       rowAlternationEnabled={true}
-      columnAutoWidth={false}
-      columnMinWidth={50}
+      allowColumnReordering={true}
+      allowColumnResizing={true}
+      columnAutoWidth={true}
       wordWrapEnabled={true}
-      height="calc(100% - 2rem)"
+      height="calc(100vh - 250px)"
       onRowClick={handleRowClick}
-      onExporting={onExporting}
       selectedRowKeys={selectedRowKeys}
       onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
     >
-      <StateStoring
-        enabled={true}
-        type="localStorage"
-        storageKey="vaultsGrid"
-      />
-      <LoadPanel enabled={true} />
+      <StateStoring enabled={true} type="localStorage" storageKey="posGrid" />
       <Selection mode="multiple" showCheckBoxesMode="always" />
       <FilterRow visible={true} />
       <HeaderFilter visible={true} />
-      <SearchPanel visible={true} width={240} placeholder="Ara..." />
-      <ColumnChooser enabled={true} mode="select" />
+      <FilterPanel visible={true} />
+      <FilterBuilderPopup position={{ my: "top", at: "top", of: window }} />
+      <GroupPanel visible={true} />
+      <Grouping autoExpandAll={false} />
       <Scrolling mode="virtual" />
+      <Paging enabled={true} pageSize={50} />
       <Export enabled={true} allowExportSelectedData={true} />
+      <ColumnChooser enabled={true} mode="select" />
 
-      <Column dataField="vaultName" caption="Kasa Adı" />
+      <Column dataField="posName" caption="POS Adı" />
       <Column dataField="branchCode" caption="Şube Kodu" />
       <Column
         dataField="balance"
         caption="Bakiye"
         dataType="number"
         format="#,##0.00"
-        calculateCellValue={(rowData: Vault) => parseFloat(rowData.balance)}
+        calculateCellValue={(rowData: Pos) => parseFloat(rowData.balance)}
       />
       <Column dataField="currency" caption="Para Birimi" width={100} />
       <Column
@@ -191,12 +162,12 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
       </Summary>
 
       <Toolbar>
-        <Item name="searchPanel" location="before" />
-        <Item name="exportButton" location="after" />
-        <Item name="columnChooserButton" location="after" />
+        <Item name="groupPanel" />
+        <Item name="exportButton" />
+        <Item name="columnChooserButton" />
       </Toolbar>
     </DataGrid>
   );
 };
 
-export default VaultsGrid;
+export default PosGrid;

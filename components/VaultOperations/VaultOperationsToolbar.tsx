@@ -2,12 +2,20 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { List, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import {
+  List,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Repeat,
+  Plus,
+} from "lucide-react";
 import { Vault } from "./types";
 import { useCashTransactionDialog } from "./CashTransactionDialog/useCashTransactionDialog";
 import { useTransferDialog } from "./TransferDialog/useTransferDialog";
+import { useVaultDialog } from "./VaultDialog/useVaultDialog";
 import CashTransactionDialog from "./CashTransactionDialog";
 import TransferDialog from "./TransferDialog";
+import VaultDialog from "./VaultDialog";
 
 interface VaultOperationsToolbarProps {
   onShowAllMovements: () => void;
@@ -20,10 +28,21 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
 }) => {
   const { openDialog: openCashDialog } = useCashTransactionDialog();
   const { openDialog: openTransferDialog } = useTransferDialog();
+  const { openDialog: openVaultDialog } = useVaultDialog();
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-[#84CC16] hover:bg-[#65A30D]"
+          onClick={() => openVaultDialog()}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Kasa Ekle
+        </Button>
+
         <Button
           variant="default"
           size="sm"
@@ -73,6 +92,7 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
           <TransferDialog sourceVault={selectedVault} />
         </>
       )}
+      <VaultDialog />
     </div>
   );
 };

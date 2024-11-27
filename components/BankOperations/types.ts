@@ -15,7 +15,7 @@ export interface BankMovement {
     entering: string;
     emerging: string;
     bankDirection: 'Introduction' | 'Exit' | "ReceivedVirement";
-    bankType: 'DebtTransfer' | "ServiceChargeCollection" | "CompanyCreditCardWithdrawals" | "BuyingForeignCurrency" | "InputReceipt" | "BankWithdrawals" | "ReceivingValuableAssets" | "ReceivableTransfer" | "ServiceChargePayment" | "CompanyCreditCardDeposit" | "CurrencyExchange" | "LoanPayment" | "LoanWithdrawal" | "ExitReceipt" | "PaymentToBank" | "PreciousMetalExchange";
+    bankType: 'DebtTransfer' | "ServiceChargeCollection" | "CompanyCreditCardWithdrawals" | "BuyingForeignCurrency" | "InputReceipt" | "BankWithdrawals" | "ReceivingValuableAssets" | "ReceivableTransfer" | "ServiceChargePayment" | "CompanyCreditCardDeposit" | "CurrencyExchange" | "LoanPayment" | "LoanWithdrawal" | "ExitReceipt" | "PaymentToBank" | "PreciousMetalExchange" | "POSWithdrawals" | "OutgoingVirement" | "InGoingVirement";
     bankDocumentType: 'General' | "Accounting" | "Official";
     bank: {
         id: string;

@@ -2,35 +2,35 @@
 
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import BankOperationsToolbar from "./BankOperationsToolbar";
+import PosOperationsToolbar from "./PosOperationsToolbar";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import BanksGrid from "./BanksGrid";
-import BankMovementsGrid from "./BankMovementsGrid";
-import { Bank } from "./types";
+import PosGrid from "./PosGrid";
+import PosMovementsGrid from "./PosMovementsGrid";
+import { Pos } from "./types";
 
-const BankOperations: React.FC = () => {
-  const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
+const PosOperations: React.FC = () => {
+  const [selectedPos, setSelectedPos] = useState<Pos | null>(null);
   const [showAllMovements, setShowAllMovements] = useState(false);
 
-  const handleBankSelect = (bank: Bank) => {
-    setSelectedBank(bank);
+  const handlePosSelect = (pos: Pos) => {
+    setSelectedPos(pos);
     setShowAllMovements(false);
   };
 
   const handleShowAllMovements = () => {
-    setSelectedBank(null);
+    setSelectedPos(null);
     setShowAllMovements(true);
   };
 
   return (
     <div className="grid-container">
-      <BankOperationsToolbar
+      <PosOperationsToolbar
         onShowAllMovements={handleShowAllMovements}
-        selectedBank={selectedBank}
+        selectedPos={selectedPos}
       />
       <Card className="mt-4 p-6">
         <ResizablePanelGroup
@@ -39,8 +39,8 @@ const BankOperations: React.FC = () => {
         >
           <ResizablePanel defaultSize={40}>
             <Card className="h-full p-4 border-0 shadow-none">
-              <h2 className="text-lg font-semibold mb-4">Bankalar</h2>
-              <BanksGrid onBankSelect={handleBankSelect} />
+              <h2 className="text-lg font-semibold mb-4">POS Cihazları</h2>
+              <PosGrid onPosSelect={handlePosSelect} />
             </Card>
           </ResizablePanel>
 
@@ -49,12 +49,12 @@ const BankOperations: React.FC = () => {
           <ResizablePanel defaultSize={60}>
             <Card className="h-full p-4 border-0 shadow-none">
               <h2 className="text-lg font-semibold mb-4">
-                {selectedBank
-                  ? `${selectedBank.bankName} - Hareketler`
+                {selectedPos
+                  ? `${selectedPos.posName} - Hareketler`
                   : "Tüm Hareketler"}
               </h2>
-              <BankMovementsGrid
-                selectedBank={selectedBank}
+              <PosMovementsGrid
+                selectedPos={selectedPos}
                 showAllMovements={showAllMovements}
               />
             </Card>
@@ -65,4 +65,4 @@ const BankOperations: React.FC = () => {
   );
 };
 
-export default BankOperations;
+export default PosOperations;

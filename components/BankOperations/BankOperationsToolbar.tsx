@@ -1,13 +1,19 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { List, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import {
+  List,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Repeat,
+  Plus,
+} from "lucide-react";
 import { Bank } from "./types";
 import { useCashTransactionDialog } from "./CashTransactionDialog/useCashTransactionDialog";
 import { useTransferDialog } from "./TransferDialog/useTransferDialog";
+import { useBankDialog } from "./BankDialog/useBankDialog";
 import CashTransactionDialog from "./CashTransactionDialog";
 import TransferDialog from "./TransferDialog";
+import BankDialog from "./BankDialog";
 
 interface BankOperationsToolbarProps {
   onShowAllMovements: () => void;
@@ -20,10 +26,21 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
 }) => {
   const { openDialog: openCashDialog } = useCashTransactionDialog();
   const { openDialog: openTransferDialog } = useTransferDialog();
+  const { openDialog: openBankDialog } = useBankDialog();
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-[#84CC16] hover:bg-[#65A30D]"
+          onClick={() => openBankDialog()}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Banka Ekle
+        </Button>
+
         <Button
           variant="default"
           size="sm"
@@ -73,6 +90,7 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
           <TransferDialog sourceBank={selectedBank} />
         </>
       )}
+      <BankDialog />
     </div>
   );
 };

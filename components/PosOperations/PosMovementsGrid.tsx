@@ -20,7 +20,7 @@ import DataGrid, {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Bank, BankMovement } from "./types";
+import { Pos, PosMovement } from "./types";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
@@ -34,22 +34,22 @@ import {
 import { currencyService } from "@/lib/services/currency";
 import {
   DIRECTION_TRANSLATIONS,
-  DOCUMENT_TYPE_TRANSLATIONS,
   MOVEMENT_TYPE_TRANSLATIONS,
+  DOCUMENT_TYPE_TRANSLATIONS,
 } from "@/lib/constants/movementEnums";
 
-interface BankMovementsGridProps {
-  selectedBank: Bank | null;
+interface PosMovementsGridProps {
+  selectedPos: Pos | null;
   showAllMovements: boolean;
 }
 
-const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
-  selectedBank,
+const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
+  selectedPos,
   showAllMovements,
 }) => {
   const { toast } = useToast();
-  const [movements, setMovements] = useState<BankMovement[]>([]);
-  const [loading, setLoading] = useState(false); // Changed initial state to false
+  const [movements, setMovements] = useState<PosMovement[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [targetCurrency, setTargetCurrency] = useState<string>("TRY");
@@ -60,21 +60,19 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
   const availableCurrencies = React.useMemo(() => {
     const currencies = new Set<string>();
     movements.forEach((movement) => {
-      if (movement.bank?.currency) {
-        currencies.add(movement.bank.currency);
+      if (movement.pos?.currency) {
+        currencies.add(movement.pos.currency);
       }
     });
     return Array.from(currencies);
   }, [movements]);
 
-  // Reset target currency when switching from all movements to single bank view
   useEffect(() => {
-    if (!showAllMovements && selectedBank) {
-      setTargetCurrency(selectedBank.currency);
+    if (!showAllMovements && selectedPos) {
+      setTargetCurrency(selectedPos.currency);
     }
-  }, [showAllMovements, selectedBank]);
+  }, [showAllMovements, selectedPos]);
 
-  // Fetch exchange rates
   useEffect(() => {
     const fetchRates = async () => {
       try {
@@ -97,12 +95,10 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
       if (!amount || !fromCurrency) return 0;
       const numericAmount = parseFloat(amount);
 
-      // If viewing a single bank or currencies match, no conversion needed
       if (!showAllMovements || fromCurrency === targetCurrency) {
         return numericAmount;
       }
 
-      // Convert through TRY as base currency
       const amountInTRY = numericAmount * (exchangeRates[fromCurrency] || 1);
       return amountInTRY / (exchangeRates[targetCurrency] || 1);
     },
@@ -110,20 +106,20 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
   );
 
   const fetchMovements = useCallback(async () => {
-    if (!selectedBank && !showAllMovements) {
+    if (!selectedPos && !showAllMovements) {
       setMovements([]);
       return;
     }
 
     try {
       setLoading(true);
-      const endpoint = selectedBank
-        ? `http://localhost:1303/bankMovements/bank/${selectedBank.id}`
-        : "http://localhost:1303/bankMovements";
+      const endpoint = selectedPos
+        ? `http://localhost:1303/posMovements/pos/${selectedPos.id}`
+        : "http://localhost:1303/posMovements";
 
       const response = await fetch(endpoint);
       if (!response.ok) {
-        throw new Error("Failed to fetch bank movements");
+        throw new Error("Failed to fetch POS movements");
       }
 
       const data = await response.json();
@@ -138,12 +134,12 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch bank movements. Please try again.",
+        description: "Failed to fetch POS movements. Please try again.",
       });
     } finally {
       setLoading(false);
     }
-  }, [selectedBank, showAllMovements, toast]);
+  }, [selectedPos, showAllMovements, toast]);
 
   useEffect(() => {
     fetchMovements();
@@ -152,15 +148,15 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
       fetchMovements();
     };
 
-    window.addEventListener("refreshBankOperations", handleRefresh);
+    window.addEventListener("refreshPosOperations", handleRefresh);
     return () => {
-      window.removeEventListener("refreshBankOperations", handleRefresh);
+      window.removeEventListener("refreshPosOperations", handleRefresh);
     };
   }, [fetchMovements]);
 
   const onExporting = React.useCallback((e: any) => {
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Banka Hareketleri");
+    const worksheet = workbook.addWorksheet("POS Hareketleri");
 
     const selectedData = e.component.getSelectedRowsData();
 
@@ -180,19 +176,11 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
       workbook.xlsx.writeBuffer().then((buffer) => {
         saveAs(
           new Blob([buffer], { type: "application/octet-stream" }),
-          "BankaHareketleri.xlsx"
+          "PosHareketleri.xlsx"
         );
       });
     });
   }, []);
-
-  if (!selectedBank && !showAllMovements) {
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        Hareket listesi için bir banka seçin veya tüm hareketleri görüntüleyin
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -209,6 +197,15 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
+    );
+  }
+
+  if (!selectedPos && !showAllMovements) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        Hareket listesi için bir POS cihazı seçin veya tüm hareketleri
+        görüntüleyin
+      </div>
     );
   }
 
@@ -244,12 +241,11 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
         onExporting={onExporting}
         selectedRowKeys={selectedRowKeys}
         onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
-        scrolling={{ mode: "virtual" }}
       >
         <StateStoring
           enabled={true}
           type="localStorage"
-          storageKey="bankMovementsGrid"
+          storageKey="posMovementsGrid"
         />
         <LoadPanel enabled={true} />
         <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -257,24 +253,20 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
         <HeaderFilter visible={true} />
         <SearchPanel visible={true} width={240} placeholder="Ara..." />
         <ColumnChooser enabled={true} mode="select" />
-        <Scrolling
-          mode="virtual"
-          rowRenderingMode="virtual"
-          columnRenderingMode="virtual"
-        />
+        <Scrolling mode="virtual" />
         <Export enabled={true} allowExportSelectedData={true} />
 
-        <Column dataField="bank.bankName" caption="Banka Adı" />
+        <Column dataField="pos.posName" caption="POS Adı" />
         <Column dataField="description" caption="Açıklama" />
         <Column
           dataField="entering"
           caption={showAllMovements ? `Giriş (${targetCurrency})` : "Giriş"}
           dataType="number"
           format="#,##0.00"
-          calculateCellValue={(rowData: BankMovement) =>
+          calculateCellValue={(rowData: PosMovement) =>
             convertAmount(
               rowData.entering,
-              rowData.bank?.currency || targetCurrency
+              rowData.pos?.currency || targetCurrency
             )
           }
         />
@@ -283,37 +275,36 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
           caption={showAllMovements ? `Çıkış (${targetCurrency})` : "Çıkış"}
           dataType="number"
           format="#,##0.00"
-          calculateCellValue={(rowData: BankMovement) =>
+          calculateCellValue={(rowData: PosMovement) =>
             convertAmount(
               rowData.emerging,
-              rowData.bank?.currency || targetCurrency
+              rowData.pos?.currency || targetCurrency
             )
           }
         />
-        <Column dataField="bank.currency" caption="Orijinal Para Birimi" />
+        <Column dataField="pos.currency" caption="Orijinal Para Birimi" />
         <Column
-          dataField="bankDirection"
+          dataField="posDirection"
           caption="Yön"
-          calculateCellValue={(rowData: BankMovement) =>
-            DIRECTION_TRANSLATIONS[rowData.bankDirection] ||
-            rowData.bankDirection
+          calculateCellValue={(rowData: PosMovement) =>
+            DIRECTION_TRANSLATIONS[rowData.posDirection] || rowData.posDirection
           }
         />
 
         <Column
-          dataField="bankType"
+          dataField="posType"
           caption="Tip"
-          calculateCellValue={(rowData: BankMovement) =>
-            MOVEMENT_TYPE_TRANSLATIONS[rowData.bankType] || rowData.bankType
+          calculateCellValue={(rowData: PosMovement) =>
+            MOVEMENT_TYPE_TRANSLATIONS[rowData.posType] || rowData.posType
           }
         />
 
         <Column
-          dataField="bankDocumentType"
+          dataField="posDocumentType"
           caption="Belge Tipi"
-          calculateCellValue={(rowData: BankMovement) =>
-            DOCUMENT_TYPE_TRANSLATIONS[rowData.bankDocumentType] ||
-            rowData.bankDocumentType
+          calculateCellValue={(rowData: PosMovement) =>
+            DOCUMENT_TYPE_TRANSLATIONS[rowData.posDocumentType] ||
+            rowData.posDocumentType
           }
         />
 
@@ -342,4 +333,4 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
   );
 };
 
-export default BankMovementsGrid;
+export default PosMovementsGrid;

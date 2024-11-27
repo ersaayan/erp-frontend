@@ -37,7 +37,7 @@ const VaultOperations: React.FC = () => {
           direction="horizontal"
           className="min-h-[calc(100vh-12rem)] rounded-lg"
         >
-          <ResizablePanel defaultSize={35}>
+          <ResizablePanel defaultSize={40}>
             <Card className="h-full p-4 border-0 shadow-none">
               <h2 className="text-lg font-semibold mb-4">Kasalar</h2>
               <VaultsGrid onVaultSelect={handleVaultSelect} />
@@ -46,7 +46,7 @@ const VaultOperations: React.FC = () => {
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel defaultSize={65}>
+          <ResizablePanel defaultSize={60}>
             <Card className="h-full p-4 border-0 shadow-none">
               <h2 className="text-lg font-semibold mb-4">
                 {selectedVault

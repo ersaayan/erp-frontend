@@ -244,6 +244,7 @@ const VaultMovementsGrid: React.FC<VaultMovementsGridProps> = ({
         onExporting={onExporting}
         selectedRowKeys={selectedRowKeys}
         onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
+        scrolling={{ mode: "virtual" }}
       >
         <StateStoring
           enabled={true}
