@@ -3,20 +3,20 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { List, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
-import { Vault } from "./types";
+import { Bank } from "./types";
 import { useCashTransactionDialog } from "./CashTransactionDialog/useCashTransactionDialog";
 import { useTransferDialog } from "./TransferDialog/useTransferDialog";
 import CashTransactionDialog from "./CashTransactionDialog";
 import TransferDialog from "./TransferDialog";
 
-interface VaultOperationsToolbarProps {
+interface BankOperationsToolbarProps {
   onShowAllMovements: () => void;
-  selectedVault: Vault | null;
+  selectedBank: Bank | null;
 }
 
-const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
+const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
   onShowAllMovements,
-  selectedVault,
+  selectedBank,
 }) => {
   const { openDialog: openCashDialog } = useCashTransactionDialog();
   const { openDialog: openTransferDialog } = useTransferDialog();
@@ -35,7 +35,7 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
         </Button>
       </div>
 
-      {selectedVault && (
+      {selectedBank && (
         <>
           <div className="flex gap-2 justify-end">
             <Button
@@ -69,12 +69,12 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
             </Button>
           </div>
 
-          <CashTransactionDialog vault={selectedVault} />
-          <TransferDialog sourceVault={selectedVault} />
+          <CashTransactionDialog bank={selectedBank} />
+          <TransferDialog sourceBank={selectedBank} />
         </>
       )}
     </div>
   );
 };
 
-export default VaultOperationsToolbar;
+export default BankOperationsToolbar;

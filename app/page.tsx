@@ -9,6 +9,7 @@ import TabContainer from "@/components/TabContainer";
 import { Button } from "@/components/ui/button";
 import { Menu, Bell, ChevronDown, LogOut, User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ExchangeRateDisplay from "@/components/ExchangeRateDisplay";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,7 @@ import Warehouses from "@/components/Warehouses";
 import InvoiceList from "@/components/InvoiceList";
 import QuickSales from "@/components/QuickSales";
 import VaultOperations from "@/components/VaultOperations";
+import BankOperations from "@/components/BankOperations";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -44,7 +46,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [notifications, setNotifications] = useState([
-    { id: 1, message: "Yeni bir bildirim var" }, // TODO: setNotifications fonksiyonu ileride kullanılacak ve eslint hatasını düzeltecek şekilde güncellenecek. Sonrasında bu tanımlamalar kaldırılacak.
+    { id: 1, message: "Yeni bir bildirim var" },
     { id: 2, message: "Önemli güncelleme mevcut" },
   ]);
 
@@ -90,10 +92,7 @@ export default function Home() {
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm">
-                <span className="text-green-600">₺ 34,2401</span>
-                <span className="text-red-600">€ 37,1289</span>
-              </div>
+              <ExchangeRateDisplay />
               <ThemeToggle />
               <Popover>
                 <PopoverTrigger asChild>
@@ -187,6 +186,7 @@ export default function Home() {
               {activeTab === "Fatura/İrsaliye Listesi" && <InvoiceList />}
               {activeTab === "Hızlı Satış" && <QuickSales />}
               {activeTab === "Kasa İşlemleri" && <VaultOperations />}
+              {activeTab === "Banka İşlemleri" && <BankOperations />}
             </TabContainer>
           </main>
         </div>
