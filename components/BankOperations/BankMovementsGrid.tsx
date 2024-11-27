@@ -32,6 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { currencyService } from "@/lib/services/currency";
+import {
+  DIRECTION_TRANSLATIONS,
+  DOCUMENT_TYPE_TRANSLATIONS,
+  MOVEMENT_TYPE_TRANSLATIONS,
+} from "@/lib/constants/movementEnums";
 
 interface BankMovementsGridProps {
   selectedBank: Bank | null;
@@ -281,9 +286,31 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
           }
         />
         <Column dataField="bank.currency" caption="Orijinal Para Birimi" />
-        <Column dataField="bankDirection" caption="Yön" />
-        <Column dataField="bankType" caption="Tip" />
-        <Column dataField="bankDocumentType" caption="Belge Tipi" />
+        <Column
+          dataField="bankDirection"
+          caption="Yön"
+          calculateCellValue={(rowData: BankMovement) =>
+            DIRECTION_TRANSLATIONS[rowData.bankDirection] ||
+            rowData.bankDirection
+          }
+        />
+
+        <Column
+          dataField="bankType"
+          caption="Tip"
+          calculateCellValue={(rowData: BankMovement) =>
+            MOVEMENT_TYPE_TRANSLATIONS[rowData.bankType] || rowData.bankType
+          }
+        />
+
+        <Column
+          dataField="bankDocumentType"
+          caption="Belge Tipi"
+          calculateCellValue={(rowData: BankMovement) =>
+            DOCUMENT_TYPE_TRANSLATIONS[rowData.bankDocumentType] ||
+            rowData.bankDocumentType
+          }
+        />
 
         <Summary>
           <TotalItem

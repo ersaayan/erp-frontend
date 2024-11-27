@@ -32,6 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { currencyService } from "@/lib/services/currency";
+import {
+  DIRECTION_TRANSLATIONS,
+  MOVEMENT_TYPE_TRANSLATIONS,
+  DOCUMENT_TYPE_TRANSLATIONS,
+} from "@/lib/constants/movementEnums";
 
 interface VaultMovementsGridProps {
   selectedVault: Vault | null;
@@ -281,9 +286,31 @@ const VaultMovementsGrid: React.FC<VaultMovementsGridProps> = ({
           }
         />
         <Column dataField="vault.currency" caption="Orijinal Para Birimi" />
-        <Column dataField="vaultDirection" caption="Yön" />
-        <Column dataField="vaultType" caption="Tip" />
-        <Column dataField="vaultDocumentType" caption="Belge Tipi" />
+        <Column
+          dataField="vaultDirection"
+          caption="Yön"
+          calculateCellValue={(rowData: VaultMovement) =>
+            DIRECTION_TRANSLATIONS[rowData.vaultDirection] ||
+            rowData.vaultDirection
+          }
+        />
+
+        <Column
+          dataField="vaultType"
+          caption="Tip"
+          calculateCellValue={(rowData: VaultMovement) =>
+            MOVEMENT_TYPE_TRANSLATIONS[rowData.vaultType] || rowData.vaultType
+          }
+        />
+
+        <Column
+          dataField="vaultDocumentType"
+          caption="Belge Tipi"
+          calculateCellValue={(rowData: VaultMovement) =>
+            DOCUMENT_TYPE_TRANSLATIONS[rowData.vaultDocumentType] ||
+            rowData.vaultDocumentType
+          }
+        />
 
         <Summary>
           <TotalItem

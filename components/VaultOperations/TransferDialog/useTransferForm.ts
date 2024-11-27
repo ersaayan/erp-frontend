@@ -68,7 +68,7 @@ export const useTransferForm = (sourceVaultId: string) => {
                     entering: 0,
                     emerging: values.amount,
                     vaultDirection: 'ReceivedVirement',
-                    vaultType: 'ReceivedVirement',
+                    vaultType: 'OutgoingVirement',
                     vaultDocumentType: 'General'
                 }),
             });
@@ -89,7 +89,7 @@ export const useTransferForm = (sourceVaultId: string) => {
                     entering: transferAmount.toString(),
                     emerging: 0,
                     vaultDirection: 'ReceivedVirement',
-                    vaultType: 'ReceivedVirement',
+                    vaultType: 'InGoingVirement',
                     vaultDocumentType: 'General'
                 }),
             });

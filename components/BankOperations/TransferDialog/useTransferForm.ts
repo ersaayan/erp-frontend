@@ -68,7 +68,7 @@ export const useTransferForm = (sourceBankId: string) => {
                     entering: 0,
                     emerging: values.amount,
                     bankDirection: 'ReceivedVirement',
-                    bankType: 'ReceivedVirement',
+                    bankType: 'OutgoingVirement',
                     bankDocumentType: 'General'
                 }),
             });
@@ -89,7 +89,7 @@ export const useTransferForm = (sourceBankId: string) => {
                     entering: transferAmount.toString(),
                     emerging: 0,
                     bankDirection: 'ReceivedVirement',
-                    bankType: 'ReceivedVirement',
+                    bankType: 'InGoingVirement',
                     bankDocumentType: 'General'
                 }),
             });
