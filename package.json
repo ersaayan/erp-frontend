@@ -52,6 +52,7 @@
     "embla-carousel-react": "^8.3.1",
     "emblor": "^1.4.6",
     "exceljs": "^4.4.0",
+    "fast-xml-parser": "^4.5.0",
     "file-saver-es": "^2.0.5",
     "framer-motion": "^11.0.8",
     "input-otp": "^1.2.5",

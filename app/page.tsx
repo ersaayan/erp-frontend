@@ -40,6 +40,8 @@ import QuickSales from "@/components/QuickSales";
 import VaultOperations from "@/components/VaultOperations";
 import BankOperations from "@/components/BankOperations";
 import PosOperations from "@/components/PosOperations";
+import CurrentTransactions from "@/components/CurrentTransactions";
+import ApiDocumentation from "@/components/Settings/ApiDocumentation";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -186,9 +188,11 @@ export default function Home() {
               {activeTab === "Depo Listesi" && <Warehouses />}
               {activeTab === "Fatura/İrsaliye Listesi" && <InvoiceList />}
               {activeTab === "Hızlı Satış" && <QuickSales />}
+              {activeTab === "Cari İşlemleri" && <CurrentTransactions />}
               {activeTab === "Kasa İşlemleri" && <VaultOperations />}
               {activeTab === "Banka İşlemleri" && <BankOperations />}
               {activeTab === "POS İşlemleri" && <PosOperations />}
+              {activeTab === "Tanımlar" && <ApiDocumentation />}
             </TabContainer>
           </main>
         </div>

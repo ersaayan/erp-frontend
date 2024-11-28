@@ -10,7 +10,7 @@ import { useCashTransactionDialog } from "./useCashTransactionDialog";
 import { Bank } from "../types";
 
 interface CashTransactionDialogProps {
-  bank: Bank;
+  bank: Bank | null;
 }
 
 const CashTransactionDialog: React.FC<CashTransactionDialogProps> = ({
@@ -18,7 +18,7 @@ const CashTransactionDialog: React.FC<CashTransactionDialogProps> = ({
 }) => {
   const { isOpen, type, closeDialog } = useCashTransactionDialog();
 
-  if (!type) return null;
+  if (!type || !bank) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>

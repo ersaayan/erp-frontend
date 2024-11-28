@@ -10,7 +10,7 @@ import { useCashTransactionDialog } from "./useCashTransactionDialog";
 import { Vault } from "../types";
 
 interface CashTransactionDialogProps {
-  vault: Vault;
+  vault: Vault | null;
 }
 
 const CashTransactionDialog: React.FC<CashTransactionDialogProps> = ({
@@ -18,7 +18,7 @@ const CashTransactionDialog: React.FC<CashTransactionDialogProps> = ({
 }) => {
   const { isOpen, type, closeDialog } = useCashTransactionDialog();
 
-  if (!type) return null;
+  if (!type || !vault) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>

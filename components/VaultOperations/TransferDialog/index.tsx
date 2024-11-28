@@ -10,11 +10,13 @@ import { useTransferDialog } from "./useTransferDialog";
 import { Vault } from "../types";
 
 interface TransferDialogProps {
-  sourceVault: Vault;
+  sourceVault: Vault | null;
 }
 
 const TransferDialog: React.FC<TransferDialogProps> = ({ sourceVault }) => {
   const { isOpen, closeDialog } = useTransferDialog();
+
+  if (!sourceVault) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>

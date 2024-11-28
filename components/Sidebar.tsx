@@ -91,7 +91,7 @@ const menuItems = [
     subItems: [
       { name: "Siparişler", disabled: false },
       { name: "Servisler", disabled: false },
-      { name: "İşlem Geçmişi", disabled: false },
+      // { name: "İşlem Geçmişi", disabled: false },
     ],
   },
   {

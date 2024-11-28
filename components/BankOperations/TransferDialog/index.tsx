@@ -10,11 +10,13 @@ import { useTransferDialog } from "./useTransferDialog";
 import { Bank } from "../types";
 
 interface TransferDialogProps {
-  sourceBank: Bank;
+  sourceBank: Bank | null;
 }
 
 const TransferDialog: React.FC<TransferDialogProps> = ({ sourceBank }) => {
   const { isOpen, closeDialog } = useTransferDialog();
+
+  if (!sourceBank) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>
