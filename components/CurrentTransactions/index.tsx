@@ -18,7 +18,11 @@ import BankPaymentDialog from "./BankPaymentDialog";
 import PosCollectionDialog from "./PosCollectionDialog";
 import PosPaymentDialog from "./PosPaymentDialog";
 
-const CurrentTransactions: React.FC = () => {
+interface CurrentTransactionsProps {
+    onMenuItemClick: (itemName: string) => void;
+}
+
+const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({ onMenuItemClick }) => {
     const [selectedCurrent, setSelectedCurrent] = useState<Current | null>(null);
 
     const handleCurrentSelect = (current: Current) => {
@@ -27,7 +31,10 @@ const CurrentTransactions: React.FC = () => {
 
     return (
         <div className="grid-container">
-            <CurrentTransactionsToolbar selectedCurrent={selectedCurrent} />
+            <CurrentTransactionsToolbar
+                selectedCurrent={selectedCurrent}
+                onMenuItemClick={onMenuItemClick}
+            />
             <Card className="mt-4 p-6">
                 <ResizablePanelGroup
                     direction="horizontal"

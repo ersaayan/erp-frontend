@@ -28,10 +28,12 @@ import { usePosPaymentDialog } from "./PosPaymentDialog/usePosPaymentDialog";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
+  onMenuItemClick?: (itemName: string) => void;
 }
 
 const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                                                                                  selectedCurrent,
+                                                                                 onMenuItemClick,
                                                                                }) => {
   const { toast } = useToast();
   const { openDialog: openCashCollectionDialog } = useCashCollectionDialog();
@@ -42,7 +44,6 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const { openDialog: openPosPaymentDialog } = usePosPaymentDialog();
 
   const handleRefresh = () => {
-    // Trigger refresh events for both grids
     window.dispatchEvent(new CustomEvent("refreshCurrents"));
     window.dispatchEvent(new CustomEvent("refreshCurrentMovements"));
 
@@ -50,6 +51,15 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
       title: "Success",
       description: "Veriler başarıyla yenilendi",
     });
+  };
+
+  const handlePurchaseInvoice = () => {
+    if (selectedCurrent) {
+      // Store the current data in localStorage
+      localStorage.setItem("currentPurchaseInvoice", JSON.stringify(selectedCurrent));
+      // Navigate to Purchase Invoice page
+      onMenuItemClick?.("Alış Faturası");
+    }
   };
 
   return (
@@ -85,7 +95,9 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>Alış Faturası</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePurchaseInvoice}>
+                    Alış Faturası
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
