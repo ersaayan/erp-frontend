@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useCashCollectionDialog } from "./CashCollectionDialog/useCashCollectionDialog";
+import { useCashPaymentDialog } from "./CashPaymentDialog/useCashPaymentDialog";
+import { useBankTransferDialog } from "./BankTransferDialog/useBankTransferDialog";
+import { useBankPaymentDialog } from "./BankPaymentDialog/useBankPaymentDialog";
+import { usePosCollectionDialog } from "./PosCollectionDialog/usePosCollectionDialog";
+import { usePosPaymentDialog } from "./PosPaymentDialog/usePosPaymentDialog";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
@@ -30,6 +35,11 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                                                                                }) => {
   const { toast } = useToast();
   const { openDialog: openCashCollectionDialog } = useCashCollectionDialog();
+  const { openDialog: openCashPaymentDialog } = useCashPaymentDialog();
+  const { openDialog: openBankTransferDialog } = useBankTransferDialog();
+  const { openDialog: openBankPaymentDialog } = useBankPaymentDialog();
+  const { openDialog: openPosCollectionDialog } = usePosCollectionDialog();
+  const { openDialog: openPosPaymentDialog } = usePosPaymentDialog();
 
   const handleRefresh = () => {
     // Trigger refresh events for both grids
@@ -110,8 +120,12 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                   <DropdownMenuItem onClick={() => openCashCollectionDialog()}>
                     Nakit Tahsilat
                   </DropdownMenuItem>
-                  <DropdownMenuItem>Havale/EFT Tahsilat</DropdownMenuItem>
-                  <DropdownMenuItem>POS Tahsilat</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openBankTransferDialog()}>
+                    Havale/EFT Tahsilat
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openPosCollectionDialog()}>
+                    POS Tahsilat
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -127,9 +141,15 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>Nakit Ödeme</DropdownMenuItem>
-                  <DropdownMenuItem>Havale/EFT Ödeme</DropdownMenuItem>
-                  <DropdownMenuItem>Şirket Kredi Kartı Ödeme</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openCashPaymentDialog()}>
+                    Nakit Ödeme
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openBankPaymentDialog()}>
+                    Havale/EFT Ödeme
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openPosPaymentDialog()}>
+                    POS Ödeme
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 

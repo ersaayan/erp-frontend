@@ -4,54 +4,64 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import CurrentTransactionsToolbar from "./CurrentTransactionsToolbar";
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
+    ResizablePanelGroup,
+    ResizablePanel,
+    ResizableHandle,
 } from "@/components/ui/resizable";
 import CurrentsGrid from "./CurrentsGrid";
 import CurrentMovementsGrid from "./CurrentMovementsGrid";
 import { Current } from "./types";
 import CashCollectionDialog from "./CashCollectionDialog";
+import CashPaymentDialog from "./CashPaymentDialog";
+import BankTransferDialog from "./BankTransferDialog";
+import BankPaymentDialog from "./BankPaymentDialog";
+import PosCollectionDialog from "./PosCollectionDialog";
+import PosPaymentDialog from "./PosPaymentDialog";
 
 const CurrentTransactions: React.FC = () => {
-  const [selectedCurrent, setSelectedCurrent] = useState<Current | null>(null);
+    const [selectedCurrent, setSelectedCurrent] = useState<Current | null>(null);
 
-  const handleCurrentSelect = (current: Current) => {
-    setSelectedCurrent(current);
-  };
+    const handleCurrentSelect = (current: Current) => {
+        setSelectedCurrent(current);
+    };
 
-  return (
-      <div className="grid-container">
-        <CurrentTransactionsToolbar selectedCurrent={selectedCurrent} />
-        <Card className="mt-4 p-6">
-          <ResizablePanelGroup
-              direction="horizontal"
-              className="min-h-[calc(100vh-12rem)] rounded-lg"
-          >
-            <ResizablePanel defaultSize={35}>
-              <Card className="h-full p-4 border-0 shadow-none">
-                <h2 className="text-lg font-semibold mb-4">Cariler</h2>
-                <CurrentsGrid onCurrentSelect={handleCurrentSelect} />
-              </Card>
-            </ResizablePanel>
+    return (
+        <div className="grid-container">
+            <CurrentTransactionsToolbar selectedCurrent={selectedCurrent} />
+            <Card className="mt-4 p-6">
+                <ResizablePanelGroup
+                    direction="horizontal"
+                    className="min-h-[calc(100vh-12rem)] rounded-lg"
+                >
+                    <ResizablePanel defaultSize={35}>
+                        <Card className="h-full p-4 border-0 shadow-none">
+                            <h2 className="text-lg font-semibold mb-4">Cariler</h2>
+                            <CurrentsGrid onCurrentSelect={handleCurrentSelect} />
+                        </Card>
+                    </ResizablePanel>
 
-            <ResizableHandle withHandle />
+                    <ResizableHandle withHandle />
 
-            <ResizablePanel defaultSize={65}>
-              <Card className="h-full p-4 border-0 shadow-none">
-                <h2 className="text-lg font-semibold mb-4">
-                  {selectedCurrent
-                      ? `${selectedCurrent.currentName} - Hareketler`
-                      : "Cari Hareketleri"}
-                </h2>
-                <CurrentMovementsGrid selectedCurrent={selectedCurrent} />
-              </Card>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </Card>
-        <CashCollectionDialog current={selectedCurrent} />
-      </div>
-  );
+                    <ResizablePanel defaultSize={65}>
+                        <Card className="h-full p-4 border-0 shadow-none">
+                            <h2 className="text-lg font-semibold mb-4">
+                                {selectedCurrent
+                                    ? `${selectedCurrent.currentName} - Hareketler`
+                                    : "Cari Hareketleri"}
+                            </h2>
+                            <CurrentMovementsGrid selectedCurrent={selectedCurrent} />
+                        </Card>
+                    </ResizablePanel>
+                </ResizablePanelGroup>
+            </Card>
+            <CashCollectionDialog current={selectedCurrent} />
+            <CashPaymentDialog current={selectedCurrent} />
+            <BankTransferDialog current={selectedCurrent} />
+            <BankPaymentDialog current={selectedCurrent} />
+            <PosCollectionDialog current={selectedCurrent} />
+            <PosPaymentDialog current={selectedCurrent} />
+        </div>
+    );
 };
 
 export default CurrentTransactions;

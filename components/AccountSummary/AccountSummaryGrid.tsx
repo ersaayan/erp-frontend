@@ -80,9 +80,10 @@ const AccountSummaryGrid: React.FC = () => {
         "http://localhost:1303/currentMovements/withCurrents"
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch account summary data");
-      }
+     if (!response.ok) {
+      setError("Failed to fetch account summary data");
+      return;
+    }
 
       const data = await response.json();
       setMovements(data);
@@ -341,12 +342,6 @@ const AccountSummaryGrid: React.FC = () => {
           dataType="number"
           format="#,##0.00"
         />
-        <Column
-          dataField="balanceAmount"
-          caption="Bakiye"
-          dataType="number"
-          format="#,##0.00"
-        />
         <Column dataField="movementType" caption="Hareket Tipi" />
         <Column dataField="documentType" caption="Belge Tipi" />
         <Column dataField="documentNo" caption="Belge No" />
@@ -367,11 +362,6 @@ const AccountSummaryGrid: React.FC = () => {
           />
           <TotalItem
             column="creditAmount"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="balanceAmount"
             summaryType="sum"
             valueFormat="#,##0.00"
           />
