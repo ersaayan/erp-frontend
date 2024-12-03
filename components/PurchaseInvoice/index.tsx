@@ -11,7 +11,10 @@ import { usePurchaseInvoiceForm } from "./hooks/usePurchaseInvoiceForm";
 import { useToast } from "@/hooks/use-toast";
 
 interface PurchaseInvoiceProps {
-  current: Current;
+  current: Current | null;
+}
+interface PurchaseInvoiceHeaderProps {
+  current: Current | null;
 }
 
 const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({

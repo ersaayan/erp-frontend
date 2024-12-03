@@ -112,7 +112,9 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
                   Tanımlı Fiyat Listesi
                 </Label>
                 <div className="font-medium">
-                  {customer.priceList?.priceListName}
+                  {customer.priceList
+                    ?.map((price) => price.priceListName)
+                    .join(", ")}
                 </div>
               </div>
             )}
