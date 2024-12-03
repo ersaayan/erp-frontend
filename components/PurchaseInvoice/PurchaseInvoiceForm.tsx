@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Current } from '../CurrentList/types';
 import { usePurchaseInvoiceForm } from './hooks/usePurchaseInvoiceForm';
+import PurchaseInvoiceItems from "@/components/PurchaseInvoice/PurchaseInvoiceItems";
 
 interface PurchaseInvoiceFormProps {
     current: Current;
@@ -406,6 +407,10 @@ const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({ current }) =>
                     )}
                 />
             </form>
+            <PurchaseInvoiceItems
+                selectedWarehouseId={form.watch("warehouseId")}
+                selectedPriceListId={form.watch("priceListId")}
+            />
         </Form>
     );
 };
