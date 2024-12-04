@@ -80,10 +80,10 @@ const AccountSummaryGrid: React.FC = () => {
         "http://localhost:1303/currentMovements/withCurrents"
       );
 
-     if (!response.ok) {
-      setError("Failed to fetch account summary data");
-      return;
-    }
+      if (!response.ok) {
+        setError("Failed to fetch account summary data");
+        return;
+      }
 
       const data = await response.json();
       setMovements(data);

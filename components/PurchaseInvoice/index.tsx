@@ -13,14 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 interface PurchaseInvoiceProps {
   current: Current | null;
 }
-interface PurchaseInvoiceHeaderProps {
-  current: Current | null;
-}
 
 const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({
   current: initialCurrent,
 }) => {
   const [current, setCurrent] = useState<Current | null>(initialCurrent);
+  const [totalAmount, setTotalAmount] = useState(0);
   const { vaults, banks, posDevices } = usePurchaseInvoiceForm();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -33,6 +31,10 @@ const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({
         description: "Yeni bir cari seçebilirsiniz.",
       });
     }
+  };
+
+  const handleTotalAmountChange = (newTotal: number) => {
+    setTotalAmount(newTotal);
   };
 
   const handlePaymentSubmit = async (payments: any[]) => {
@@ -61,14 +63,20 @@ const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({
             <CustomerSection
               customer={current}
               onCustomerSelect={handleCustomerChange}
+              autoOpenSearch={!initialCurrent}
             />
-            {current && <PurchaseInvoiceForm current={current} />}
+            {current && (
+              <PurchaseInvoiceForm
+                current={current}
+                onTotalAmountChange={handleTotalAmountChange}
+              />
+            )}
           </Card>
         </div>
         <div className="col-span-1">
           <Card className="p-6">
             <PaymentSection
-              total={0} // Replace with actual total from form
+              total={totalAmount}
               vaults={vaults}
               banks={banks}
               posDevices={posDevices}

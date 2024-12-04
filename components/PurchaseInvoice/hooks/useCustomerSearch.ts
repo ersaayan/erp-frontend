@@ -9,16 +9,13 @@ export const useCustomerSearch = () => {
     const { toast } = useToast();
 
     const searchCustomers = useCallback(async (query: string) => {
-        if (query.length < 3) {
-            setResults([]);
-            return;
-        }
-
         try {
             setLoading(true);
-            const response = await fetch(
-                `http://localhost:1303/currents/search?query=${encodeURIComponent(query)}`
-            );
+            const endpoint = query.length >= 3
+                ? `http://localhost:1303/currents/search?query=${encodeURIComponent(query)}`
+                : 'http://localhost:1303/currents';
+
+            const response = await fetch(endpoint);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch customers');

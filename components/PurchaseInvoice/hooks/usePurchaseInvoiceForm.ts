@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 interface Branch {
@@ -9,11 +10,6 @@ interface Branch {
 interface Warehouse {
     id: string;
     warehouseName: string;
-}
-
-interface PriceList {
-    id: string;
-    priceListName: string;
 }
 
 interface Vault {
@@ -34,7 +30,6 @@ interface Pos {
 export const usePurchaseInvoiceForm = () => {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-    const [priceLists, setPriceLists] = useState<PriceList[]>([]);
     const [vaults, setVaults] = useState<Vault[]>([]);
     const [banks, setBanks] = useState<Bank[]>([]);
     const [posDevices, setPosDevices] = useState<Pos[]>([]);
@@ -46,14 +41,12 @@ export const usePurchaseInvoiceForm = () => {
                 const [
                     branchesRes,
                     warehousesRes,
-                    priceListsRes,
                     vaultsRes,
                     banksRes,
                     posRes
                 ] = await Promise.all([
                     fetch('http://localhost:1303/branches'),
                     fetch('http://localhost:1303/warehouses'),
-                    fetch('http://localhost:1303/priceLists'),
                     fetch('http://localhost:1303/vaults'),
                     fetch('http://localhost:1303/banks'),
                     fetch('http://localhost:1303/pos')
@@ -62,14 +55,12 @@ export const usePurchaseInvoiceForm = () => {
                 const [
                     branchesData,
                     warehousesData,
-                    priceListsData,
                     vaultsData,
                     banksData,
                     posData
                 ] = await Promise.all([
                     branchesRes.json(),
                     warehousesRes.json(),
-                    priceListsRes.json(),
                     vaultsRes.json(),
                     banksRes.json(),
                     posRes.json()
@@ -77,7 +68,6 @@ export const usePurchaseInvoiceForm = () => {
 
                 setBranches(branchesData);
                 setWarehouses(warehousesData);
-                setPriceLists(priceListsData);
                 setVaults(vaultsData);
                 setBanks(banksData);
                 setPosDevices(posData);
@@ -110,7 +100,6 @@ export const usePurchaseInvoiceForm = () => {
     return {
         branches,
         warehouses,
-        priceLists,
         vaults,
         banks,
         posDevices,

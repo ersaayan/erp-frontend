@@ -7,8 +7,11 @@ import AccountSummaryGrid from "./AccountSummaryGrid";
 
 const AccountSummary: React.FC = () => {
   return (
-    <div className="grid-container">
-      <AccountSummaryGrid />
+    <div>
+      <h1>Hesap Özeti</h1>
+      <div className="grid-container">
+        <AccountSummaryGrid />
+      </div>
     </div>
   );
 };
