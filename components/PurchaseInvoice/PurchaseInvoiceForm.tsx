@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +38,7 @@ import PurchaseInvoiceItems from "@/components/PurchaseInvoice/PurchaseInvoiceIt
 
 interface PurchaseInvoiceFormProps {
   current: Current;
+  onTotalAmountChange: (total: number) => void;
 }
 
 const formSchema = z.object({
@@ -51,6 +54,7 @@ const formSchema = z.object({
 
 const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({
   current,
+  onTotalAmountChange,
 }) => {
   const [isSerialInvoice, setIsSerialInvoice] = useState(false);
   const [isSerialGib, setIsSerialGib] = useState(false);
@@ -315,6 +319,7 @@ const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({
         <PurchaseInvoiceItems
           selectedWarehouseId={form.watch("warehouseId")}
           customer={current}
+          onTotalAmountChange={onTotalAmountChange}
         />
       </form>
     </Form>

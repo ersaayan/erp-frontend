@@ -137,7 +137,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
                   Tanımlı Fiyat Listesi
                 </Label>
                 <div className="font-medium">
-                  {customer.priceList?.priceListName || "-"}
+                  {customer.priceList[0]?.priceListName || "-"}
                 </div>
               </div>
             </div>

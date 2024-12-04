@@ -1,13 +1,24 @@
-import React, { useCallback } from "react";
+"use client";
+
+import React, { useCallback, useEffect, useRef } from "react";
 import DataGrid, {
   Column,
-  Editing,
+  Export,
+  Selection,
+  FilterRow,
+  HeaderFilter,
+  Scrolling,
+  LoadPanel,
+  StateStoring,
   Summary,
   TotalItem,
+  Export as DxExport,
+  Toolbar,
+  Item,
   SearchPanel,
-  Selection,
+  ColumnChooser,
+  Editing,
 } from "devextreme-react/data-grid";
-import Tooltip from "devextreme-react/data-grid";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -44,6 +55,29 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
   const { toast } = useToast();
   const [items, setItems] = React.useState<StockItem[]>([]);
   const { openDialog } = useProductSelectionDialog();
+  const isInitialMount = useRef(true);
+
+  const calculateVatAmount = (rowData: any) => {
+    if (!rowData.quantity || !rowData.unitPrice || !rowData.vatRate) return 0;
+    return rowData.quantity * rowData.unitPrice * (rowData.vatRate / 100);
+  };
+
+  const calculateTotalAmount = (rowData: any) => {
+    if (!rowData.quantity || !rowData.unitPrice) return 0;
+    const subtotal = rowData.quantity * rowData.unitPrice;
+    const vatAmount = calculateVatAmount(rowData);
+    return subtotal + vatAmount;
+  };
+
+  const calculateAndUpdateTotal = useCallback(
+    (currentItems: StockItem[]) => {
+      const total = currentItems.reduce((sum, item) => {
+        return sum + calculateTotalAmount(item);
+      }, 0);
+      onTotalAmountChange(total);
+    },
+    [onTotalAmountChange]
+  );
 
   const handleProductsSelected = useCallback(
     (selectedProducts: any[]) => {
@@ -79,23 +113,21 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
         const uniqueNewItems = newItems.filter(
           (item) => !existingIds.has(item.id)
         );
-        return [...prevItems, ...uniqueNewItems];
+        const updatedItems = [...prevItems, ...uniqueNewItems];
+        return updatedItems;
       });
     },
     [selectedWarehouseId]
   );
 
-  const calculateVatAmount = (rowData: any) => {
-    if (!rowData.quantity || !rowData.unitPrice || !rowData.vatRate) return 0;
-    return rowData.quantity * rowData.unitPrice * (rowData.vatRate / 100);
-  };
-
-  const calculateTotalAmount = (rowData: any) => {
-    if (!rowData.quantity || !rowData.unitPrice) return 0;
-    const subtotal = rowData.quantity * rowData.unitPrice;
-    const vatAmount = calculateVatAmount(rowData);
-    return subtotal + vatAmount;
-  };
+  // Effect to update total when items change
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      calculateAndUpdateTotal(items);
+    } else {
+      isInitialMount.current = false;
+    }
+  }, [items, calculateAndUpdateTotal]);
 
   const handleAddProducts = () => {
     if (!selectedWarehouseId) {
@@ -144,27 +176,25 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
 
   const onRowUpdated = (e: any) => {
     const { data } = e;
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === data.id
-          ? {
-              ...item,
-              ...data,
-              vatAmount: calculateVatAmount(data),
-              totalAmount: calculateTotalAmount(data),
-            }
-          : item
-      )
+    const updatedItems = items.map((item) =>
+      item.id === data.id
+        ? {
+            ...item,
+            ...data,
+            vatAmount: calculateVatAmount(data),
+            totalAmount: calculateTotalAmount(data),
+          }
+        : item
     );
+    setItems(updatedItems);
   };
 
-  // Update warehouse stock when warehouse changes
-  React.useEffect(() => {
-    const total = items.reduce((sum, item) => {
-      const itemTotal = calculateTotalAmount(item);
-      return sum + itemTotal;
-    }, 0);
+  const onRowRemoved = (e: any) => {
+    const updatedItems = items.filter((item) => item.id !== e.data.id);
+    setItems(updatedItems);
+  };
 
+  useEffect(() => {
     if (selectedWarehouseId && items.length > 0) {
       const fetchWarehouseStock = async () => {
         try {
@@ -174,23 +204,22 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           if (!response.ok) throw new Error("Failed to fetch stock data");
 
           const stockData = await response.json();
+          const updatedItems = items.map((item) => {
+            const stockCard = stockData.find((s: any) => s.id === item.id);
+            const warehouseStock = stockCard?.stockCardWarehouse?.find(
+              (w: any) => w.warehouseId === selectedWarehouseId
+            );
 
-          setItems((currentItems) =>
-            currentItems.map((item) => {
-              const stockCard = stockData.find((s: any) => s.id === item.id);
-              const warehouseStock = stockCard?.stockCardWarehouse?.find(
-                (w: any) => w.warehouseId === selectedWarehouseId
-              );
+            return {
+              ...item,
+              warehouseStock: warehouseStock
+                ? parseInt(warehouseStock.quantity, 10)
+                : 0,
+              lastStockUpdate: warehouseStock?.updatedAt,
+            };
+          });
 
-              return {
-                ...item,
-                warehouseStock: warehouseStock
-                  ? parseInt(warehouseStock.quantity, 10)
-                  : 0,
-                lastStockUpdate: warehouseStock?.updatedAt,
-              };
-            })
-          );
+          setItems(updatedItems);
         } catch (error) {
           console.error("Error updating warehouse stock:", error);
         }
@@ -234,16 +263,12 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           showBorders={true}
           height={400}
           onRowUpdated={onRowUpdated}
+          onRowRemoved={onRowRemoved}
           onEditorPreparing={validateEditorValue}
         >
           <SearchPanel visible={true} width={240} placeholder="Stok ara..." />
           <Selection mode="single" />
-          <Editing
-            mode="cell"
-            allowUpdating={true}
-            allowDeleting={true}
-            useIcons={true}
-          />
+          <Editing mode="cell" allowUpdating={true} allowDeleting={true} />
 
           <Column
             dataField="productCode"
@@ -269,9 +294,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
             allowEditing={false}
             cellRender={stockCellRender}
             sortOrder="desc"
-          >
-            <Tooltip cacheEnabled={true} />
-          </Column>
+          />
           <Column
             dataField="unitPrice"
             caption="Birim Fiyat"
