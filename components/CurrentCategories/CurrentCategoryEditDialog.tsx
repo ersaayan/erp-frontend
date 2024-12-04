@@ -67,7 +67,9 @@ const CurrentCategoryEditDialog: React.FC<CurrentCategoryEditDialogProps> = ({
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:1303/currentCategories");
+        const response = await fetch(
+          `${process.env.BASE_URL}/currentCategories`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch current categories");
         }
@@ -107,7 +109,7 @@ const CurrentCategoryEditDialog: React.FC<CurrentCategoryEditDialogProps> = ({
       }
 
       const response = await fetch(
-        `http://localhost:1303/currentCategories/${category.id}`,
+        `${process.env.BASE_URL}/currentCategories/${category.id}`,
         {
           method: "PUT",
           headers: {
@@ -151,7 +153,7 @@ const CurrentCategoryEditDialog: React.FC<CurrentCategoryEditDialogProps> = ({
 
     try {
       const response = await fetch(
-        `http://localhost:1303/currentCategories/${category.id}`,
+        `${process.env.BASE_URL}/currentCategories/${category.id}`,
         {
           method: "DELETE",
         }

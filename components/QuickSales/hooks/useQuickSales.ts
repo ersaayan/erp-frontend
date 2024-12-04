@@ -83,7 +83,7 @@ export const useQuickSales = () => {
                 status: "completed",
             };
 
-            const response = await fetch("http://localhost:1303/sales", {
+            const response = await fetch(`${process.env.BASE_URL}/sales`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

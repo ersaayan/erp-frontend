@@ -38,13 +38,13 @@ interface MovementsGridProps {
 const getEndpoint = (type: MovementsGridProps["type"]) => {
   switch (type) {
     case "orders":
-      return "http://localhost:1303/stockMovements/orders";
+      return `${process.env.BASE_URL}/stockMovements/orders`;
     case "previous-sales":
-      return "http://localhost:1303/stockMovements/sales";
+      return `${process.env.BASE_URL}/stockMovements/sales`;
     case "previous-purchases":
-      return "http://localhost:1303/stockMovements/purchase";
+      return `${process.env.BASE_URL}/stockMovements/purchase`;
     default:
-      return "http://localhost:1303/stockMovements";
+      return `${process.env.BASE_URL}/stockMovements`;
   }
 };
 

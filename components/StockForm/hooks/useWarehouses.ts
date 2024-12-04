@@ -21,7 +21,7 @@ export const useWarehouses = () => {
     useEffect(() => {
         const fetchWarehouses = async () => {
             try {
-                const response = await fetch('http://localhost:1303/warehouses');
+                const response = await fetch(`${process.env.BASE_URL}/warehouses`);
                 const data = await response.json();
                 setWarehouses(data);
                 setError(null);

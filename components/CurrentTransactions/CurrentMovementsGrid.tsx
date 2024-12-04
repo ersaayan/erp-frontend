@@ -47,7 +47,7 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:1303/currentMovements/byCurrent/${selectedCurrent.id}`
+        `${process.env.BASE_URL}/currentMovements/byCurrent/${selectedCurrent.id}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch current movements");

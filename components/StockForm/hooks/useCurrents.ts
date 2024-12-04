@@ -30,14 +30,14 @@ export const useCurrents = () => {
     useEffect(() => {
         const fetchCurrents = async () => {
             try {
-                const response = await fetch('http://localhost:1303/currents');
+                const response = await fetch(`${process.env.BASE_URL}/currents`);
                 const data: Current[] = await response.json();
-                
+
                 // Filter currents by type
-                const filteredCurrents = data.filter(current => 
+                const filteredCurrents = data.filter(current =>
                     VALID_CURRENT_TYPES.includes(current.currentType)
                 );
-                
+
                 setCurrents(filteredCurrents);
                 setError(null);
             } catch (err) {

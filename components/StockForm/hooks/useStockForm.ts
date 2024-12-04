@@ -325,8 +325,8 @@ export const useStockForm = () => {
             };
 
             const url = updatedFormState.isUpdateMode
-                ? `http://localhost:1303/stockcards/updateStockCardsWithRelations/${updatedFormState.stockCard.id}`
-                : "http://localhost:1303/stockcards/";
+                ? `${process.env.BASE_URL}/stockcards/updateStockCardsWithRelations/${updatedFormState.stockCard.id}`
+                : `${process.env.BASE_URL}/stockcards/`;
 
             const method = updatedFormState.isUpdateMode ? "PUT" : "POST";
 

@@ -9,7 +9,7 @@ export const useCategories = () => {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:1303/categories/withParents');
+            const response = await fetch(`${process.env.BASE_URL}/categories/withParents`);
             if (!response.ok) {
                 throw new Error('Failed to fetch categories');
             }

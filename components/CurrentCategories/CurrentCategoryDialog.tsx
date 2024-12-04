@@ -37,7 +37,9 @@ const CurrentCategoryDialog: React.FC = () => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:1303/currentCategories");
+        const response = await fetch(
+          `${process.env.BASE_URL}/currentCategories`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch current categories");
         }
@@ -70,17 +72,20 @@ const CurrentCategoryDialog: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:1303/currentCategories", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryName,
-          categoryCode,
-          parentCategoryId: isMainCategory ? null : parentCategoryId,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.BASE_URL}/currentCategories`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            categoryName,
+            categoryCode,
+            parentCategoryId: isMainCategory ? null : parentCategoryId,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to create current category");

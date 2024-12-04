@@ -18,7 +18,7 @@ export const useBrands = () => {
     useEffect(() => {
         const fetchBrands = async () => {
             try {
-                const response = await fetch('http://localhost:1303/brands');
+                const response = await fetch(`${process.env.BASE_URL}/brands`);
                 const data = await response.json();
                 setBrands(data);
                 setError(null);

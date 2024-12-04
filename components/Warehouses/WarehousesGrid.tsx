@@ -29,7 +29,7 @@ const WarehousesGrid: React.FC = () => {
   const fetchWarehouses = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:1303/warehouses");
+      const response = await fetch(`${process.env.BASE_URL}/warehouses`);
       if (!response.ok) {
         throw new Error("Failed to fetch warehouses");
       }

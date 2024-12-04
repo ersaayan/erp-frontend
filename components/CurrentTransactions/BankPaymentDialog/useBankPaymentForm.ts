@@ -30,8 +30,8 @@ export const useBankPaymentForm = (currentCode: string) => {
             setIsLoading(true);
             try {
                 const [banksResponse, branchesResponse] = await Promise.all([
-                    fetch('http://localhost:1303/banks'),
-                    fetch('http://localhost:1303/branches'),
+                    fetch(`${process.env.BASE_URL}/banks`),
+                    fetch(`${process.env.BASE_URL}/branches`),
                 ]);
 
                 if (banksResponse.ok) {
@@ -68,7 +68,7 @@ export const useBankPaymentForm = (currentCode: string) => {
             bankId: values.bankId
         };
 
-        const response = await fetch('http://localhost:1303/currentMovements', {
+        const response = await fetch(`${process.env.BASE_URL}/currentMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const useBankPaymentForm = (currentCode: string) => {
             bankDocumentType: 'General',
         };
 
-        const bankResponse = await fetch('http://localhost:1303/bankMovements', {
+        const bankResponse = await fetch(`${process.env.BASE_URL}/bankMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

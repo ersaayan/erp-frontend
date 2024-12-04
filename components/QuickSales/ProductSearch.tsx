@@ -46,7 +46,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
       else searchParams.append("query", debouncedSearchTerm);
 
       const response = await fetch(
-        `http://localhost:1303/stockcards/search?${searchParams}`
+        `${process.env.BASE_URL}/stockcards/search?${searchParams}`
       );
 
       if (!response.ok) {

@@ -81,7 +81,7 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
     const fetchBranches = async () => {
       try {
         setBranchesLoading(true);
-        const response = await fetch("http://localhost:1303/branches/");
+        const response = await fetch(`${process.env.BASE_URL}/branches/`);
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -110,7 +110,7 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:1303/banks/${bank.id}`, {
+      const response = await fetch(`${process.env.BASE_URL}/banks/${bank.id}`, {
         method: "DELETE",
       });
 
@@ -142,8 +142,8 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
       setLoading(true);
 
       const url = bank
-        ? `http://localhost:1303/banks/${bank.id}`
-        : "http://localhost:1303/banks";
+        ? `${process.env.BASE_URL}/banks/${bank.id}`
+        : `${process.env.BASE_URL}/banks`;
 
       const response = await fetch(url, {
         method: bank ? "PUT" : "POST",

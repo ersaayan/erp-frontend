@@ -86,7 +86,7 @@ const WarehouseDialog: React.FC = () => {
     const fetchCompanies = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:1303/companies");
+        const response = await fetch(`${process.env.BASE_URL}/companies`);
         if (!response.ok) {
           throw new Error("Failed to fetch companies");
         }
@@ -132,8 +132,8 @@ const WarehouseDialog: React.FC = () => {
       }
 
       const url = editingWarehouse
-        ? `http://localhost:1303/warehouses/${editingWarehouse.id}`
-        : "http://localhost:1303/warehouses";
+        ? `${process.env.BASE_URL}/warehouses/${editingWarehouse.id}`
+        : `${process.env.BASE_URL}/warehouses`;
 
       const response = await fetch(url, {
         method: editingWarehouse ? "PUT" : "POST",
@@ -176,7 +176,7 @@ const WarehouseDialog: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:1303/warehouses/${editingWarehouse.id}`,
+        `${process.env.BASE_URL}/warehouses/${editingWarehouse.id}`,
         {
           method: "DELETE",
         }

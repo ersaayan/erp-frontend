@@ -86,7 +86,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     try {
       setLoading(true);
       const [stockResponse, ratesResponse] = await Promise.all([
-        fetch("http://localhost:1303/stockcards/stockCardsWithRelations"),
+        fetch(`${process.env.BASE_URL}/stockcards/stockCardsWithRelations`),
         currencyService.getExchangeRates(),
       ]);
 
@@ -157,7 +157,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       setLoading(true);
       const ids = selectedRowKeys.map((key) => key.id); // Ensure only ids are sent
       const response = await fetch(
-        "http://localhost:1303/stockcards/deleteManyStockCardsWithRelations/",
+        `${process.env.BASE_URL}/stockcards/deleteManyStockCardsWithRelations/`,
         {
           method: "DELETE",
           headers: {

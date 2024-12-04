@@ -53,8 +53,8 @@ export const useCashTransactionForm = (bankId: string, type: 'income' | 'expense
             setIsLoading(true);
             try {
                 const [invoicesResponse, receiptsResponse] = await Promise.all([
-                    fetch('http://localhost:1303/invoices/'),
-                    fetch('http://localhost:1303/receipts/'),
+                    fetch(`${process.env.BASE_URL}/invoices/`),
+                    fetch(`${process.env.BASE_URL}/receipts/`),
                 ]);
 
                 if (invoicesResponse.ok) {
@@ -89,7 +89,7 @@ export const useCashTransactionForm = (bankId: string, type: 'income' | 'expense
             bankDocumentType: values.documentType,
         };
 
-        const response = await fetch('http://localhost:1303/bankMovements/', {
+        const response = await fetch(`${process.env.BASE_URL}/bankMovements/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

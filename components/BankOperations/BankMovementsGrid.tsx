@@ -118,8 +118,8 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
     try {
       setLoading(true);
       const endpoint = selectedBank
-        ? `http://localhost:1303/bankMovements/bank/${selectedBank.id}`
-        : "http://localhost:1303/bankMovements";
+        ? `${process.env.BASE_URL}/bankMovements/bank/${selectedBank.id}`
+        : `${process.env.BASE_URL}/bankMovements`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {

@@ -42,7 +42,7 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
   const fetchVaults = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:1303/vaults");
+      const response = await fetch(`${process.env.BASE_URL}/vaults`);
       if (!response.ok) {
         throw new Error("Failed to fetch vaults");
       }

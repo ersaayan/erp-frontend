@@ -80,7 +80,7 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
     const fetchBranches = async () => {
       try {
         setBranchesLoading(true);
-        const response = await fetch("http://localhost:1303/branches/");
+        const response = await fetch(`${process.env.BASE_URL}/branches/`);
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -109,7 +109,7 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:1303/pos/${pos.id}`, {
+      const response = await fetch(`${process.env.BASE_URL}/pos/${pos.id}`, {
         method: "DELETE",
       });
 
@@ -141,8 +141,8 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
       setLoading(true);
 
       const url = pos
-        ? `http://localhost:1303/pos/${pos.id}`
-        : "http://localhost:1303/pos";
+        ? `${process.env.BASE_URL}/pos/${pos.id}`
+        : `${process.env.BASE_URL}/pos`;
 
       const response = await fetch(url, {
         method: pos ? "PUT" : "POST",

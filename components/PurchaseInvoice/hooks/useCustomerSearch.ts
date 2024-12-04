@@ -12,8 +12,8 @@ export const useCustomerSearch = () => {
         try {
             setLoading(true);
             const endpoint = query.length >= 3
-                ? `http://localhost:1303/currents/search?query=${encodeURIComponent(query)}`
-                : 'http://localhost:1303/currents';
+                ? `${process.env.BASE_URL}/currents/search?query=${encodeURIComponent(query)}`
+                : `${process.env.BASE_URL}/currents`;
 
             const response = await fetch(endpoint);
 

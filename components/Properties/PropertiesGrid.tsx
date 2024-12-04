@@ -47,7 +47,7 @@ const PropertiesGrid: React.FC = () => {
   const fetchAttributes = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:1303/attributes");
+      const response = await fetch(`${process.env.BASE_URL}/attributes`);
       if (!response.ok) {
         throw new Error("Failed to fetch attributes");
       }

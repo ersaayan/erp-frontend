@@ -16,7 +16,7 @@ export const useTransferForm = (sourceVaultId: string) => {
         const fetchVaults = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('http://localhost:1303/vaults');
+                const response = await fetch(`${process.env.BASE_URL}/vaults`);
                 if (response.ok) {
                     const data = await response.json();
                     setVaults(data);
@@ -57,7 +57,7 @@ export const useTransferForm = (sourceVaultId: string) => {
             const description = `Transfer from ${sourceVault.vaultName} to ${targetVault.vaultName}`;
 
             // Create withdrawal transaction
-            const withdrawalResponse = await fetch('http://localhost:1303/vaultMovements/', {
+            const withdrawalResponse = await fetch(`${process.env.BASE_URL}/vaultMovements/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -78,7 +78,7 @@ export const useTransferForm = (sourceVaultId: string) => {
             }
 
             // Create deposit transaction
-            const depositResponse = await fetch('http://localhost:1303/vaultMovements/', {
+            const depositResponse = await fetch(`${process.env.BASE_URL}/vaultMovements/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

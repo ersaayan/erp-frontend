@@ -30,8 +30,8 @@ export const usePosPaymentForm = (currentCode: string) => {
             setIsLoading(true);
             try {
                 const [posResponse, branchesResponse] = await Promise.all([
-                    fetch('http://localhost:1303/pos'),
-                    fetch('http://localhost:1303/branches'),
+                    fetch(`${process.env.BASE_URL}/pos`),
+                    fetch(`${process.env.BASE_URL}/branches`),
                 ]);
 
                 if (posResponse.ok) {
@@ -68,7 +68,7 @@ export const usePosPaymentForm = (currentCode: string) => {
             posId: values.posId
         };
 
-        const response = await fetch('http://localhost:1303/currentMovements', {
+        const response = await fetch(`${process.env.BASE_URL}/currentMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const usePosPaymentForm = (currentCode: string) => {
             posDocumentType: 'General',
         };
 
-        const posResponse = await fetch('http://localhost:1303/posMovements', {
+        const posResponse = await fetch(`${process.env.BASE_URL}/posMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

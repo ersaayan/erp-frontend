@@ -30,8 +30,8 @@ export const useCashPaymentForm = (currentCode: string) => {
             setIsLoading(true);
             try {
                 const [vaultsResponse, branchesResponse] = await Promise.all([
-                    fetch('http://localhost:1303/vaults'),
-                    fetch('http://localhost:1303/branches'),
+                    fetch(`${process.env.BASE_URL}/vaults`),
+                    fetch(`${process.env.BASE_URL}/branches`),
                 ]);
 
                 if (vaultsResponse.ok) {
@@ -68,7 +68,7 @@ export const useCashPaymentForm = (currentCode: string) => {
             vaultId: values.vaultId
         };
 
-        const response = await fetch('http://localhost:1303/currentMovements', {
+        const response = await fetch(`${process.env.BASE_URL}/currentMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const useCashPaymentForm = (currentCode: string) => {
             vaultDocumentType: 'General',
         };
 
-        const vaultResponse = await fetch('http://localhost:1303/vaultMovements', {
+        const vaultResponse = await fetch(`${process.env.BASE_URL}/vaultMovements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

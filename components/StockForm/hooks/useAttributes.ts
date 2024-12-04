@@ -9,7 +9,7 @@ export const useAttributes = () => {
     useEffect(() => {
         const fetchAttributes = async () => {
             try {
-                const response = await fetch('http://localhost:1303/attributes');
+                const response = await fetch(`${process.env.BASE_URL}/attributes`);
                 const data: Attribute[] = await response.json();
                 setAttributes(data);
                 setError(null);

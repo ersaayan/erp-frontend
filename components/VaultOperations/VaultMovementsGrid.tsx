@@ -118,8 +118,8 @@ const VaultMovementsGrid: React.FC<VaultMovementsGridProps> = ({
     try {
       setLoading(true);
       const endpoint = selectedVault
-        ? `http://localhost:1303/vaultMovements/vault/${selectedVault.id}`
-        : "http://localhost:1303/vaultMovements";
+        ? `${process.env.BASE_URL}/vaultMovements/vault/${selectedVault.id}`
+        : `${process.env.BASE_URL}/vaultMovements`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {

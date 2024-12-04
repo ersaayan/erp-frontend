@@ -53,8 +53,8 @@ export const useCashTransactionForm = (vaultId: string, type: 'income' | 'expens
             setIsLoading(true);
             try {
                 const [invoicesResponse, receiptsResponse] = await Promise.all([
-                    fetch('http://localhost:1303/invoices/'),
-                    fetch('http://localhost:1303/receipts/'),
+                    fetch(`${process.env.BASE_URL}/invoices/`),
+                    fetch(`${process.env.BASE_URL}/receipts/`),
                 ]);
 
                 if (invoicesResponse.ok) {
@@ -89,7 +89,7 @@ export const useCashTransactionForm = (vaultId: string, type: 'income' | 'expens
             vaultDocumentType: values.documentType,
         };
 
-        const response = await fetch('http://localhost:1303/vaultMovements/', {
+        const response = await fetch(`${process.env.BASE_URL}/vaultMovements/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

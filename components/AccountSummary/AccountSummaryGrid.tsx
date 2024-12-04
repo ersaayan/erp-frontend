@@ -77,7 +77,7 @@ const AccountSummaryGrid: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:1303/currentMovements/withCurrents"
+        `${process.env.BASE_URL}/currentMovements/withCurrents`
       );
 
       if (!response.ok) {

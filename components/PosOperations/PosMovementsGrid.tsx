@@ -114,8 +114,8 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
     try {
       setLoading(true);
       const endpoint = selectedPos
-        ? `http://localhost:1303/posMovements/pos/${selectedPos.id}`
-        : "http://localhost:1303/posMovements";
+        ? `${process.env.BASE_URL}/posMovements/pos/${selectedPos.id}`
+        : `${process.env.BASE_URL}/posMovements`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {

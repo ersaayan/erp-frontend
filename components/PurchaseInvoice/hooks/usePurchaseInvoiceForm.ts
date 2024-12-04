@@ -45,11 +45,11 @@ export const usePurchaseInvoiceForm = () => {
                     banksRes,
                     posRes
                 ] = await Promise.all([
-                    fetch('http://localhost:1303/branches'),
-                    fetch('http://localhost:1303/warehouses'),
-                    fetch('http://localhost:1303/vaults'),
-                    fetch('http://localhost:1303/banks'),
-                    fetch('http://localhost:1303/pos')
+                    fetch(`${process.env.BASE_URL}/branches`),
+                    fetch(`${process.env.BASE_URL}/warehouses`),
+                    fetch(`${process.env.BASE_URL}/vaults`),
+                    fetch(`${process.env.BASE_URL}/banks`),
+                    fetch(`${process.env.BASE_URL}/pos`)
                 ]);
 
                 const [

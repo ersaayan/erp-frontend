@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,20 +23,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface PaymentMethod {
-  id: string;
-  type: "cash" | "card" | "transfer" | "credit";
-  amount: number;
-  accountId?: string;
-}
+import { usePayments } from "./usePayments";
+import PaymentMethodSelector from "./PaymentMethodSelector";
+import PaymentList from "./PaymentList";
+import { PaymentDetails } from "./types";
 
 interface PaymentSectionProps {
   total: number;
   vaults?: Array<{ id: string; vaultName: string }>;
   banks?: Array<{ id: string; bankName: string }>;
   posDevices?: Array<{ id: string; posName: string }>;
-  onPaymentSubmit: (payments: PaymentMethod[]) => Promise<void>;
+  onPaymentSubmit: (payments: PaymentDetails[]) => Promise<void>;
   loading: boolean;
 }
 
@@ -48,60 +45,76 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onPaymentSubmit,
   loading,
 }) => {
-  const [selectedMethod, setSelectedMethod] =
-    useState<PaymentMethod["type"]>("cash");
+  const {
+    payments,
+    addPayment,
+    updatePayment,
+    removePayment,
+    getRemainingAmount,
+  } = usePayments(total);
+  const [selectedMethod, setSelectedMethod] = useState<
+    PaymentDetails["type"] | null
+  >(null);
   const [amount, setAmount] = useState<string>("");
   const [accountId, setAccountId] = useState<string>("");
-  const [payments, setPayments] = useState<PaymentMethod[]>([]);
-  const [editingPayment, setEditingPayment] = useState<PaymentMethod | null>(
+  const [editingPayment, setEditingPayment] = useState<PaymentDetails | null>(
     null
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [paymentToDelete, setPaymentToDelete] = useState<PaymentMethod | null>(
+  const [paymentToDelete, setPaymentToDelete] = useState<PaymentDetails | null>(
     null
   );
 
-  const remainingAmount =
-    total - payments.reduce((sum, p) => sum + p.amount, 0);
+  const remainingAmount = getRemainingAmount();
 
   const handleAddPayment = () => {
     if (!amount || parseFloat(amount) <= 0 || !selectedMethod) return;
 
-    const newPayment: PaymentMethod = {
-      id: editingPayment?.id || crypto.randomUUID(),
-      type: selectedMethod,
-      amount: parseFloat(amount),
-      accountId: accountId || undefined,
-    };
+    const accountName = getAccountName(accountId);
+    const accountDetails = getAccountDetails(selectedMethod, accountId);
 
     if (editingPayment) {
-      setPayments(
-        payments.map((p) => (p.id === editingPayment.id ? newPayment : p))
-      );
+      updatePayment(editingPayment.id, {
+        type: selectedMethod,
+        amount: parseFloat(amount),
+        accountId,
+        accountName,
+        accountDetails,
+      });
       setEditingPayment(null);
     } else {
-      setPayments([...payments, newPayment]);
+      addPayment(
+        {
+          id: crypto.randomUUID(),
+          type: selectedMethod,
+          amount: parseFloat(amount),
+          accountId,
+        },
+        accountName,
+        accountDetails
+      );
     }
 
     setAmount("");
     setAccountId("");
+    setSelectedMethod(null);
   };
 
-  const handleEditPayment = (payment: PaymentMethod) => {
+  const handleEditPayment = (payment: PaymentDetails) => {
     setEditingPayment(payment);
     setSelectedMethod(payment.type);
     setAmount(payment.amount.toString());
     setAccountId(payment.accountId || "");
   };
 
-  const handleDeletePayment = (payment: PaymentMethod) => {
+  const handleDeletePayment = (payment: PaymentDetails) => {
     setPaymentToDelete(payment);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
     if (paymentToDelete) {
-      setPayments(payments.filter((p) => p.id !== paymentToDelete.id));
+      removePayment(paymentToDelete.id);
     }
     setDeleteDialogOpen(false);
     setPaymentToDelete(null);
@@ -151,6 +164,33 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       : "";
   };
 
+  const getAccountDetails = (
+    type: PaymentDetails["type"],
+    accountId: string
+  ): string => {
+    const accountName = getAccountName(accountId);
+    switch (type) {
+      case "cash":
+        return `${accountName} - Nakit`;
+      case "transfer":
+        const bank = banks.find((b) => b.id === accountId);
+        return bank ? `${bank.bankName}` : accountName;
+      case "card":
+        const pos = posDevices.find((p) => p.id === accountId);
+        return pos ? `${pos.posName}` : accountName;
+      default:
+        return "";
+    }
+  };
+
+  const isPaymentMethodSelected = selectedMethod !== null;
+  const isAmountValid = amount !== "" && parseFloat(amount) > 0;
+  const isAccountSelected = accountId !== "";
+  const canAddPayment =
+    isPaymentMethodSelected &&
+    isAmountValid &&
+    (selectedMethod === "credit" || isAccountSelected);
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -168,102 +208,53 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         </div>
       </div>
 
+      <PaymentMethodSelector
+        selectedMethod={selectedMethod}
+        onMethodSelect={setSelectedMethod}
+      />
+
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <Button
-            variant={selectedMethod === "cash" ? "default" : "outline"}
-            onClick={() => setSelectedMethod("cash")}
-          >
-            Nakit
-          </Button>
-          <Button
-            variant={selectedMethod === "card" ? "default" : "outline"}
-            onClick={() => setSelectedMethod("card")}
-          >
-            Kredi Kartı
-          </Button>
-          <Button
-            variant={selectedMethod === "transfer" ? "default" : "outline"}
-            onClick={() => setSelectedMethod("transfer")}
-          >
-            Havale/EFT
-          </Button>
-          <Button
-            variant={selectedMethod === "credit" ? "default" : "outline"}
-            onClick={() => setSelectedMethod("credit")}
-          >
-            Açık Hesap
-          </Button>
+        <div>
+          <Label>Tutar</Label>
+          <Input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+          />
         </div>
 
-        <div className="space-y-4">
+        {selectedMethod !== "credit" && (
           <div>
-            <Label>Tutar</Label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-            />
+            <Label>{getAccountLabel()}</Label>
+            <Select value={accountId} onValueChange={setAccountId}>
+              <SelectTrigger>
+                <SelectValue placeholder={`${getAccountLabel()} seçin`} />
+              </SelectTrigger>
+              <SelectContent>
+                {getAccountOptions().map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {getAccountName(account.id)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          {selectedMethod !== "credit" && (
-            <div>
-              <Label>{getAccountLabel()}</Label>
-              <Select value={accountId} onValueChange={setAccountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={`${getAccountLabel()} seçin`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAccountOptions().map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {getAccountName(account.id)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
+        )}
 
         <Button
           className="w-full"
           onClick={handleAddPayment}
-          disabled={!amount || parseFloat(amount) <= 0}
+          disabled={!canAddPayment}
         >
           {editingPayment ? "Ödemeyi Güncelle" : "Ödeme Ekle"}
         </Button>
 
-        {payments.length > 0 && (
-          <div className="space-y-2">
-            <Label>Eklenen Ödemeler</Label>
-            {payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex justify-between items-center p-2 border rounded"
-              >
-                <span>{payment.type}</span>
-                <span>{formatCurrency(payment.amount)}</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEditPayment(payment)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeletePayment(payment)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <PaymentList
+          payments={payments}
+          onEdit={handleEditPayment}
+          onDelete={handleDeletePayment}
+        />
 
         <Button
           className="w-full"

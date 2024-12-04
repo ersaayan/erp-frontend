@@ -10,7 +10,7 @@ export const useCurrents = () => {
         const fetchCurrents = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:1303/currents');
+                const response = await fetch(`${process.env.BASE_URL}/currents`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch currents');
                 }

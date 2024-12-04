@@ -199,7 +199,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
       const fetchWarehouseStock = async () => {
         try {
           const response = await fetch(
-            "http://localhost:1303/stockcards/stockCardsWithRelations"
+            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`
           );
           if (!response.ok) throw new Error("Failed to fetch stock data");
 

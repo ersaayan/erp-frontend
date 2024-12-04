@@ -10,7 +10,7 @@ export const useStockCards = () => {
         const fetchStockCards = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:1303/stockcards/stockCardsWithRelations');
+                const response = await fetch(`${process.env.BASE_URL}/stockcards/stockCardsWithRelations`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch stock cards');
                 }

@@ -56,10 +56,10 @@ export const useProductPricing = (customer: Current | null) => {
 
                 // Use stockCardsWithRelations endpoint for full data
                 const endpoint = searchTerm
-                    ? `http://localhost:1303/stockcards/search?query=${encodeURIComponent(
+                    ? `${process.env.BASE_URL}/stockcards/search?query=${encodeURIComponent(
                         searchTerm
                     )}`
-                    : "http://localhost:1303/stockcards/stockCardsWithRelations";
+                    : `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`;
 
                 const response = await fetch(endpoint);
                 if (!response.ok) {

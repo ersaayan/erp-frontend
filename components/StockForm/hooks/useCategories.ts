@@ -17,7 +17,7 @@ const buildCategoryTree = (categories: Category[]): CategoryNode[] => {
     // Second pass: Build the tree structure
     categories.forEach(category => {
         const node = categoryMap.get(category.id)!;
-        
+
         if (category.parentCategoryId === null) {
             node.level = 0;
             rootNodes.push(node);
@@ -41,7 +41,7 @@ export const useCategories = () => {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:1303/categories/withParents');
+            const response = await fetch(`${process.env.BASE_URL}/categories/withParents`);
             const data: Category[] = await response.json();
             const treeData = buildCategoryTree(data);
             setCategories(treeData);

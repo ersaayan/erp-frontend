@@ -34,7 +34,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:1303/currents/search?query=${debouncedSearchTerm}`
+        `${process.env.BASE_URL}/currents/search?query=${debouncedSearchTerm}`
       );
 
       if (!response.ok) {

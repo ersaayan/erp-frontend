@@ -76,7 +76,7 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await fetch("http://localhost:1303/branches");
+        const response = await fetch(`${process.env.BASE_URL}/branches`);
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -99,9 +99,12 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:1303/vaults/${vault.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `${process.env.BASE_URL}/vaults/${vault.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete vault");
@@ -132,8 +135,8 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
       setLoading(true);
 
       const url = vault
-        ? `http://localhost:1303/vaults/${vault.id}`
-        : "http://localhost:1303/vaults";
+        ? `${process.env.BASE_URL}/vaults/${vault.id}`
+        : `${process.env.BASE_URL}/vaults`;
 
       const response = await fetch(url, {
         method: vault ? "PUT" : "POST",

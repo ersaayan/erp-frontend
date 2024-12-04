@@ -30,7 +30,7 @@ const CurrentCategoriesTreeList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:1303/currentCategories/withParents"
+        `${process.env.BASE_URL}/currentCategories/withParents`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch current categories");

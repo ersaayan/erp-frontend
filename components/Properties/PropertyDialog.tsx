@@ -48,7 +48,7 @@ const PropertyDialog: React.FC = () => {
       }));
 
       const response = await fetch(
-        "http://localhost:1303/attributes/createMany",
+        `${process.env.BASE_URL}/attributes/createMany`,
         {
           method: "POST",
           headers: {

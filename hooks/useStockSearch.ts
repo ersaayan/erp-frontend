@@ -28,7 +28,7 @@ export const useStockSearch = (selectedPriceListId?: string) => {
         try {
             setLoading(true);
             const response = await fetch(
-                `http://localhost:1303/stockcards/search?query=${encodeURIComponent(query)}`
+                `${process.env.BASE_URL}/stockcards/search?query=${encodeURIComponent(query)}`
             );
 
             if (!response.ok) {

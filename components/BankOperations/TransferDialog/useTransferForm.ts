@@ -16,7 +16,7 @@ export const useTransferForm = (sourceBankId: string) => {
         const fetchBanks = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('http://localhost:1303/banks');
+                const response = await fetch(`${process.env.BASE_URL}/banks`);
                 if (response.ok) {
                     const data = await response.json();
                     setBanks(data);
@@ -57,7 +57,7 @@ export const useTransferForm = (sourceBankId: string) => {
             const description = `Transfer from ${sourceBank.bankName} to ${targetBank.bankName}`;
 
             // Create withdrawal transaction
-            const withdrawalResponse = await fetch('http://localhost:1303/bankMovements/', {
+            const withdrawalResponse = await fetch(`${process.env.BASE_URL}/bankMovements/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -78,7 +78,7 @@ export const useTransferForm = (sourceBankId: string) => {
             }
 
             // Create deposit transaction
-            const depositResponse = await fetch('http://localhost:1303/bankMovements/', {
+            const depositResponse = await fetch(`${process.env.BASE_URL}/bankMovements/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

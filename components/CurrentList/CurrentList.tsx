@@ -84,7 +84,7 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:1303/currents");
+      const response = await fetch(`${process.env.BASE_URL}/currents`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch current data");
@@ -126,7 +126,7 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:1303/currents/deleteMany",
+        `${process.env.BASE_URL}/currents/deleteMany`,
         {
           method: "DELETE",
           headers: {
