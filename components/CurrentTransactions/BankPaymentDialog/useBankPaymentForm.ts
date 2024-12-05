@@ -30,8 +30,24 @@ export const useBankPaymentForm = (currentCode: string) => {
             setIsLoading(true);
             try {
                 const [banksResponse, branchesResponse] = await Promise.all([
-                    fetch(`${process.env.BASE_URL}/banks`),
-                    fetch(`${process.env.BASE_URL}/branches`),
+                    fetch(`${process.env.BASE_URL}/banks`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }
+                    ),
+                    fetch(`${process.env.BASE_URL}/branches`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }
+                    ),
                 ]);
 
                 if (banksResponse.ok) {
@@ -72,7 +88,9 @@ export const useBankPaymentForm = (currentCode: string) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             },
+            credentials: 'include',
             body: JSON.stringify(payload),
         });
 
@@ -95,7 +113,9 @@ export const useBankPaymentForm = (currentCode: string) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             },
+            credentials: 'include',
             body: JSON.stringify(bankMovementPayload),
         });
 

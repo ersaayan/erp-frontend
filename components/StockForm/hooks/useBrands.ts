@@ -18,7 +18,15 @@ export const useBrands = () => {
     useEffect(() => {
         const fetchBrands = async () => {
             try {
-                const response = await fetch(`${process.env.BASE_URL}/brands`);
+                const response = await fetch(`${process.env.BASE_URL}/brands`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    }
+                );
                 const data = await response.json();
                 setBrands(data);
                 setError(null);

@@ -16,7 +16,14 @@ export const useTransferForm = (sourceVaultId: string) => {
         const fetchVaults = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${process.env.BASE_URL}/vaults`);
+                const response = await fetch(`${process.env.BASE_URL}/vaults`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    });
                 if (response.ok) {
                     const data = await response.json();
                     setVaults(data);
@@ -59,7 +66,11 @@ export const useTransferForm = (sourceVaultId: string) => {
             // Create withdrawal transaction
             const withdrawalResponse = await fetch(`${process.env.BASE_URL}/vaultMovements/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     vaultId: sourceVaultId,
                     invoiceId: null,
@@ -80,7 +91,11 @@ export const useTransferForm = (sourceVaultId: string) => {
             // Create deposit transaction
             const depositResponse = await fetch(`${process.env.BASE_URL}/vaultMovements/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     vaultId: values.targetVaultId,
                     invoiceId: null,

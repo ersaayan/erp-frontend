@@ -41,7 +41,15 @@ export const useCategories = () => {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${process.env.BASE_URL}/categories/withParents`);
+            const response = await fetch(`${process.env.BASE_URL}/categories/withParents`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    credentials: 'include',
+                }
+            );
             const data: Category[] = await response.json();
             const treeData = buildCategoryTree(data);
             setCategories(treeData);

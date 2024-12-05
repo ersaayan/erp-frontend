@@ -45,11 +45,46 @@ export const usePurchaseInvoiceForm = () => {
                     banksRes,
                     posRes
                 ] = await Promise.all([
-                    fetch(`${process.env.BASE_URL}/branches`),
-                    fetch(`${process.env.BASE_URL}/warehouses`),
-                    fetch(`${process.env.BASE_URL}/vaults`),
-                    fetch(`${process.env.BASE_URL}/banks`),
-                    fetch(`${process.env.BASE_URL}/pos`)
+                    fetch(`${process.env.BASE_URL}/branches`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
+                    fetch(`${process.env.BASE_URL}/warehouses`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
+                    fetch(`${process.env.BASE_URL}/vaults`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
+                    fetch(`${process.env.BASE_URL}/banks`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
+                    fetch(`${process.env.BASE_URL}/pos`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        })
                 ]);
 
                 const [

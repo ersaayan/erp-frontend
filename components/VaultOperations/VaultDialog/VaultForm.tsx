@@ -76,7 +76,13 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await fetch(`${process.env.BASE_URL}/branches`);
+        const response = await fetch(`${process.env.BASE_URL}/branches`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -103,6 +109,11 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
         `${process.env.BASE_URL}/vaults/${vault.id}`,
         {
           method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
         }
       );
 
@@ -142,7 +153,9 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
         method: vault ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           vaultName: values.vaultName,
           branchCode: values.branchCode,

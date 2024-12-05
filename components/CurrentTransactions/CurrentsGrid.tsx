@@ -39,7 +39,13 @@ const CurrentsGrid: React.FC<CurrentsGridProps> = ({ onCurrentSelect }) => {
   const fetchCurrents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/currents`);
+      const response = await fetch(`${process.env.BASE_URL}/currents`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch currents");
       }

@@ -81,7 +81,14 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
     const fetchBranches = async () => {
       try {
         setBranchesLoading(true);
-        const response = await fetch(`${process.env.BASE_URL}/branches/`);
+        const response = await fetch(`${process.env.BASE_URL}/branches/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -112,6 +119,11 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
       setLoading(true);
       const response = await fetch(`${process.env.BASE_URL}/banks/${bank.id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -149,7 +161,9 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
         method: bank ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           bankName: values.bankName,
           branchCode: values.branchCode,

@@ -77,7 +77,15 @@ const AccountSummaryGrid: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/currentMovements/withCurrents`
+        `${process.env.BASE_URL}/currentMovements/withCurrents`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
       );
 
       if (!response.ok) {

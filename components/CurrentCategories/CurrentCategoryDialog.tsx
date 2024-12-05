@@ -38,7 +38,13 @@ const CurrentCategoryDialog: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `${process.env.BASE_URL}/currentCategories`
+          `${process.env.BASE_URL}/currentCategories`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
         );
         if (!response.ok) {
           throw new Error("Failed to fetch current categories");
@@ -78,7 +84,9 @@ const CurrentCategoryDialog: React.FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
+          credentials: "include",
           body: JSON.stringify({
             categoryName,
             categoryCode,

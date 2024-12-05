@@ -9,7 +9,15 @@ export const useAttributes = () => {
     useEffect(() => {
         const fetchAttributes = async () => {
             try {
-                const response = await fetch(`${process.env.BASE_URL}/attributes`);
+                const response = await fetch(`${process.env.BASE_URL}/attributes`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    }
+                );
                 const data: Attribute[] = await response.json();
                 setAttributes(data);
                 setError(null);

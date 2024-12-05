@@ -19,7 +19,15 @@ export const usePriceLists = () => {
 
     const fetchPriceLists = useCallback(async () => {
         try {
-            const response = await fetch(`${process.env.BASE_URL}/priceLists`);
+            const response = await fetch(`${process.env.BASE_URL}/priceLists`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    credentials: 'include',
+                }
+            );
             const data: PriceList[] = await response.json();
 
             // Filter active price lists

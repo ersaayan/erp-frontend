@@ -29,7 +29,13 @@ const WarehousesGrid: React.FC = () => {
   const fetchWarehouses = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/warehouses`);
+      const response = await fetch(`${process.env.BASE_URL}/warehouses`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch warehouses");
       }

@@ -121,7 +121,13 @@ const VaultMovementsGrid: React.FC<VaultMovementsGridProps> = ({
         ? `${process.env.BASE_URL}/vaultMovements/vault/${selectedVault.id}`
         : `${process.env.BASE_URL}/vaultMovements`;
 
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch vault movements");
       }

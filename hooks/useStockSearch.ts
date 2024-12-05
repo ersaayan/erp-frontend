@@ -28,7 +28,13 @@ export const useStockSearch = (selectedPriceListId?: string) => {
         try {
             setLoading(true);
             const response = await fetch(
-                `${process.env.BASE_URL}/stockcards/search?query=${encodeURIComponent(query)}`
+                `${process.env.BASE_URL}/stockcards/search?query=${encodeURIComponent(query)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    credentials: 'include'
+                }
             );
 
             if (!response.ok) {

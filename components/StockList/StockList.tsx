@@ -86,7 +86,13 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     try {
       setLoading(true);
       const [stockResponse, ratesResponse] = await Promise.all([
-        fetch(`${process.env.BASE_URL}/stockcards/stockCardsWithRelations`),
+        fetch(`${process.env.BASE_URL}/stockcards/stockCardsWithRelations`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }),
         currencyService.getExchangeRates(),
       ]);
 
@@ -162,7 +168,9 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
+          credentials: "include",
           body: JSON.stringify({ ids }),
         }
       );

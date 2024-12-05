@@ -47,7 +47,13 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/currentMovements/byCurrent/${selectedCurrent.id}`
+        `${process.env.BASE_URL}/currentMovements/byCurrent/${selectedCurrent.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
       );
       if (!response.ok) {
         throw new Error("Failed to fetch current movements");

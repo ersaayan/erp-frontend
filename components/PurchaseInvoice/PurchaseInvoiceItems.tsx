@@ -199,7 +199,14 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
       const fetchWarehouseStock = async () => {
         try {
           const response = await fetch(
-            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`
+            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+              },
+              credentials: "include",
+            }
           );
           if (!response.ok) throw new Error("Failed to fetch stock data");
 

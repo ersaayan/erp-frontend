@@ -30,7 +30,13 @@ const CurrentCategoriesTreeList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/currentCategories/withParents`
+        `${process.env.BASE_URL}/currentCategories/withParents`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
       );
       if (!response.ok) {
         throw new Error("Failed to fetch current categories");

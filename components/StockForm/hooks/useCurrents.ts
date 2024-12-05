@@ -30,7 +30,15 @@ export const useCurrents = () => {
     useEffect(() => {
         const fetchCurrents = async () => {
             try {
-                const response = await fetch(`${process.env.BASE_URL}/currents`);
+                const response = await fetch(`${process.env.BASE_URL}/currents`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    }
+                );
                 const data: Current[] = await response.json();
 
                 // Filter currents by type

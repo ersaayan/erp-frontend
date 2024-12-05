@@ -77,7 +77,13 @@ const InvoiceList: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/invoices`);
+      const response = await fetch(`${process.env.BASE_URL}/invoices`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch invoice data");

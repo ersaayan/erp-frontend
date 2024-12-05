@@ -80,7 +80,12 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
     const fetchBranches = async () => {
       try {
         setBranchesLoading(true);
-        const response = await fetch(`${process.env.BASE_URL}/branches/`);
+        const response = await fetch(`${process.env.BASE_URL}/branches/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch branches");
         }
@@ -111,6 +116,11 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
       setLoading(true);
       const response = await fetch(`${process.env.BASE_URL}/pos/${pos.id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -148,7 +158,9 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
         method: pos ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           posName: values.posName,
           branchCode: values.branchCode,

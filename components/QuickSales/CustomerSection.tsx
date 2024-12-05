@@ -34,7 +34,14 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/currents/search?query=${debouncedSearchTerm}`
+        `${process.env.BASE_URL}/currents/search?query=${debouncedSearchTerm}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
       );
 
       if (!response.ok) {

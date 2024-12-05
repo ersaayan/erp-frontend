@@ -121,7 +121,13 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
         ? `${process.env.BASE_URL}/bankMovements/bank/${selectedBank.id}`
         : `${process.env.BASE_URL}/bankMovements`;
 
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch bank movements");
       }

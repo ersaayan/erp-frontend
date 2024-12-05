@@ -61,7 +61,15 @@ export const useProductPricing = (customer: Current | null) => {
                     )}`
                     : `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`;
 
-                const response = await fetch(endpoint);
+                const response = await fetch(endpoint,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                        },
+                        credentials: "include",
+                    }
+                );
                 if (!response.ok) {
                     throw new Error("Failed to fetch products");
                 }

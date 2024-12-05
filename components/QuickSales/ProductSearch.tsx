@@ -46,7 +46,14 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
       else searchParams.append("query", debouncedSearchTerm);
 
       const response = await fetch(
-        `${process.env.BASE_URL}/stockcards/search?${searchParams}`
+        `${process.env.BASE_URL}/stockcards/search?${searchParams}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
       );
 
       if (!response.ok) {

@@ -21,7 +21,15 @@ export const useWarehouses = () => {
     useEffect(() => {
         const fetchWarehouses = async () => {
             try {
-                const response = await fetch(`${process.env.BASE_URL}/warehouses`);
+                const response = await fetch(`${process.env.BASE_URL}/warehouses`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    }
+                );
                 const data = await response.json();
                 setWarehouses(data);
                 setError(null);

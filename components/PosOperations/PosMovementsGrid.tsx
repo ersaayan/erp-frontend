@@ -117,7 +117,13 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
         ? `${process.env.BASE_URL}/posMovements/pos/${selectedPos.id}`
         : `${process.env.BASE_URL}/posMovements`;
 
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch POS movements");
       }

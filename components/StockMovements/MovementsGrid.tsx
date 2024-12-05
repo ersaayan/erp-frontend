@@ -59,7 +59,12 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
     try {
       setLoading(true);
       const endpoint = getEndpoint(type);
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch stock movements");

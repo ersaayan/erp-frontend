@@ -30,8 +30,22 @@ export const useCashPaymentForm = (currentCode: string) => {
             setIsLoading(true);
             try {
                 const [vaultsResponse, branchesResponse] = await Promise.all([
-                    fetch(`${process.env.BASE_URL}/vaults`),
-                    fetch(`${process.env.BASE_URL}/branches`),
+                    fetch(`${process.env.BASE_URL}/vaults`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
+                    fetch(`${process.env.BASE_URL}/branches`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            },
+                            credentials: "include",
+                        }),
                 ]);
 
                 if (vaultsResponse.ok) {
@@ -72,7 +86,9 @@ export const useCashPaymentForm = (currentCode: string) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
             },
+            credentials: 'include',
             body: JSON.stringify(payload),
         });
 
@@ -95,7 +111,9 @@ export const useCashPaymentForm = (currentCode: string) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
             },
+            credentials: 'include',
             body: JSON.stringify(vaultMovementPayload),
         });
 

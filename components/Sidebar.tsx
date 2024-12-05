@@ -98,7 +98,7 @@ const menuItems = [
     icon: <File className="h-5 w-5" />,
     subItems: [
       { name: "Fatura/İrsaliye Listesi", disabled: false },
-      { name: 'Alış Faturası', disabled: false },
+      { name: "Alış Faturası", disabled: false },
       //  { name: 'Planlı Fatura', disabled: false },
       // { name: "BA/BS", disabled: true },
       // { name: "Gelen E-Faturalar", disabled: true },
@@ -137,11 +137,11 @@ const menuItems = [
       { name: "Rol Grupları", disabled: false },
       { name: "Tanımlar", disabled: false },
       { name: "Firma", disabled: false },
-      { name: "Günlükler", disabled: false },
-      { name: "Servis Şablonları", disabled: false },
+      // { name: "Günlükler", disabled: false },
+      // { name: "Servis Şablonları", disabled: false },
       { name: "Yedekleme", disabled: false },
       { name: "Bildirimler", disabled: false },
-      { name: "Queue Workers", disabled: false },
+      // { name: "Queue Workers", disabled: false },
     ],
   },
   /* {

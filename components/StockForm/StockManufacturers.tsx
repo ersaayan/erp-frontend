@@ -96,6 +96,11 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({
           `${process.env.BASE_URL}/manufacturers/${manufacturerToDelete.id}`,
           {
             method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
           }
         );
 

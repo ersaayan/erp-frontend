@@ -53,8 +53,24 @@ export const useCashTransactionForm = (bankId: string, type: 'income' | 'expense
             setIsLoading(true);
             try {
                 const [invoicesResponse, receiptsResponse] = await Promise.all([
-                    fetch(`${process.env.BASE_URL}/invoices/`),
-                    fetch(`${process.env.BASE_URL}/receipts/`),
+                    fetch(`${process.env.BASE_URL}/invoices/`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                            },
+                            credentials: 'include',
+                        }
+                    ),
+                    fetch(`${process.env.BASE_URL}/receipts/`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                            },
+                            credentials: 'include',
+                        }
+                    ),
                 ]);
 
                 if (invoicesResponse.ok) {
@@ -93,7 +109,9 @@ export const useCashTransactionForm = (bankId: string, type: 'income' | 'expense
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
             },
+            credentials: 'include',
             body: JSON.stringify(payload),
         });
 

@@ -86,7 +86,12 @@ const WarehouseDialog: React.FC = () => {
     const fetchCompanies = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.BASE_URL}/companies`);
+        const response = await fetch(`${process.env.BASE_URL}/companies`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch companies");
         }
@@ -139,7 +144,9 @@ const WarehouseDialog: React.FC = () => {
         method: editingWarehouse ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
@@ -179,6 +186,10 @@ const WarehouseDialog: React.FC = () => {
         `${process.env.BASE_URL}/warehouses/${editingWarehouse.id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
         }
       );
 

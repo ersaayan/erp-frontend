@@ -84,7 +84,12 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/currents`);
+      const response = await fetch(`${process.env.BASE_URL}/currents`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch current data");
@@ -131,7 +136,9 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
+          credentials: "include",
           body: JSON.stringify({ ids: selectedRowKeys }),
         }
       );

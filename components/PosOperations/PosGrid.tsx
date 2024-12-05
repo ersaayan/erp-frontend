@@ -42,7 +42,14 @@ const PosGrid: React.FC<PosGridProps> = ({ onPosSelect }) => {
   const fetchPosDevices = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/pos`);
+      const response = await fetch(`${process.env.BASE_URL}/pos`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch POS devices");
       }

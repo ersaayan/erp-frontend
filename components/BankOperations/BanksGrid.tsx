@@ -40,7 +40,14 @@ const BanksGrid: React.FC<BanksGridProps> = ({ onBankSelect }) => {
   const fetchBanks = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/banks`);
+      const response = await fetch(`${process.env.BASE_URL}/banks`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch banks");
       }

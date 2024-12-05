@@ -42,7 +42,13 @@ const VaultsGrid: React.FC<VaultsGridProps> = ({ onVaultSelect }) => {
   const fetchVaults = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/vaults`);
+      const response = await fetch(`${process.env.BASE_URL}/vaults`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch vaults");
       }

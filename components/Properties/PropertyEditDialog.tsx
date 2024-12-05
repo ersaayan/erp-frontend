@@ -49,7 +49,13 @@ const PropertyEditDialog: React.FC = () => {
   useEffect(() => {
     const fetchAttributes = async () => {
       try {
-        const response = await fetch(`${process.env.BASE_URL}/attributes`);
+        const response = await fetch(`${process.env.BASE_URL}/attributes`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         const data: Attribute[] = await response.json();
         setAttributes(data);
 
@@ -133,7 +139,9 @@ const PropertyEditDialog: React.FC = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
+          credentials: "include",
           body: JSON.stringify({ value: newValue }),
         }
       );
@@ -177,6 +185,10 @@ const PropertyEditDialog: React.FC = () => {
         `${process.env.BASE_URL}/attributes/${selectedValueId}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
         }
       );
 

@@ -10,7 +10,14 @@ export const useCurrents = () => {
         const fetchCurrents = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`${process.env.BASE_URL}/currents`);
+                const response = await fetch(`${process.env.BASE_URL}/currents`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                        credentials: 'include',
+                    }
+                );
                 if (!response.ok) {
                     throw new Error('Failed to fetch currents');
                 }

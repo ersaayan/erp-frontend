@@ -39,7 +39,12 @@ const GeneralInfo: React.FC = () => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.BASE_URL}/categories`);
+        const response = await fetch(`${process.env.BASE_URL}/categories`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
         }
@@ -74,7 +79,9 @@ const GeneralInfo: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           categoryName,
           categoryCode,

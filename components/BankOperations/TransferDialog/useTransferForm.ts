@@ -16,7 +16,15 @@ export const useTransferForm = (sourceBankId: string) => {
         const fetchBanks = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${process.env.BASE_URL}/banks`);
+                const response = await fetch(`${process.env.BASE_URL}/banks`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                        },
+                        credentials: "include",
+                    });
                 if (response.ok) {
                     const data = await response.json();
                     setBanks(data);
@@ -59,7 +67,11 @@ export const useTransferForm = (sourceBankId: string) => {
             // Create withdrawal transaction
             const withdrawalResponse = await fetch(`${process.env.BASE_URL}/bankMovements/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     bankId: sourceBankId,
                     invoiceId: null,
@@ -80,7 +92,8 @@ export const useTransferForm = (sourceBankId: string) => {
             // Create deposit transaction
             const depositResponse = await fetch(`${process.env.BASE_URL}/bankMovements/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem("auth_token")}` },
+                credentials: 'include',
                 body: JSON.stringify({
                     bankId: values.targetBankId,
                     invoiceId: null,
