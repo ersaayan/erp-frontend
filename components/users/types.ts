@@ -7,8 +7,8 @@ export interface User {
     phone: string;
     address?: string;
     companyCode: string;
-    roleName: string;
-    status: "active" | "inactive";
+    isActive: true | false;
+    role: Role[];
     createdAt: string;
     updatedAt: string;
 }
@@ -35,4 +35,5 @@ export interface UserFormData {
     address?: string;
     companyCode: string;
     roleName: string;
+    permissions: string[];
 }

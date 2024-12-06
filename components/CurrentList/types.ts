@@ -20,13 +20,13 @@ export interface Current {
     updatedAt: string;
     createdBy: string | null;
     updatedBy: string | null;
-    priceList: Array<{
+    priceList: {
         id?: string;
         priceListName: string;
         currency?: string;
         isVatIncluded?: boolean;
         vatRate?: number;
-    }>;
+    };
 
     currentAddress?: Array<{
         id?: string;

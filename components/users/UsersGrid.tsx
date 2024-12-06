@@ -108,8 +108,8 @@ const UsersGrid: React.FC = () => {
       <Column dataField="lastName" caption="Soyad" />
       <Column dataField="phone" caption="Telefon" />
       <Column dataField="companyCode" caption="Firma Kodu" />
-      <Column dataField="roleName" caption="Rol" />
-      <Column dataField="status" caption="Durum" />
+      <Column dataField="role[0].description" caption="Rol" />
+      <Column dataField="isActive" caption="Durum" />
       <Column
         dataField="createdAt"
         caption="Oluşturma Tarihi"

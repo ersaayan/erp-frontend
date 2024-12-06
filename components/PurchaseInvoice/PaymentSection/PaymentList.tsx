@@ -4,11 +4,13 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentDetails } from "./types";
+import { getCurrencySymbol } from "@/lib/utils/currency";
 
 interface PaymentListProps {
   payments: PaymentDetails[];
   onEdit: (payment: PaymentDetails) => void;
   onDelete: (payment: PaymentDetails) => void;
+  currency: string;
 }
 
 const getPaymentTypeLabel = (type: PaymentDetails["type"]): string => {
@@ -30,8 +32,11 @@ const PaymentList: React.FC<PaymentListProps> = ({
   payments,
   onEdit,
   onDelete,
+  currency,
 }) => {
   if (payments.length === 0) return null;
+
+  const currencySymbol = getCurrencySymbol(currency);
 
   return (
     <div className="space-y-2">
@@ -53,7 +58,7 @@ const PaymentList: React.FC<PaymentListProps> = ({
           </div>
           <div className="flex items-center gap-4">
             <span className="font-medium">
-              {formatCurrency(payment.amount)}
+              {formatCurrency(payment.amount)} {currencySymbol}
             </span>
             <div className="flex gap-2">
               <Button

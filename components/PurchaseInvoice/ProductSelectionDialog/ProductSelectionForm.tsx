@@ -14,9 +14,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
-import { formatCurrency } from "@/lib/utils";
-import { useProductPricing } from "../hooks/useProductPricing";
 import { Current } from "@/components/CurrentList/types";
+import { useProductPricing } from "../hooks/useProductPricing";
+import { getCurrencySymbol } from "@/lib/utils/currency";
 
 interface StockCardWarehouse {
   warehouseId: string;
@@ -202,7 +202,8 @@ const ProductSelectionForm: React.FC<ProductSelectionFormProps> = ({
                     {getWarehouseStock(product)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatCurrency(product.price)} {product.currency}
+                    {product.price.toFixed(2)}{" "}
+                    {getCurrencySymbol(product.currency)}
                   </TableCell>
                   <TableCell className="text-right">
                     %{product.vatRate}

@@ -54,6 +54,9 @@ const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({
     }
   };
 
+  // Get currency from customer's price list
+  const currency = current?.priceList?.currency || "TRY";
+
   return (
     <div className="grid-container">
       <PurchaseInvoiceHeader current={current} />
@@ -77,6 +80,7 @@ const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({
           <Card className="p-6">
             <PaymentSection
               total={totalAmount}
+              currency={currency}
               vaults={vaults}
               banks={banks}
               posDevices={posDevices}

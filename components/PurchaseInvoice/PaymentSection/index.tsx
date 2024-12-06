@@ -27,9 +27,11 @@ import { usePayments } from "./usePayments";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import PaymentList from "./PaymentList";
 import { PaymentDetails } from "./types";
+import { getCurrencySymbol } from "@/lib/utils/currency";
 
 interface PaymentSectionProps {
   total: number;
+  currency: string;
   vaults?: Array<{ id: string; vaultName: string }>;
   banks?: Array<{ id: string; bankName: string }>;
   posDevices?: Array<{ id: string; posName: string }>;
@@ -39,6 +41,7 @@ interface PaymentSectionProps {
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
   total,
+  currency,
   vaults = [],
   banks = [],
   posDevices = [],
@@ -191,19 +194,23 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     isAmountValid &&
     (selectedMethod === "credit" || isAccountSelected);
 
+  const currencySymbol = getCurrencySymbol(currency);
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex justify-between text-sm">
           <span>Toplam Tutar</span>
-          <span>{formatCurrency(total)}</span>
+          <span>
+            {formatCurrency(total)} {currencySymbol}
+          </span>
         </div>
         <div className="flex justify-between text-sm">
           <span>Kalan Tutar</span>
           <span
             className={remainingAmount > 0 ? "text-red-500" : "text-green-500"}
           >
-            {formatCurrency(remainingAmount)}
+            {formatCurrency(remainingAmount)} {currencySymbol}
           </span>
         </div>
       </div>
@@ -254,6 +261,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           payments={payments}
           onEdit={handleEditPayment}
           onDelete={handleDeletePayment}
+          currency={currency}
         />
 
         <Button

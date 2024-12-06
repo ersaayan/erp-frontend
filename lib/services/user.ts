@@ -8,7 +8,7 @@ const token = localStorage.getItem("auth_token");
 
 export const userService = {
     async getUsers() {
-        const response = await fetch(`${process.env.BASE_URL}`, {
+        const response = await fetch(`${process.env.BASE_URL}/users/`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`, // Doğru token'ı burada eklediğinizden emin olun
@@ -36,6 +36,8 @@ export const userService = {
     },
 
     async updateUser(id: string, data: Partial<UserFormData>) {
+        // datanın içinde permission varsa onu kaldırıyoruz
+        delete data.permissions;
         const response = await fetch(`${process.env.BASE_URL}/users/${id}`, {
             method: "PUT",
             headers: {
@@ -60,7 +62,7 @@ export const userService = {
     },
 
     async getCompanies() {
-        const response = await fetch(`${process.env.BASE_URL}/companies`, {
+        const response = await fetch(`${process.env.BASE_URL}/companies/`, {
             headers: getAuthHeader(),
             credentials: "include",
         });
@@ -69,7 +71,7 @@ export const userService = {
     },
 
     async getRoles() {
-        const response = await fetch(`${process.env.BASE_URL}/roles`, {
+        const response = await fetch(`${process.env.BASE_URL}/roles/`, {
             headers: getAuthHeader(),
             credentials: "include",
         });

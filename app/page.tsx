@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import StockList from "@/components/StockList/StockList";
 import StockForm from "@/components/StockForm/StockForm";
@@ -44,15 +44,33 @@ import CurrentTransactions from "@/components/CurrentTransactions";
 import ApiDocumentation from "@/components/Settings/ApiDocumentation";
 import PurchaseInvoice from "@/components/PurchaseInvoice";
 import UsersPage from "@/components/users";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { useAuthService } from "@/lib/services/auth";
+import { decodeJWT } from "@/lib/utils/jwt";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { logout } = useAuthService();
+  const [username, setUsername] = useState<string>("User");
   const [notifications, setNotifications] = useState([
     { id: 1, message: "Yeni bir bildirim var" },
     { id: 2, message: "Önemli güncelleme mevcut" },
   ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      const decoded = decodeJWT(token);
+      if (decoded?.username) {
+        setUsername(decoded.username);
+      }
+    }
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -70,6 +88,24 @@ export default function Home() {
     setOpenTabs(newOpenTabs);
     if (activeTab === tabName) {
       setActiveTab(newOpenTabs[newOpenTabs.length - 1] || null);
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      logout();
+      toast({
+        title: "Başarılı",
+        description: "Çıkış yapıldı",
+      });
+      router.push("/auth/login");
+      router.refresh();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Çıkış yapılırken bir hata oluştu",
+      });
     }
   };
 
@@ -142,16 +178,12 @@ export default function Home() {
                       variant="ghost"
                       className="text-sidebar-text hover:bg-sidebar-hover border border-sidebar-text"
                     >
-                      <span className="mr-2">MN</span>
+                      <span className="mr-2">{username}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profil</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Çıkış Yap</span>
                     </DropdownMenuItem>

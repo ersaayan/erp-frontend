@@ -53,13 +53,16 @@ const UserDialog: React.FC = () => {
     address: "",
     companyCode: "",
     roleName: "",
+    permissions: ["_stockcards_createStockCard"],
   });
 
   useEffect(() => {
     if (editingUser) {
       setFormData({
         ...editingUser,
+        roleName: editingUser.role[0].roleName,
         address: editingUser.address ?? "", // Ensure address is a string
+        permissions: ["_stockcards_createStockCard"],
         password: "", // Don't populate password field when editing
       });
     } else {
@@ -73,6 +76,7 @@ const UserDialog: React.FC = () => {
         address: "",
         companyCode: "",
         roleName: "",
+        permissions: ["_stockcards_createStockCard"],
       });
     }
   }, [editingUser]);
