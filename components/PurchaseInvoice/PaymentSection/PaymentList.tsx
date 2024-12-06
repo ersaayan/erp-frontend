@@ -58,7 +58,7 @@ const PaymentList: React.FC<PaymentListProps> = ({
           </div>
           <div className="flex items-center gap-4">
             <span className="font-medium">
-              {formatCurrency(payment.amount)} {currencySymbol}
+              {formatCurrency(payment.amount).replace("₺", "")} {currencySymbol}
             </span>
             <div className="flex gap-2">
               <Button

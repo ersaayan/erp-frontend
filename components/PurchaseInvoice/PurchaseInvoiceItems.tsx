@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import DataGrid, {
   Column,
   Export,
@@ -26,12 +26,7 @@ import ProductSelectionDialog from "./ProductSelectionDialog";
 import { useProductSelectionDialog } from "./ProductSelectionDialog/useProductSelectionDialog";
 import { Current } from "@/components/CurrentList/types";
 import { Card } from "../ui/card";
-
-interface PurchaseInvoiceItemsProps {
-  selectedWarehouseId?: string;
-  customer: Current | null;
-  onTotalAmountChange: (total: number) => void;
-}
+import { getCurrencySymbol } from "@/lib/utils/currency";
 
 interface StockItem {
   id: string;
@@ -44,7 +39,31 @@ interface StockItem {
   vatAmount: number;
   totalAmount: number;
   warehouseStock: number;
-  lastStockUpdate?: string;
+  lastStockUpdate?: string | null;
+}
+
+interface StockCardWarehouse {
+  warehouseId: string;
+  quantity: string;
+  updatedAt?: string | null;
+}
+
+interface PriceListItem {
+  priceListId: string;
+  price: string;
+  vatRate: string | null;
+}
+
+interface StockCard {
+  id: string;
+  stockCardWarehouse: StockCardWarehouse[];
+  stockCardPriceLists: PriceListItem[];
+}
+
+interface PurchaseInvoiceItemsProps {
+  selectedWarehouseId?: string | null;
+  customer: Current | null;
+  onTotalAmountChange: (total: number) => void;
 }
 
 const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
@@ -53,16 +72,18 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
   onTotalAmountChange,
 }) => {
   const { toast } = useToast();
-  const [items, setItems] = React.useState<StockItem[]>([]);
+  const [items, setItems] = useState<StockItem[]>([]);
   const { openDialog } = useProductSelectionDialog();
   const isInitialMount = useRef(true);
+  const previousCustomerId = useRef<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const calculateVatAmount = (rowData: any) => {
+  const calculateVatAmount = (rowData: StockItem): number => {
     if (!rowData.quantity || !rowData.unitPrice || !rowData.vatRate) return 0;
     return rowData.quantity * rowData.unitPrice * (rowData.vatRate / 100);
   };
 
-  const calculateTotalAmount = (rowData: any) => {
+  const calculateTotalAmount = (rowData: StockItem): number => {
     if (!rowData.quantity || !rowData.unitPrice) return 0;
     const subtotal = rowData.quantity * rowData.unitPrice;
     const vatAmount = calculateVatAmount(rowData);
@@ -79,6 +100,129 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
     [onTotalAmountChange]
   );
 
+  useEffect(() => {
+    const currentCustomerId = customer?.id;
+
+    if (
+      isInitialMount.current ||
+      currentCustomerId === previousCustomerId.current
+    ) {
+      isInitialMount.current = false;
+      previousCustomerId.current = currentCustomerId;
+      return;
+    }
+
+    previousCustomerId.current = currentCustomerId;
+
+    if (items.length > 0 && customer?.priceListId) {
+      const updatePrices = async () => {
+        try {
+          setLoading(true); // Add loading state
+
+          const response = await fetch(
+            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const stockData: StockCard[] = await response.json();
+
+          if (!Array.isArray(stockData)) {
+            throw new Error("Invalid response format");
+          }
+
+          const updatedItems = items.map((item) => {
+            const stockCard = stockData.find((s) => s.id === item.id);
+            if (!stockCard) {
+              console.log(`Stock card not found for item: ${item.id}`);
+              return item;
+            }
+
+            const priceListItem = stockCard.stockCardPriceLists.find(
+              (pl) => pl.priceListId === customer.priceListId
+            );
+
+            if (!priceListItem) {
+              console.log(`Price list item not found for item: ${item.id}`);
+              return item;
+            }
+
+            const newUnitPrice = parseFloat(priceListItem.price);
+            const newVatRate = parseFloat(priceListItem.vatRate || "0");
+
+            if (
+              newUnitPrice !== item.unitPrice ||
+              newVatRate !== item.vatRate
+            ) {
+              const updatedItem = {
+                ...item,
+                unitPrice: newUnitPrice,
+                vatRate: newVatRate,
+              };
+
+              return {
+                ...updatedItem,
+                vatAmount: calculateVatAmount(updatedItem),
+                totalAmount: calculateTotalAmount(updatedItem),
+              };
+            }
+
+            return item;
+          });
+
+          setItems(updatedItems);
+          calculateAndUpdateTotal(updatedItems);
+
+          toast({
+            title: "Fiyatlar Güncellendi",
+            description:
+              "Ürün fiyatları yeni fiyat listesine göre güncellendi.",
+          });
+        } catch (error) {
+          console.error("Error updating prices:", error);
+
+          // More specific error messages based on error type
+          let errorMessage = "Fiyatlar güncellenirken bir hata oluştu.";
+          if (error instanceof Error) {
+            if (error.message.includes("HTTP error")) {
+              errorMessage = "Sunucu bağlantısında hata oluştu.";
+            } else if (error.message === "Invalid response format") {
+              errorMessage = "Sunucudan geçersiz veri formatı alındı.";
+            }
+          }
+
+          toast({
+            variant: "destructive",
+            title: "Hata",
+            description: errorMessage,
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      updatePrices();
+    }
+  }, [
+    customer?.id,
+    customer?.priceListId,
+    items,
+    calculateAndUpdateTotal,
+    toast,
+    calculateVatAmount,
+    calculateTotalAmount,
+  ]);
+
   const handleProductsSelected = useCallback(
     (selectedProducts: any[]) => {
       if (!Array.isArray(selectedProducts)) {
@@ -88,7 +232,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
 
       const newItems = selectedProducts.map((product) => {
         const warehouseStock = product.stockCardWarehouse?.find(
-          (w: any) => w.warehouseId === selectedWarehouseId
+          (w: StockCardWarehouse) => w.warehouseId === selectedWarehouseId
         );
 
         return {
@@ -104,7 +248,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           warehouseStock: warehouseStock
             ? parseInt(warehouseStock.quantity, 10)
             : 0,
-          lastStockUpdate: warehouseStock?.updatedAt,
+          lastStockUpdate: warehouseStock?.updatedAt || null,
         };
       });
 
@@ -113,14 +257,12 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
         const uniqueNewItems = newItems.filter(
           (item) => !existingIds.has(item.id)
         );
-        const updatedItems = [...prevItems, ...uniqueNewItems];
-        return updatedItems;
+        return [...prevItems, ...uniqueNewItems];
       });
     },
     [selectedWarehouseId]
   );
 
-  // Effect to update total when items change
   useEffect(() => {
     if (!isInitialMount.current) {
       calculateAndUpdateTotal(items);
@@ -128,18 +270,6 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
       isInitialMount.current = false;
     }
   }, [items, calculateAndUpdateTotal]);
-
-  const handleAddProducts = () => {
-    if (!selectedWarehouseId) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Lütfen önce depo seçimi yapınız",
-      });
-      return;
-    }
-    openDialog();
-  };
 
   const validateEditorValue = (e: any) => {
     const { dataField, value } = e;
@@ -199,22 +329,15 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
       const fetchWarehouseStock = async () => {
         try {
           const response = await fetch(
-            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-              },
-              credentials: "include",
-            }
+            `${process.env.BASE_URL}/stockcards/stockCardsWithRelations`
           );
           if (!response.ok) throw new Error("Failed to fetch stock data");
 
-          const stockData = await response.json();
+          const stockData: StockCard[] = await response.json();
           const updatedItems = items.map((item) => {
-            const stockCard = stockData.find((s: any) => s.id === item.id);
+            const stockCard = stockData.find((s) => s.id === item.id);
             const warehouseStock = stockCard?.stockCardWarehouse?.find(
-              (w: any) => w.warehouseId === selectedWarehouseId
+              (w) => w.warehouseId === selectedWarehouseId
             );
 
             return {
@@ -222,7 +345,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
               warehouseStock: warehouseStock
                 ? parseInt(warehouseStock.quantity, 10)
                 : 0,
-              lastStockUpdate: warehouseStock?.updatedAt,
+              lastStockUpdate: warehouseStock?.updatedAt || null,
             };
           });
 
@@ -253,6 +376,22 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
       </div>
     );
   };
+
+  const handleAddProducts = () => {
+    if (!selectedWarehouseId) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen önce depo seçimi yapınız",
+      });
+      return;
+    }
+    openDialog();
+  };
+
+  const currencySymbol = customer?.priceList?.currency
+    ? getCurrencySymbol(customer.priceList.currency)
+    : "₺";
 
   return (
     <Card className="p-6">
@@ -304,7 +443,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           />
           <Column
             dataField="unitPrice"
-            caption="Birim Fiyat"
+            caption={`Birim Fiyat (${currencySymbol})`}
             dataType="number"
             format="#,##0.00"
             validationRules={[{ type: "required" }, { type: "numeric" }]}
@@ -320,7 +459,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           />
           <Column
             dataField="vatAmount"
-            caption="KDV Tutarı"
+            caption={`KDV Tutarı (${currencySymbol})`}
             dataType="number"
             format="#,##0.00"
             calculateCellValue={calculateVatAmount}
@@ -328,7 +467,7 @@ const PurchaseInvoiceItems: React.FC<PurchaseInvoiceItemsProps> = ({
           />
           <Column
             dataField="totalAmount"
-            caption="Toplam"
+            caption={`Toplam (${currencySymbol})`}
             dataType="number"
             format="#,##0.00"
             calculateCellValue={calculateTotalAmount}

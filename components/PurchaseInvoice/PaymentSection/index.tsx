@@ -69,6 +69,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   );
 
   const remainingAmount = getRemainingAmount();
+  const currencySymbol = getCurrencySymbol(currency);
 
   const handleAddPayment = () => {
     if (!amount || parseFloat(amount) <= 0 || !selectedMethod) return;
@@ -194,15 +195,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     isAmountValid &&
     (selectedMethod === "credit" || isAccountSelected);
 
-  const currencySymbol = getCurrencySymbol(currency);
-
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex justify-between text-sm">
           <span>Toplam Tutar</span>
           <span>
-            {formatCurrency(total)} {currencySymbol}
+            {formatCurrency(total).replace("₺", "")} {currencySymbol}
           </span>
         </div>
         <div className="flex justify-between text-sm">
@@ -210,7 +209,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           <span
             className={remainingAmount > 0 ? "text-red-500" : "text-green-500"}
           >
-            {formatCurrency(remainingAmount)} {currencySymbol}
+            {formatCurrency(remainingAmount).replace("₺", "")} {currencySymbol}
           </span>
         </div>
       </div>

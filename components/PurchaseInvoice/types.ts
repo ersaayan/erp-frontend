@@ -38,3 +38,31 @@ export interface PurchaseInvoice {
     status: 'draft' | 'pending' | 'approved' | 'rejected';
     paymentPlan: PaymentPlanItem[];
 }
+
+export interface StockCard {
+    id: string;
+    stockCardWarehouse: Array<{
+        warehouseId: string;
+        quantity: string;
+        updatedAt?: string | null;
+    }>;
+    stockCardPriceLists: Array<{
+        priceListId: string;
+        price: string;
+        vatRate: string | null;
+    }>;
+}
+
+export interface StockItem {
+    id: string;
+    productCode: string;
+    productName: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    vatRate: number;
+    vatAmount: number;
+    totalAmount: number;
+    warehouseStock: number;
+    lastStockUpdate?: string | null;
+}

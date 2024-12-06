@@ -12,6 +12,7 @@ import DataGrid, {
   Selection,
   LoadPanel,
   StateStoring,
+  Sorting,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -19,18 +20,26 @@ import { User } from "./types";
 import { useUserDialog } from "./useUserDialog";
 import { userService } from "@/lib/services/user";
 import { Button } from "../ui/button";
+import { getCurrentUserId } from "@/lib/utils/jwt";
 
 const UsersGrid: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { openDialog } = useUserDialog();
+  const currentUserId = getCurrentUserId();
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const data = await userService.getUsers();
-      setUsers(data);
+
+      // Filter out current user and sort by username
+      const filteredAndSortedUsers = data
+        .filter((user: User) => user.id !== currentUserId)
+        .sort((a: User, b: User) => a.username.localeCompare(b.username));
+
+      setUsers(filteredAndSortedUsers);
       setError(null);
     } catch (err) {
       setError(
@@ -101,8 +110,14 @@ const UsersGrid: React.FC = () => {
       <ColumnChooser enabled={true} mode="select" />
       <Scrolling mode="virtual" />
       <Paging enabled={true} pageSize={20} />
+      <Sorting mode="multiple" />
 
-      <Column dataField="username" caption="Kullanıcı Adı" />
+      <Column
+        dataField="username"
+        caption="Kullanıcı Adı"
+        sortIndex={0}
+        sortOrder="asc"
+      />
       <Column dataField="email" caption="E-posta" />
       <Column dataField="firstName" caption="Ad" />
       <Column dataField="lastName" caption="Soyad" />
