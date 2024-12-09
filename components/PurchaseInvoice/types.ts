@@ -1,40 +1,50 @@
-export interface PurchaseInvoiceItem {
+import { Current } from "@/components/CurrentList/types";
+
+export interface StockItem {
     id: string;
-    productId: string;
-    productCode: string;
-    productName: string;
+    stockId: string;
+    stockCode: string;
+    stockName: string;
     quantity: number;
     unit: string;
+    stockLevel: number;
     unitPrice: number;
     vatRate: number;
     vatAmount: number;
-    discountRate: number;
-    discountAmount: number;
     totalAmount: number;
-    netAmount: number;
+    priceListId: string;
+    currency: string;
+    isVatIncluded: boolean;
 }
 
-export interface PaymentPlanItem {
+export interface Branch {
     id: string;
-    dueDate: Date;
-    amount: number;
-    paymentMethod: 'cash' | 'bank' | 'pos';
-    accountId?: string;
-    description?: string;
+    branchName: string;
+    branchCode: string;
 }
 
-export interface PurchaseInvoice {
+export interface Warehouse {
     id: string;
+    warehouseName: string;
+    warehouseCode: string;
+}
+
+export interface InvoiceFormData {
     invoiceNo: string;
+    gibInvoiceNo: string;
     invoiceDate: Date;
-    dueDate: Date;
-    currentId: string;
+    paymentDate: Date;
+    paymentTerm: number;
+    branchCode: string;
+    warehouseId: string;
     description: string;
-    items: PurchaseInvoiceItem[];
-    totalAmount: number;
-    totalVat: number;
-    totalDiscount: number;
-    netAmount: number;
-    status: 'draft' | 'pending' | 'approved' | 'rejected';
-    paymentPlan: PaymentPlanItem[];
+    current: Current | null;
+}
+
+export interface ValidationErrors {
+    invoiceNo?: string;
+    gibInvoiceNo?: string;
+    branchCode?: string;
+    warehouseId?: string;
+    current?: string;
 }
