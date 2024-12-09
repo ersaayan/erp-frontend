@@ -42,7 +42,6 @@ import BankOperations from "@/components/BankOperations";
 import PosOperations from "@/components/PosOperations";
 import CurrentTransactions from "@/components/CurrentTransactions";
 import ApiDocumentation from "@/components/Settings/ApiDocumentation";
-import PurchaseInvoice from "@/components/PurchaseInvoice";
 import UsersPage from "@/components/users";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
