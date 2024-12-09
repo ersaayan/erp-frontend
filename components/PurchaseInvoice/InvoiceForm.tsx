@@ -138,7 +138,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 checked={autoInvoiceNo}
                 onCheckedChange={setAutoInvoiceNo}
               />
-              <Label>Otomatik</Label>
+              <Label>Seri</Label>
             </div>
           </div>
           <Input
@@ -156,7 +156,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
             <Label>GİB No</Label>
             <div className="flex items-center space-x-2">
               <Switch checked={autoGibNo} onCheckedChange={setAutoGibNo} />
-              <Label>Otomatik</Label>
+              <Label>Seri</Label>
             </div>
           </div>
           <Input

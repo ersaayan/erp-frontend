@@ -11,6 +11,8 @@ export interface StockItem {
     unitPrice: number;
     vatRate: number;
     vatAmount: number;
+    discountRate: number;
+    discountAmount: number;
     totalAmount: number;
     priceListId: string;
     currency: string;

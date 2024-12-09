@@ -1,4 +1,4 @@
-// components/PurchaseInvoice/ProductsSection/ProductSelectionDialog/index.tsx
+// PurchaseInvoice/ProductsSection/ProductSelectionDialog/index.tsx
 import React, { useEffect } from "react";
 import {
   Dialog,
@@ -45,12 +45,11 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     onProductsSelect,
   });
 
-  // Initial load when dialog opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && warehouseId && current) {
       fetchProducts(1);
     }
-  }, [isOpen, fetchProducts]);
+  }, [isOpen, warehouseId, current, fetchProducts]);
 
   const handleConfirm = () => {
     handleAddSelectedProducts();
@@ -80,7 +79,7 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
             İptal
           </Button>
           <Button
-            onClick={handleConfirm}
+            onClick={handleAddSelectedProducts}
             disabled={selectedProducts.length === 0}
             className="bg-[#84CC16] hover:bg-[#65A30D]"
           >

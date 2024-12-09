@@ -47,6 +47,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthService } from "@/lib/services/auth";
 import { decodeJWT } from "@/lib/utils/jwt";
+import PurchaseInvoice from "@/components/PurchaseInvoice";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

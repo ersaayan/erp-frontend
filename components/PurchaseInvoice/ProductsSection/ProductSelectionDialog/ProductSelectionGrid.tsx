@@ -1,4 +1,3 @@
-// components/PurchaseInvoice/ProductsSection/ProductSelectionDialog/ProductSelectionGrid.tsx
 import React from "react";
 import DataGrid, {
   Column,
@@ -24,23 +23,27 @@ interface ProductSelectionGridProps {
 const ProductSelectionGrid: React.FC<ProductSelectionGridProps> = ({
   products,
   loading,
-  selectedProducts,
   onProductSelect,
   page,
   totalPages,
   onPageChange,
   existingProducts,
 }) => {
+  const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
+
+  const handleSelectionChange = (e: any) => {
+    const selectedRowKeys = e.selectedRowKeys as string[];
+    setSelectedProducts((prev) =>
+      Array.from(new Set([...prev, ...selectedRowKeys]))
+    );
+  };
   return (
     <DataGrid
       dataSource={products}
       showBorders={true}
       height="60vh"
       selectedRowKeys={selectedProducts}
-      onSelectionChanged={(e) => {
-        const selectedRowKeys = e.selectedRowKeys as string[];
-        selectedRowKeys.forEach((key) => onProductSelect(key));
-      }}
+      onSelectionChanged={handleSelectionChange}
     >
       <Selection mode="multiple" showCheckBoxesMode="always" />
       <SearchPanel visible={true} width={240} placeholder="Ara..." />

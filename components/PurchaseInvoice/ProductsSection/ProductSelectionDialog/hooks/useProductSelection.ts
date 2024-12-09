@@ -43,7 +43,6 @@ export const useProductSelection = ({
     const { toast } = useToast();
     const initializedRef = useRef(false);
 
-    // Initialize selected products only once when component mounts or existingProducts changes
     useEffect(() => {
         if (!initializedRef.current && Array.isArray(existingProducts)) {
             const existingIds = existingProducts.map(product => product.stockId);
@@ -53,7 +52,14 @@ export const useProductSelection = ({
     }, [existingProducts]);
 
     const fetchProducts = useCallback(async (pageNumber: number = 1) => {
-        if (!warehouseId || !current) return;
+        if (!warehouseId || !current) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please select a warehouse and current first",
+            });
+            return;
+        }
 
         try {
             setLoading(true);
@@ -72,8 +78,8 @@ export const useProductSelection = ({
             }
 
             const data = await response.json();
-            setResults(data.items);
-            setTotalPages(data.totalPages);
+            setResults(data);
+            setTotalPages(1); // Since we're not implementing pagination yet
             setPage(pageNumber);
         } catch (error) {
             toast({
@@ -96,11 +102,6 @@ export const useProductSelection = ({
     }, []);
 
     const handleAddSelectedProducts = useCallback(() => {
-        if (!Array.isArray(existingProducts)) {
-            console.error('existingProducts is not an array');
-            return;
-        }
-
         const selectedItems = results
             .filter((result) => selectedProducts.includes(result.id))
             .map((result) => {
@@ -117,12 +118,9 @@ export const useProductSelection = ({
                     return null;
                 }
 
+                const quantity = 1;
                 const unitPrice = parseFloat(priceListItem.price);
                 const vatRate = parseFloat(priceListItem.vatRate);
-
-                // Get existing product quantity if it exists
-                const existingProduct = existingProducts.find(p => p.stockId === result.id);
-                const quantity = existingProduct?.quantity || 1;
 
                 return {
                     id: crypto.randomUUID(),
@@ -144,9 +142,9 @@ export const useProductSelection = ({
             .filter((item): item is StockItem => item !== null);
 
         onProductsSelect(selectedItems);
-    }, [results, selectedProducts, current, existingProducts, onProductsSelect, toast]);
+        setSelectedProducts([]); // Seçimleri temizle
+    }, [results, selectedProducts, current, onProductsSelect, toast]);
 
-    // Reset initializedRef when dialog closes
     useEffect(() => {
         return () => {
             initializedRef.current = false;
