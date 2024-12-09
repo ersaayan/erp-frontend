@@ -48,6 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthService } from "@/lib/services/auth";
 import { decodeJWT } from "@/lib/utils/jwt";
 import PurchaseInvoice from "@/components/PurchaseInvoice";
+import SaleInvoice from "@/components/SaleInvoice";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -228,7 +229,7 @@ export default function Home() {
               {activeTab === "Banka İşlemleri" && <BankOperations />}
               {activeTab === "POS İşlemleri" && <PosOperations />}
               {activeTab === "Tanımlar" && <ApiDocumentation />}
-              {activeTab === "Alış Faturası" && <PurchaseInvoice />}
+              {activeTab === "Alış Faturası" && <SaleInvoice />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
             </TabContainer>
           </main>

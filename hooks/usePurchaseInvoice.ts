@@ -106,7 +106,8 @@ export const usePurchaseInvoice = () => {
                     description: payment.description,
                 })),
             };
-
+            console.log('Invoice payload:', invoicePayload);
+            console.log(JSON.stringify(invoicePayload));
             // Send request to API
             const response = await fetch(`${process.env.BASE_URL}/invoices/purchase`, {
                 method: 'POST',
