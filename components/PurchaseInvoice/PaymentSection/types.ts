@@ -1,24 +1,22 @@
-export interface PaymentAccount {
-    id: string;
-    name: string;
-    accountNumber?: string;
-    currency: string;
-}
-
 export interface PaymentDetails {
     id: string;
-    type: 'cash' | 'card' | 'transfer' | 'credit';
+    method: "cash" | "card" | "wire" | "openAccount";
+    accountId: string;
     amount: number;
-    accountId?: string;
-    accountName?: string;
-    accountDetails?: string;
-    date: Date;
+    currency: string;
     description?: string;
 }
 
 export interface PaymentMethod {
     id: string;
-    type: PaymentDetails['type'];
-    amount: number;
-    accountId?: string;
+    name: string;
+    currency: string;
+    balance?: string;
+}
+
+export interface PaymentSummary {
+    totalAmount: number;
+    paidAmount: number;
+    remainingAmount: number;
+    currency: string;
 }

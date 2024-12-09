@@ -1,293 +1,95 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { usePayments } from "./usePayments";
+import React, { useState, useEffect } from "react";
+import { StockItem } from "../types";
+import { Current } from "@/components/CurrentList/types";
+import { PaymentDetails, PaymentSummary } from "./types";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import PaymentList from "./PaymentList";
-import { PaymentDetails } from "./types";
-import { getCurrencySymbol } from "@/lib/utils/currency";
+import { formatCurrency } from "@/lib/utils";
 
 interface PaymentSectionProps {
-  total: number;
-  currency: string;
-  vaults?: Array<{ id: string; vaultName: string }>;
-  banks?: Array<{ id: string; bankName: string }>;
-  posDevices?: Array<{ id: string; posName: string }>;
-  onPaymentSubmit: (payments: PaymentDetails[]) => Promise<void>;
-  loading: boolean;
+  products: StockItem[];
+  current: Current | null;
+  payments: PaymentDetails[];
+  onPaymentsChange: (payments: PaymentDetails[]) => void;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
-  total,
-  currency,
-  vaults = [],
-  banks = [],
-  posDevices = [],
-  onPaymentSubmit,
-  loading,
+  products,
+  current,
+  payments,
+  onPaymentsChange,
 }) => {
-  const {
-    payments,
-    addPayment,
-    updatePayment,
-    removePayment,
-    getRemainingAmount,
-  } = usePayments(total);
-  const [selectedMethod, setSelectedMethod] = useState<
-    PaymentDetails["type"] | null
-  >(null);
-  const [amount, setAmount] = useState<string>("");
-  const [accountId, setAccountId] = useState<string>("");
-  const [editingPayment, setEditingPayment] = useState<PaymentDetails | null>(
-    null
-  );
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [paymentToDelete, setPaymentToDelete] = useState<PaymentDetails | null>(
-    null
-  );
+  const [summary, setSummary] = useState<PaymentSummary>({
+    totalAmount: 0,
+    paidAmount: 0,
+    remainingAmount: 0,
+    currency: current?.priceList?.currency || "TRY",
+  });
 
-  const remainingAmount = getRemainingAmount();
-  const currencySymbol = getCurrencySymbol(currency);
+  useEffect(() => {
+    const total = products.reduce(
+      (sum, product) => sum + product.totalAmount,
+      0
+    );
+    const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
 
-  const handleAddPayment = () => {
-    if (!amount || parseFloat(amount) <= 0 || !selectedMethod) return;
+    setSummary({
+      totalAmount: total,
+      paidAmount: paid,
+      remainingAmount: total - paid,
+      currency: current?.priceList?.currency || "TRY",
+    });
+  }, [products, payments, current]);
 
-    const accountName = getAccountName(accountId);
-    const accountDetails = getAccountDetails(selectedMethod, accountId);
-
-    if (editingPayment) {
-      updatePayment(editingPayment.id, {
-        type: selectedMethod,
-        amount: parseFloat(amount),
-        accountId,
-        accountName,
-        accountDetails,
-      });
-      setEditingPayment(null);
-    } else {
-      addPayment(
-        {
-          id: crypto.randomUUID(),
-          type: selectedMethod,
-          amount: parseFloat(amount),
-          accountId,
-        },
-        accountName,
-        accountDetails
-      );
-    }
-
-    setAmount("");
-    setAccountId("");
-    setSelectedMethod(null);
+  const handleAddPayment = (payment: PaymentDetails) => {
+    onPaymentsChange([...payments, payment]);
   };
 
-  const handleEditPayment = (payment: PaymentDetails) => {
-    setEditingPayment(payment);
-    setSelectedMethod(payment.type);
-    setAmount(payment.amount.toString());
-    setAccountId(payment.accountId || "");
+  const handleRemovePayment = (paymentId: string) => {
+    onPaymentsChange(payments.filter((p) => p.id !== paymentId));
   };
-
-  const handleDeletePayment = (payment: PaymentDetails) => {
-    setPaymentToDelete(payment);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (paymentToDelete) {
-      removePayment(paymentToDelete.id);
-    }
-    setDeleteDialogOpen(false);
-    setPaymentToDelete(null);
-  };
-
-  const handleSubmit = async () => {
-    await onPaymentSubmit(payments);
-  };
-
-  const getAccountOptions = () => {
-    switch (selectedMethod) {
-      case "cash":
-        return vaults || [];
-      case "transfer":
-        return banks || [];
-      case "card":
-        return posDevices || [];
-      default:
-        return [];
-    }
-  };
-
-  const getAccountLabel = () => {
-    switch (selectedMethod) {
-      case "cash":
-        return "Kasa";
-      case "transfer":
-        return "Banka Hesabı";
-      case "card":
-        return "POS";
-      default:
-        return "Hesap";
-    }
-  };
-
-  const getAccountName = (id: string) => {
-    const options = getAccountOptions();
-    const account = options.find((opt) => opt.id === id);
-    return account
-      ? "vaultName" in account
-        ? account.vaultName
-        : "bankName" in account
-        ? account.bankName
-        : "posName" in account
-        ? account.posName
-        : ""
-      : "";
-  };
-
-  const getAccountDetails = (
-    type: PaymentDetails["type"],
-    accountId: string
-  ): string => {
-    const accountName = getAccountName(accountId);
-    switch (type) {
-      case "cash":
-        return `${accountName} - Nakit`;
-      case "transfer":
-        const bank = banks.find((b) => b.id === accountId);
-        return bank ? `${bank.bankName}` : accountName;
-      case "card":
-        const pos = posDevices.find((p) => p.id === accountId);
-        return pos ? `${pos.posName}` : accountName;
-      default:
-        return "";
-    }
-  };
-
-  const isPaymentMethodSelected = selectedMethod !== null;
-  const isAmountValid = amount !== "" && parseFloat(amount) > 0;
-  const isAccountSelected = accountId !== "";
-  const canAddPayment =
-    isPaymentMethodSelected &&
-    isAmountValid &&
-    (selectedMethod === "credit" || isAccountSelected);
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex justify-between text-sm">
-          <span>Toplam Tutar</span>
-          <span>
-            {formatCurrency(total).replace("₺", "")} {currencySymbol}
-          </span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span>Kalan Tutar</span>
-          <span
-            className={remainingAmount > 0 ? "text-red-500" : "text-green-500"}
-          >
-            {formatCurrency(remainingAmount).replace("₺", "")} {currencySymbol}
-          </span>
-        </div>
-      </div>
-
-      <PaymentMethodSelector
-        selectedMethod={selectedMethod}
-        onMethodSelect={setSelectedMethod}
-      />
-
-      <div className="space-y-4">
-        <div>
-          <Label>Tutar</Label>
-          <Input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-          />
-        </div>
-
-        {selectedMethod !== "credit" && (
-          <div>
-            <Label>{getAccountLabel()}</Label>
-            <Select value={accountId} onValueChange={setAccountId}>
-              <SelectTrigger>
-                <SelectValue placeholder={`${getAccountLabel()} seçin`} />
-              </SelectTrigger>
-              <SelectContent>
-                {getAccountOptions().map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {getAccountName(account.id)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Summary Section */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold">Ödeme Özeti</h3>
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Toplam Tutar:</span>
+            <span className="font-medium">
+              {formatCurrency(summary.totalAmount, summary.currency)}
+            </span>
           </div>
-        )}
-
-        <Button
-          className="w-full"
-          onClick={handleAddPayment}
-          disabled={!canAddPayment}
-        >
-          {editingPayment ? "Ödemeyi Güncelle" : "Ödeme Ekle"}
-        </Button>
-
-        <PaymentList
-          payments={payments}
-          onEdit={handleEditPayment}
-          onDelete={handleDeletePayment}
-          currency={currency}
-        />
-
-        <Button
-          className="w-full"
-          onClick={handleSubmit}
-          disabled={loading || remainingAmount !== 0}
-        >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Ödemeleri Tamamla
-        </Button>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Ödenen Tutar:</span>
+            <span className="font-medium text-green-600">
+              {formatCurrency(summary.paidAmount, summary.currency)}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm border-t pt-1 mt-1">
+            <span className="text-muted-foreground">Kalan Tutar:</span>
+            <span className="font-medium text-red-600">
+              {formatCurrency(summary.remainingAmount, summary.currency)}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Ödemeyi Sil</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu ödemeyi silmek istediğinizden emin misiniz? Bu işlem geri
-              alınamaz.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Sil</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Payment Method Selector */}
+      <div className="space-y-4">
+        <h4 className="font-medium">Yeni Ödeme Ekle</h4>
+        <PaymentMethodSelector
+          onAddPayment={handleAddPayment}
+          remainingAmount={summary.remainingAmount}
+          currency={summary.currency}
+        />
+      </div>
+
+      {/* Payment List */}
+      <PaymentList payments={payments} onRemovePayment={handleRemovePayment} />
     </div>
   );
 };

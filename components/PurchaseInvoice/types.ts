@@ -1,68 +1,50 @@
-export interface PurchaseInvoiceItem {
-    id: string;
-    productId: string;
-    productCode: string;
-    productName: string;
-    quantity: number;
-    unit: string;
-    unitPrice: number;
-    vatRate: number;
-    vatAmount: number;
-    discountRate: number;
-    discountAmount: number;
-    totalAmount: number;
-    netAmount: number;
-}
-
-export interface PaymentPlanItem {
-    id: string;
-    dueDate: Date;
-    amount: number;
-    paymentMethod: 'cash' | 'bank' | 'pos';
-    accountId?: string;
-    description?: string;
-}
-
-export interface PurchaseInvoice {
-    id: string;
-    invoiceNo: string;
-    invoiceDate: Date;
-    dueDate: Date;
-    currentId: string;
-    description: string;
-    items: PurchaseInvoiceItem[];
-    totalAmount: number;
-    totalVat: number;
-    totalDiscount: number;
-    netAmount: number;
-    status: 'draft' | 'pending' | 'approved' | 'rejected';
-    paymentPlan: PaymentPlanItem[];
-}
-
-export interface StockCard {
-    id: string;
-    stockCardWarehouse: Array<{
-        warehouseId: string;
-        quantity: string;
-        updatedAt?: string | null;
-    }>;
-    stockCardPriceLists: Array<{
-        priceListId: string;
-        price: string;
-        vatRate: string | null;
-    }>;
-}
+import { Current } from "@/components/CurrentList/types";
 
 export interface StockItem {
     id: string;
-    productCode: string;
-    productName: string;
+    stockId: string;
+    stockCode: string;
+    stockName: string;
     quantity: number;
     unit: string;
+    stockLevel: number;
     unitPrice: number;
     vatRate: number;
     vatAmount: number;
     totalAmount: number;
-    warehouseStock: number;
-    lastStockUpdate?: string | null;
+    priceListId: string;
+    currency: string;
+    isVatIncluded: boolean;
+}
+
+export interface Branch {
+    id: string;
+    branchName: string;
+    branchCode: string;
+}
+
+export interface Warehouse {
+    id: string;
+    warehouseName: string;
+    warehouseCode: string;
+}
+
+export interface InvoiceFormData {
+    invoiceNo: string;
+    gibInvoiceNo: string;
+    invoiceDate: Date;
+    paymentDate: Date;
+    paymentTerm: number;
+    branchCode: string;
+    warehouseId: string;
+    description: string;
+    current: Current | null;
+}
+
+export interface ValidationErrors {
+    invoiceNo?: string;
+    gibInvoiceNo?: string;
+    branchCode?: string;
+    warehouseId?: string;
+    current?: string;
 }

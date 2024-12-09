@@ -228,13 +228,7 @@ export default function Home() {
               {activeTab === "Banka İşlemleri" && <BankOperations />}
               {activeTab === "POS İşlemleri" && <PosOperations />}
               {activeTab === "Tanımlar" && <ApiDocumentation />}
-              {activeTab === "Alış Faturası" && (
-                <PurchaseInvoice
-                  current={JSON.parse(
-                    localStorage.getItem("currentPurchaseInvoice") || "{}"
-                  )}
-                />
-              )}
+              {activeTab === "Alış Faturası" && <PurchaseInvoice />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
             </TabContainer>
           </main>
