@@ -1,12 +1,14 @@
+//PurchaseInvoice/ProductsSection/index.tsx
 "use client";
 
 import React, { useState } from "react";
 import { StockItem } from "../types";
 import { Current } from "@/components/CurrentList/types";
-import ProductsTable from "./ProductsTable";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProductSelectionDialog from "./ProductSelectionDialog";
+import ProductsGrid from "./ProductsGrid";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductsSectionProps {
   products: StockItem[];
@@ -22,6 +24,7 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
   current,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleProductUpdate = (updatedProduct: StockItem) => {
     setProducts(
@@ -33,6 +36,18 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
 
   const handleProductRemove = (productId: string) => {
     setProducts(products.filter((product) => product.id !== productId));
+    toast({
+      title: "Success",
+      description: "Ürün başarıyla silindi",
+    });
+  };
+
+  const handleBulkRemove = (productIds: string[]) => {
+    setProducts(products.filter((product) => !productIds.includes(product.id)));
+    toast({
+      title: "Success",
+      description: `${productIds.length} ürün başarıyla silindi`,
+    });
   };
 
   const handleProductsSelect = (newProducts: StockItem[]) => {
@@ -69,6 +84,10 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
     });
 
     setProducts(updatedProducts);
+    toast({
+      title: "Success",
+      description: `${newProducts.length} ürün başarıyla eklendi`,
+    });
   };
 
   return (
@@ -86,10 +105,11 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
         </Button>
       </div>
 
-      <ProductsTable
+      <ProductsGrid
         products={products}
         onProductUpdate={handleProductUpdate}
         onProductRemove={handleProductRemove}
+        onBulkRemove={handleBulkRemove}
       />
 
       <ProductSelectionDialog

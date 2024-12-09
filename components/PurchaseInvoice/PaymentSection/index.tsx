@@ -51,8 +51,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     onPaymentsChange(payments.filter((p) => p.id !== paymentId));
   };
 
-  const currencySymbol = getCurrencySymbol(currency);
-
   return (
     <div className="space-y-6">
       {/* Summary Section */}
