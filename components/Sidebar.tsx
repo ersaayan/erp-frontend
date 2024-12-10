@@ -78,6 +78,7 @@ const menuItems = [
     icon: <Warehouse className="h-5 w-5" />,
     subItems: [
       { name: "Depo Listesi", disabled: false },
+      { name: "Sipariş Hazırlama", disabled: false },
       // { name: "Mal Kabul", disabled: true },
       // { name: "Mal Çıkış", disabled: true },
       // { name: "Stok Sayım", disabled: true },

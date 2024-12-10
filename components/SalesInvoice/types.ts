@@ -48,3 +48,24 @@ export interface Warehouse {
     warehouseName: string;
     warehouseCode: string;
 }
+
+export interface FormSectionProps {
+    title: string;
+    description?: string;
+    isValid?: boolean;
+    error?: string;
+    children: React.ReactNode;
+    className?: string;
+}
+
+export interface FormFieldProps {
+    name: string;
+    label: string;
+    value: any;
+    onChange: (value: any) => void;
+    error?: string;
+    helperText?: string;
+    required?: boolean;
+    type?: string;
+    options?: Array<{ value: string; label: string }>;
+}

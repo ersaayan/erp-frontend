@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
-import { InvoiceFormData, StockItem } from '@/components/PurchaseInvoice/types';
-import { PaymentDetails } from '@/components/PurchaseInvoice/PaymentSection/types';
+import { InvoiceFormData, StockItem } from '@/components/SalesInvoice/types';
+import { PaymentDetails } from '@/components/SalesInvoice/PaymentSection/types';
 import { useToast } from '@/hooks/use-toast';
-import { usePurchaseInvoiceValidation } from './usePurchaseInvoiceValidation';
+import { useSalesInvoiceValidation } from './useSalesInvoiceValidation';
 
-export const usePurchaseInvoice = () => {
+export const useSalesInvoice = () => {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
-    const { validateForm } = usePurchaseInvoiceValidation();
+    const { validateForm } = useSalesInvoiceValidation();
 
     const handleSubmit = useCallback(async (
         invoiceData: InvoiceFormData,

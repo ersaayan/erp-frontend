@@ -56,7 +56,9 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/stockcards/search?query=${encodeURIComponent(
+        `${
+          process.env.BASE_URL
+        }/stockcards/byWarehouse/search/${warehouseId}?query=${encodeURIComponent(
           debouncedSearchTerm
         )}`,
         {

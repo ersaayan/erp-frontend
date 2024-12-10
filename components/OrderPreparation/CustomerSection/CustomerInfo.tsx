@@ -15,16 +15,16 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({ customer, onClear }) => {
         className="absolute right-2 top-2 text-sm"
         onClick={onClear}
       >
-        Cariyi Sil
+        Müşteriyi Sil
       </Button>
 
-      <div className="flex space-x-4">
+      <div className="space-y-2">
         <div>
-          <span className="text-sm text-muted-foreground">Cari Adı</span>
+          <span className="text-sm text-muted-foreground">Müşteri Adı</span>
           <div className="font-medium">{customer.currentName}</div>
         </div>
         <div>
-          <span className="text-sm text-muted-foreground">Cari Kodu</span>
+          <span className="text-sm text-muted-foreground">Müşteri Kodu</span>
           <div className="font-medium">{customer.currentCode}</div>
         </div>
         {customer.priceList && (

@@ -93,6 +93,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
       vatAmount: 0,
       totalAmount: parseFloat(product.stockCardPriceLists[0]?.price || "0"),
       unit: product.unit,
+      currency: product.stockCardPriceLists[0]?.currency || "USD",
     };
 
     onProductSelect(cartItem);

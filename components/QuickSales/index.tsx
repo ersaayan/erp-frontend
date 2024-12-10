@@ -14,17 +14,19 @@ const QuickSales: React.FC = () => {
   const {
     cart,
     customer,
+    payments,
+    loading,
     addToCart,
     updateCartItem,
     removeFromCart,
     setCustomer,
+    setPayments,
     processPayment,
-    loading,
   } = useQuickSales();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
-      <div className="flex justify-between items-center mb-4 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex flex-col h-[calc(100vh-6rem)]">
+      <div className="flex justify-between items-center mb-4 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
         <h2 className="text-2xl font-bold">Hızlı Satış</h2>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
@@ -40,9 +42,9 @@ const QuickSales: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-4 p-4 h-full overflow-hidden">
+      <div className="grid grid-cols-12 gap-4 p-4 overflow-hidden h-[calc(100%-4rem)]">
         <motion.div
-          className="col-span-8 space-y-4 h-full overflow-hidden"
+          className="col-span-8 space-y-4 h-full overflow-hidden flex flex-col"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
@@ -51,7 +53,7 @@ const QuickSales: React.FC = () => {
             <ProductSearch onProductSelect={addToCart} />
           </Card>
 
-          <Card className="flex-1 p-4 shadow-lg border-muted overflow-hidden flex flex-col">
+          <Card className="flex-1 p-4 shadow-lg border-muted overflow-hidden flex flex-col min-h-0">
             <Cart
               items={cart}
               onUpdateItem={updateCartItem}
@@ -61,7 +63,7 @@ const QuickSales: React.FC = () => {
         </motion.div>
 
         <motion.div
-          className="col-span-4 space-y-4 h-full overflow-hidden"
+          className="col-span-4 space-y-4 h-full overflow-hidden flex flex-col"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
@@ -73,13 +75,15 @@ const QuickSales: React.FC = () => {
             />
           </Card>
 
-          <Card className="p-4 shadow-lg border-muted bg-gradient-to-br from-background to-muted/50">
+          <Card className="flex-1 p-4 shadow-lg border-muted bg-gradient-to-br from-background to-muted/50 overflow-auto">
             <div className="flex items-center space-x-2 mb-4">
               <CreditCard className="h-5 w-5 text-primary" />
               <h3 className="text-lg font-semibold">Ödeme</h3>
             </div>
             <PaymentSection
               cart={cart}
+              payments={payments}
+              onPaymentsChange={setPayments}
               onProcessPayment={processPayment}
               loading={loading}
             />

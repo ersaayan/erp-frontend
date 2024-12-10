@@ -125,7 +125,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
     if (checked) {
       try {
         const response = await fetch(
-          `${process.env.BASE_URL}/invoices/getLastInvoiceNoByType/Purchase`,
+          `${process.env.BASE_URL}/invoices/getLastInvoiceNoByType/Sales`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -167,7 +167,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
     if (checked) {
       try {
         const response = await fetch(
-          `${process.env.BASE_URL}/invoices/getLastInvoiceNoByType/Purchase`,
+          `${process.env.BASE_URL}/invoices/getLastInvoiceNoByType/Sales`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("auth_token")}`,

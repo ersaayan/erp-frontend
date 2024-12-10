@@ -65,6 +65,18 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
     }
   };
 
+  const handleSalesInvoice = () => {
+    if (selectedCurrent) {
+      // Store the current data in localStorage
+      localStorage.setItem(
+        "currentSalesInvoice",
+        JSON.stringify(selectedCurrent)
+      );
+      // Navigate to Sales Invoice page
+      onMenuItemClick?.("Satış Faturası");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
@@ -116,7 +128,9 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Satış Faturası</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSalesInvoice}>
+                Satış Faturası
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

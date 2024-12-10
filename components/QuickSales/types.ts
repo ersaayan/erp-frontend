@@ -12,6 +12,7 @@ export interface CartItem {
     vatAmount: number;
     totalAmount: number;
     unit: string;
+    currency: string;
 }
 
 export interface Customer {
@@ -28,13 +29,15 @@ export interface Customer {
 export interface Payment {
     method: 'cash' | 'card' | 'transfer';
     amount: number;
-    reference?: string;
+    accountId: string;
+    currency: string;
+    description?: string;
 }
 
 export interface Sale {
     id: string;
     date: Date;
-    customer?: Customer;
+    customer?: Customer | null;
     items: CartItem[];
     subtotal: number;
     totalDiscount: number;

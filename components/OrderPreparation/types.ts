@@ -1,9 +1,9 @@
-export interface InvoiceFormData {
-    invoiceNo: string;
-    gibInvoiceNo: string;
-    invoiceDate: Date;
-    paymentDate: Date;
-    paymentTerm: number;
+import { Current } from "@/components/CurrentList/types";
+
+export interface OrderFormData {
+    orderNo: string;
+    orderDate: Date;
+    deliveryDate: Date;
     branchCode: string;
     warehouseId: string;
     description: string;
@@ -56,16 +56,4 @@ export interface FormSectionProps {
     error?: string;
     children: React.ReactNode;
     className?: string;
-}
-
-export interface FormFieldProps {
-    name: string;
-    label: string;
-    value: any;
-    onChange: (value: any) => void;
-    error?: string;
-    helperText?: string;
-    required?: boolean;
-    type?: string;
-    options?: Array<{ value: string; label: string }>;
 }

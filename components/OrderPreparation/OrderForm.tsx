@@ -13,24 +13,30 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { InvoiceFormData, Branch, Warehouse } from "../types";
+import { OrderFormData, Branch, Warehouse } from "./types";
+import { useToast } from "@/hooks/use-toast";
 
-interface InvoiceFormProps {
-  data: InvoiceFormData;
-  onChange: (data: InvoiceFormData) => void;
+interface OrderFormProps {
+  data: OrderFormData;
+  onChange: (data: OrderFormData) => void;
 }
 
-const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
+const OrderForm: React.FC<OrderFormProps> = ({ data, onChange }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +71,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
         setError(null);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "An error occurred while fetching data"
+          err instanceof Error
+            ? err.message
+            : "An error occurred while fetching data"
         );
       } finally {
         setLoading(false);
@@ -76,31 +84,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
   }, []);
 
   const handleInputChange = (
-    field: keyof InvoiceFormData,
+    field: keyof OrderFormData,
     value: string | Date | number
   ) => {
     onChange({ ...data, [field]: value });
-
-    // Update payment date when payment term changes
-    if (field === "paymentTerm") {
-      const newPaymentDate = new Date(data.invoiceDate);
-      newPaymentDate.setDate(newPaymentDate.getDate() + Number(value));
-      onChange({ ...data, paymentTerm: Number(value), paymentDate: newPaymentDate });
-    }
-
-    // Update payment term when payment date changes
-    if (field === "paymentDate" && value instanceof Date) {
-      const diffTime = value.getTime() - data.invoiceDate.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      onChange({ ...data, paymentDate: value, paymentTerm: diffDays });
-    }
-
-    // Update payment date when invoice date changes
-    if (field === "invoiceDate" && value instanceof Date) {
-      const newPaymentDate = new Date(value);
-      newPaymentDate.setDate(newPaymentDate.getDate() + data.paymentTerm);
-      onChange({ ...data, invoiceDate: value, paymentDate: newPaymentDate });
-    }
   };
 
   if (loading) {
@@ -122,39 +109,30 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid gap-4 md:grid-cols-3">
       <div>
-        <Label>Fatura No</Label>
+        <Label>Sipariş No</Label>
         <Input
-          value={data.invoiceNo}
-          onChange={(e) => handleInputChange("invoiceNo", e.target.value)}
-          placeholder="Fatura numarası giriniz"
+          value={data.orderNo}
+          onChange={(e) => handleInputChange("orderNo", e.target.value)}
+          placeholder="Sipariş numarası giriniz"
         />
       </div>
 
       <div>
-        <Label>GİB No</Label>
-        <Input
-          value={data.gibInvoiceNo}
-          onChange={(e) => handleInputChange("gibInvoiceNo", e.target.value)}
-          placeholder="GİB numarası giriniz"
-        />
-      </div>
-
-      <div>
-        <Label>Fatura Tarihi</Label>
+        <Label>Sipariş Tarihi</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
-                !data.invoiceDate && "text-muted-foreground"
+                !data.orderDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {data.invoiceDate ? (
-                format(data.invoiceDate, "PPP")
+              {data.orderDate ? (
+                format(data.orderDate, "PPP")
               ) : (
                 <span>Tarih seçin</span>
               )}
@@ -163,8 +141,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={data.invoiceDate}
-              onSelect={(date) => date && handleInputChange("invoiceDate", date)}
+              selected={data.orderDate}
+              onSelect={(date) => date && handleInputChange("orderDate", date)}
               initialFocus
             />
           </PopoverContent>
@@ -172,29 +150,19 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
       </div>
 
       <div>
-        <Label>Vade (Gün)</Label>
-        <Input
-          type="number"
-          value={data.paymentTerm}
-          onChange={(e) => handleInputChange("paymentTerm", parseInt(e.target.value))}
-          className="text-right"
-        />
-      </div>
-
-      <div>
-        <Label>Vade Tarihi</Label>
+        <Label>Teslim Tarihi</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
-                !data.paymentDate && "text-muted-foreground"
+                !data.deliveryDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {data.paymentDate ? (
-                format(data.paymentDate, "PPP")
+              {data.deliveryDate ? (
+                format(data.deliveryDate, "PPP")
               ) : (
                 <span>Tarih seçin</span>
               )}
@@ -203,8 +171,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={data.paymentDate}
-              onSelect={(date) => date && handleInputChange("paymentDate", date)}
+              selected={data.deliveryDate}
+              onSelect={(date) =>
+                date && handleInputChange("deliveryDate", date)
+              }
               initialFocus
             />
           </PopoverContent>
@@ -249,7 +219,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
         </Select>
       </div>
 
-      <div className="col-span-3">
+      <div className="md:col-span-3">
         <Label>Açıklama</Label>
         <Textarea
           value={data.description}
@@ -262,4 +232,4 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
   );
 };
 
-export default InvoiceForm;
+export default OrderForm;

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { CartItem, Customer, Payment, Sale } from "../types";
+import { CartItem, Customer, Payment, Sale } from "@/components/QuickSales/types";
 import { useToast } from "@/hooks/use-toast";
 import Decimal from "decimal.js";
-import { PaymentDetails } from "../PaymentSection/types";
 
 export const useQuickSales = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [customer, setCustomer] = useState<Customer | null>(null);
-    const [payments, setPayments] = useState<PaymentDetails[]>([]);
+    const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
 
@@ -68,7 +67,7 @@ export const useQuickSales = () => {
         setCart((currentCart) => currentCart.filter((item) => item.id !== itemId));
     }, []);
 
-    const processPayment = useCallback(async (paymentDetails: PaymentDetails[]) => {
+    const processPayment = useCallback(async (payments: Payment[]) => {
         try {
             setLoading(true);
 
@@ -81,13 +80,7 @@ export const useQuickSales = () => {
                 totalDiscount: cart.reduce((sum, item) => sum + item.discountAmount, 0),
                 totalVat: cart.reduce((sum, item) => sum + item.vatAmount, 0),
                 total: cart.reduce((sum, item) => sum + item.totalAmount, 0),
-                payments: paymentDetails.map(payment => ({
-                    method: payment.method === 'openAccount' ? 'transfer' : payment.method,
-                    amount: payment.amount,
-                    accountId: payment.accountId,
-                    currency: payment.currency,
-                    description: payment.description
-                })),
+                payments,
                 status: "completed",
             };
 

@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import { Current } from "@/components/CurrentList/types";
 
 interface CustomerInfoProps {
@@ -13,8 +12,7 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({ customer, onClear }) => {
     <div className="rounded-lg border p-4 relative">
       <Button
         variant="ghost"
-        size="icon"
-        className="absolute right-2 top-2"
+        className="absolute right-2 top-2 text-sm"
         onClick={onClear}
       >
         Cariyi Sil
@@ -22,11 +20,11 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({ customer, onClear }) => {
 
       <div className="flex space-x-4">
         <div>
-          <span className="text-sm text-muted-foreground">Tedarikçi Adı</span>
+          <span className="text-sm text-muted-foreground">Cari Adı</span>
           <div className="font-medium">{customer.currentName}</div>
         </div>
         <div>
-          <span className="text-sm text-muted-foreground">Tedarikçi Kodu</span>
+          <span className="text-sm text-muted-foreground">Cari Kodu</span>
           <div className="font-medium">{customer.currentCode}</div>
         </div>
         {customer.priceList && (

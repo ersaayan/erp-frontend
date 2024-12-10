@@ -8,9 +8,9 @@ import ProductsSection from "./ProductsSection";
 import PaymentSection from "./PaymentSection";
 import { InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
-import { usePurchaseInvoice } from "@/hooks/usePurchaseInvoice";
+import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 
-const PurchaseInvoice: React.FC = () => {
+const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
     invoiceNo: "",
     gibInvoiceNo: "",
@@ -25,11 +25,11 @@ const PurchaseInvoice: React.FC = () => {
 
   const [products, setProducts] = useState<StockItem[]>([]);
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
-  const { loading, handleSubmit } = usePurchaseInvoice();
+  const { loading, handleSubmit } = useSalesInvoice();
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
+    const savedCurrentData = localStorage.getItem("currentSalesInvoice");
     if (savedCurrentData) {
       const currentData = JSON.parse(savedCurrentData);
       setInvoiceData((prev) => ({
@@ -41,7 +41,7 @@ const PurchaseInvoice: React.FC = () => {
           priceList: currentData.priceList,
         },
       }));
-      localStorage.removeItem("currentPurchaseInvoice");
+      localStorage.removeItem("currentSalesInvoice");
     }
   }, []);
 
@@ -101,4 +101,4 @@ const PurchaseInvoice: React.FC = () => {
   );
 };
 
-export default PurchaseInvoice;
+export default SalesInvoice;
