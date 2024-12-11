@@ -30,6 +30,24 @@ const PurchaseInvoice: React.FC = () => {
   const { loading, handleSubmit } = usePurchaseInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Load customer data from localStorage if available (from Current Operations)
+  useEffect(() => {
+    const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
+    if (savedCurrentData) {
+      const currentData = JSON.parse(savedCurrentData);
+      setInvoiceData((prev) => ({
+        ...prev,
+        current: {
+          id: currentData.id,
+          currentCode: currentData.currentCode,
+          currentName: currentData.currentName,
+          priceList: currentData.priceList,
+        },
+      }));
+      localStorage.removeItem("currentPurchaseInvoice");
+    }
+  }, []);
+
   // Load invoice data from localStorage if available
   useEffect(() => {
     const savedInvoiceData = localStorage.getItem("currentInvoiceData");
@@ -40,7 +58,7 @@ const PurchaseInvoice: React.FC = () => {
 
         // Set form data
         setInvoiceData({
-          id: invoiceData.id,
+          id: invoiceDetail.id,
           invoiceNo: invoiceDetail.invoiceNo,
           gibInvoiceNo: invoiceDetail.gibInvoiceNo,
           invoiceDate: new Date(invoiceDetail.invoiceDate),
@@ -66,7 +84,7 @@ const PurchaseInvoice: React.FC = () => {
             stockName: item.stockName,
             quantity: item.quantity,
             unit: item.unit,
-            stockLevel: 0, // This would need to be fetched separately if needed
+            stockLevel: 0,
             unitPrice: item.unitPrice,
             vatRate: item.vatRate,
             vatAmount: item.vatAmount,
@@ -111,13 +129,13 @@ const PurchaseInvoice: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col h-[calc(100vh-4rem)] p-4">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Alış Faturası</h1>
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden">
-        <div className="flex flex-col flex-1 gap-4 overflow-auto">
+      <div className="flex flex-1 gap-4 min-h-0">
+        <div className="flex flex-col flex-1 gap-4 overflow-hidden">
           <Card className="p-4">
             <CustomerSection
               customer={invoiceData.current}
@@ -135,7 +153,7 @@ const PurchaseInvoice: React.FC = () => {
             />
           </Card>
 
-          <Card className="flex-1 p-4 overflow-hidden">
+          <Card className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
             <ProductsSection
               products={products}
               onProductsChange={setProducts}
@@ -145,7 +163,7 @@ const PurchaseInvoice: React.FC = () => {
           </Card>
         </div>
 
-        <Card className="w-[400px] p-4">
+        <Card className="w-[400px] p-4 flex flex-col min-h-0">
           <PaymentSection
             products={products}
             payments={payments}

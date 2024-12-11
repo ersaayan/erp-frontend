@@ -17,14 +17,16 @@ interface PaymentSectionProps {
   onPaymentsChange: (payments: PaymentDetails[]) => void;
   onSave: () => void;
   loading: boolean;
+  isEditMode: boolean;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
   products,
-  payments,
+  payments = [],
   onPaymentsChange,
   onSave,
   loading,
+  isEditMode,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
@@ -35,20 +37,27 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   // Calculate totals
   const totals = useMemo(() => {
     const subtotal = products.reduce(
-      (sum, product) => sum + product.quantity * product.unitPrice,
+      (sum, item) => sum + item.unitPrice * item.quantity,
       0
     );
-    const vatTotal = products.reduce(
-      (sum, product) => sum + product.vatAmount,
+
+    const totalDiscount = products.reduce(
+      (sum, item) => sum + (item.discountAmount || 0),
       0
     );
-    const total = subtotal + vatTotal;
+
+    const totalVat = products.reduce((sum, item) => sum + item.vatAmount, 0);
+
+    const total = products.reduce((sum, item) => sum + item.totalAmount, 0);
+
     const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+
     const remaining = total - paid;
 
     return {
       subtotal,
-      vatTotal,
+      totalDiscount,
+      totalVat,
       total,
       paid,
       remaining,
@@ -69,57 +78,59 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       ...data,
     };
 
-    onPaymentsChange([...payments, newPayment]);
+    onPaymentsChange([...(payments || []), newPayment]);
     setSelectedMethod(null);
   };
 
   const handlePaymentDelete = (id: string) => {
-    onPaymentsChange(payments.filter((payment) => payment.id !== id));
+    onPaymentsChange((payments || []).filter((payment) => payment.id !== id));
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Ödeme</h2>
-
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Ara Toplam</span>
-            <span>
-              {totals.subtotal.toFixed(2)} {currency}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>KDV</span>
-            <span>
-              {totals.vatTotal.toFixed(2)} {currency}
-            </span>
-          </div>
-          <Separator />
-          <div className="flex justify-between font-medium">
-            <span>Genel Toplam</span>
-            <span>
-              {totals.total.toFixed(2)} {currency}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Ödenen</span>
-            <span>
-              {totals.paid.toFixed(2)} {currency}
-            </span>
-          </div>
-          <div className="flex justify-between font-bold text-lg">
-            <span>Kalan</span>
-            <span>
-              {totals.remaining.toFixed(2)} {currency}
-            </span>
-          </div>
+    <div className="flex flex-col h-full">
+      <div className="space-y-4 mb-4">
+        <div className="flex justify-between text-sm">
+          <span>Ara Toplam</span>
+          <span>
+            {totals.subtotal.toFixed(2)} {currency}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span>Toplam İndirim</span>
+          <span className="text-red-500">
+            -{totals.totalDiscount.toFixed(2)} {currency}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span>Toplam KDV</span>
+          <span>
+            {totals.totalVat.toFixed(2)} {currency}
+          </span>
+        </div>
+        <Separator />
+        <div className="flex justify-between font-bold text-lg">
+          <span>Genel Toplam</span>
+          <span>
+            {totals.total.toFixed(2)} {currency}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>Ödenen</span>
+          <span>
+            {totals.paid.toFixed(2)} {currency}
+          </span>
+        </div>
+        <div className="flex justify-between font-bold text-lg">
+          <span>Kalan</span>
+          <span>
+            {totals.remaining.toFixed(2)} {currency}
+          </span>
         </div>
       </div>
 
-      <Separator />
+      <Separator className="mb-4" />
 
-      <div className="space-y-4">
+      <div className="flex-1 overflow-auto space-y-4">
         <h3 className="font-medium">Ödeme Yöntemi</h3>
         <PaymentMethodSelect
           selectedMethod={selectedMethod}
@@ -136,7 +147,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           />
         )}
 
-        {payments.length > 0 && (
+        {payments && payments.length > 0 && (
           <>
             <Separator />
             <div className="space-y-2">
@@ -147,7 +158,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         )}
       </div>
 
-      <Separator />
+      <Separator className="my-4" />
 
       <Button
         className="w-full bg-[#84CC16] hover:bg-[#65A30D]"
@@ -156,7 +167,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         disabled={loading || products.length === 0 || totals.remaining > 0}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Faturayı Kaydet
+        {isEditMode ? "Faturayı Güncelle" : "Faturayı Kaydet"}
       </Button>
     </div>
   );

@@ -13,6 +13,7 @@ import { InvoiceDetailResponse } from "@/types/invoice-detail";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
+    id: "",
     invoiceNo: "",
     gibInvoiceNo: "",
     invoiceDate: new Date(),
@@ -29,6 +30,24 @@ const SalesInvoice: React.FC = () => {
   const { loading, handleSubmit } = useSalesInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Load customer data from localStorage if available (from Current Operations)
+  useEffect(() => {
+    const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
+    if (savedCurrentData) {
+      const currentData = JSON.parse(savedCurrentData);
+      setInvoiceData((prev) => ({
+        ...prev,
+        current: {
+          id: currentData.id,
+          currentCode: currentData.currentCode,
+          currentName: currentData.currentName,
+          priceList: currentData.priceList,
+        },
+      }));
+      localStorage.removeItem("currentPurchaseInvoice");
+    }
+  }, []);
+
   // Load invoice data from localStorage if available
   useEffect(() => {
     const savedInvoiceData = localStorage.getItem("currentInvoiceData");
@@ -39,6 +58,7 @@ const SalesInvoice: React.FC = () => {
 
         // Set form data
         setInvoiceData({
+          id: invoiceData.id,
           invoiceNo: invoiceDetail.invoiceNo,
           gibInvoiceNo: invoiceDetail.gibInvoiceNo,
           invoiceDate: new Date(invoiceDetail.invoiceDate),

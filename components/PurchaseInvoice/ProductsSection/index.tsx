@@ -16,9 +16,6 @@ interface ProductsSectionProps {
   warehouseId: string;
 }
 
-const MIN_HEIGHT = 300; // Initial minimum height
-const MAX_HEIGHT = 600; // Maximum height limit
-
 const ProductsSection: React.FC<ProductsSectionProps> = ({
   products,
   onProductsChange,
@@ -26,25 +23,6 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
   warehouseId,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [contentHeight, setContentHeight] = useState(MIN_HEIGHT);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  // Update content height when products change
-  useEffect(() => {
-    if (contentRef.current) {
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const scrollHeight = entry.target.scrollHeight;
-          setContentHeight(
-            Math.min(Math.max(scrollHeight, MIN_HEIGHT), MAX_HEIGHT)
-          );
-        }
-      });
-
-      observer.observe(contentRef.current);
-      return () => observer.disconnect();
-    }
-  }, [products]);
 
   const handleProductsAdd = (newProducts: StockItem[]) => {
     const updatedProducts = [...products];
@@ -92,7 +70,7 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Ürünler</h2>
         <Button
@@ -107,7 +85,7 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
         </Button>
       </div>
 
-      <div className="border rounded-md">
+      <div className="flex-1 overflow-auto border rounded-md">
         <ProductTable
           products={products}
           onUpdate={handleProductUpdate}

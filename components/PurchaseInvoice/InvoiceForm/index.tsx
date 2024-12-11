@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,15 +26,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { InvoiceFormData, Branch, Warehouse } from "../types";
 import { useToast } from "@/hooks/use-toast";
-import { FormField } from "../FormField";
-import { FormSection } from "../FormSection";
 
 interface InvoiceFormProps {
   data: InvoiceFormData;
   onChange: (data: InvoiceFormData) => void;
+  isEditMode?: boolean;
 }
 
-const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
+const InvoiceForm: React.FC<InvoiceFormProps> = ({
+  data,
+  onChange,
+  isEditMode = false,
+}) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -182,12 +185,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
         const lastInvoiceNo = await response.text();
 
-        // Extract components and replace PUR with GPR
+        // Extract components and replace SAL with GSL
         const currentYear = new Date().getFullYear().toString();
         const sequentialNumber = parseInt(lastInvoiceNo.slice(-9)) + 1;
 
-        // Generate new invoice number with GPR prefix
-        const newInvoiceNo = `GPR${currentYear}${sequentialNumber
+        // Generate new invoice number with GSL prefix
+        const newInvoiceNo = `GSL${currentYear}${sequentialNumber
           .toString()
           .padStart(9, "0")}`;
 
@@ -222,186 +225,177 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
   }
 
   return (
-    <FormSection
-      title="Fatura Bilgileri"
-      description="Fatura detaylarını ve ödeme koşullarını girin"
-      isValid={Boolean(
-        data.invoiceNo &&
-          data.gibInvoiceNo &&
-          data.branchCode &&
-          data.warehouseId
-      )}
-    >
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <Label>Fatura No</Label>
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={isSerial}
-                onCheckedChange={handleSerialToggle}
-                id="serial-mode"
-              />
-              <Label htmlFor="serial-mode" className="text-sm">
-                Seri
-              </Label>
-            </div>
+    <div className="grid grid-cols-3 gap-4">
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <Label>Fatura No</Label>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={isSerial}
+              onCheckedChange={handleSerialToggle}
+              id="serial-mode"
+              disabled={isEditMode}
+            />
+            <Label htmlFor="serial-mode" className="text-sm">
+              Seri
+            </Label>
           </div>
-          <Input
-            value={data.invoiceNo}
-            onChange={(e) => handleInputChange("invoiceNo", e.target.value)}
-            placeholder="Fatura numarası giriniz"
-            disabled={isSerial}
-          />
         </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <Label>GİB No</Label>
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={isGprSerial}
-                onCheckedChange={handleGprSerialToggle}
-                id="gpr-serial-mode"
-              />
-              <Label htmlFor="gpr-serial-mode" className="text-sm">
-                GPR
-              </Label>
-            </div>
-          </div>
-          <Input
-            value={data.gibInvoiceNo}
-            onChange={(e) => handleInputChange("gibInvoiceNo", e.target.value)}
-            placeholder="GİB numarası giriniz"
-            disabled={isGprSerial}
-          />
-        </div>
-
-        <div>
-          <Label>Fatura Tarihi</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !data.invoiceDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.invoiceDate ? (
-                  format(data.invoiceDate, "PPP")
-                ) : (
-                  <span>Tarih seçin</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={data.invoiceDate}
-                onSelect={(date) =>
-                  date && handleInputChange("invoiceDate", date)
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div>
-          <Label>Vade (Gün)</Label>
-          <Input
-            type="number"
-            value={data.paymentTerm}
-            onChange={(e) =>
-              handleInputChange("paymentTerm", parseInt(e.target.value))
-            }
-            className="text-right"
-          />
-        </div>
-
-        <div>
-          <Label>Vade Tarihi</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !data.paymentDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.paymentDate ? (
-                  format(data.paymentDate, "PPP")
-                ) : (
-                  <span>Tarih seçin</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={data.paymentDate}
-                onSelect={(date) =>
-                  date && handleInputChange("paymentDate", date)
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div>
-          <Label>Şube</Label>
-          <Select
-            value={data.branchCode}
-            onValueChange={(value) => handleInputChange("branchCode", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Şube seçin" />
-            </SelectTrigger>
-            <SelectContent>
-              {branches.map((branch) => (
-                <SelectItem key={branch.id} value={branch.branchCode}>
-                  {branch.branchName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Depo</Label>
-          <Select
-            value={data.warehouseId}
-            onValueChange={(value) => handleInputChange("warehouseId", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Depo seçin" />
-            </SelectTrigger>
-            <SelectContent>
-              {warehouses.map((warehouse) => (
-                <SelectItem key={warehouse.id} value={warehouse.id}>
-                  {warehouse.warehouseName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="col-span-3">
-          <Label>Açıklama</Label>
-          <Textarea
-            value={data.description}
-            onChange={(e) => handleInputChange("description", e.target.value)}
-            placeholder="Açıklama giriniz"
-            className="resize-none"
-          />
-        </div>
+        <Input
+          value={data.invoiceNo}
+          onChange={(e) => handleInputChange("invoiceNo", e.target.value)}
+          placeholder="Fatura numarası giriniz"
+          disabled={isSerial || isEditMode}
+        />
       </div>
-    </FormSection>
+
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <Label>GİB No</Label>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={isGprSerial}
+              onCheckedChange={handleGprSerialToggle}
+              id="gpr-serial-mode"
+              disabled={isEditMode}
+            />
+            <Label htmlFor="gpr-serial-mode" className="text-sm">
+              GSL
+            </Label>
+          </div>
+        </div>
+        <Input
+          value={data.gibInvoiceNo}
+          onChange={(e) => handleInputChange("gibInvoiceNo", e.target.value)}
+          placeholder="GİB numarası giriniz"
+          disabled={isGprSerial || isEditMode}
+        />
+      </div>
+
+      <div>
+        <Label>Fatura Tarihi</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !data.invoiceDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {data.invoiceDate ? (
+                format(data.invoiceDate, "PPP")
+              ) : (
+                <span>Tarih seçin</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={data.invoiceDate}
+              onSelect={(date) =>
+                date && handleInputChange("invoiceDate", date)
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div>
+        <Label>Vade (Gün)</Label>
+        <Input
+          type="number"
+          value={data.paymentTerm}
+          onChange={(e) =>
+            handleInputChange("paymentTerm", parseInt(e.target.value))
+          }
+          className="text-right"
+        />
+      </div>
+
+      <div>
+        <Label>Vade Tarihi</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !data.paymentDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {data.paymentDate ? (
+                format(data.paymentDate, "PPP")
+              ) : (
+                <span>Tarih seçin</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={data.paymentDate}
+              onSelect={(date) =>
+                date && handleInputChange("paymentDate", date)
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div>
+        <Label>Şube</Label>
+        <Select
+          value={data.branchCode}
+          onValueChange={(value) => handleInputChange("branchCode", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Şube seçin" />
+          </SelectTrigger>
+          <SelectContent>
+            {branches.map((branch) => (
+              <SelectItem key={branch.id} value={branch.branchCode}>
+                {branch.branchName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Depo</Label>
+        <Select
+          value={data.warehouseId}
+          onValueChange={(value) => handleInputChange("warehouseId", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Depo seçin" />
+          </SelectTrigger>
+          <SelectContent>
+            {warehouses.map((warehouse) => (
+              <SelectItem key={warehouse.id} value={warehouse.id}>
+                {warehouse.warehouseName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="col-span-3">
+        <Label>Açıklama</Label>
+        <Textarea
+          value={data.description}
+          onChange={(e) => handleInputChange("description", e.target.value)}
+          placeholder="Açıklama giriniz"
+          className="resize-none"
+        />
+      </div>
+    </div>
   );
 };
 
