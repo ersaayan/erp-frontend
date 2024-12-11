@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: SSH into server and pull frontend
+      - name: SSH into server and deploy frontend
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -23,4 +23,5 @@ jobs:
             cd /var/www/erp-dev-frontend/
             git pull origin master
             bun install
-            bun dev &
+            pm2 delete frontend || true
+            pm2 start "bun dev" --name frontend
