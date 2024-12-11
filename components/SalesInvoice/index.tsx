@@ -32,7 +32,7 @@ const SalesInvoice: React.FC = () => {
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
+    const savedCurrentData = localStorage.getItem("currentSalesInvoice");
     if (savedCurrentData) {
       const currentData = JSON.parse(savedCurrentData);
       setInvoiceData((prev) => ({
@@ -44,7 +44,7 @@ const SalesInvoice: React.FC = () => {
           priceList: currentData.priceList,
         },
       }));
-      localStorage.removeItem("currentPurchaseInvoice");
+      localStorage.removeItem("currentSalesInvoice");
     }
   }, []);
 
@@ -58,7 +58,7 @@ const SalesInvoice: React.FC = () => {
 
         // Set form data
         setInvoiceData({
-          id: invoiceData.id,
+          id: invoiceDetail.id,
           invoiceNo: invoiceDetail.invoiceNo,
           gibInvoiceNo: invoiceDetail.gibInvoiceNo,
           invoiceDate: new Date(invoiceDetail.invoiceDate),
@@ -84,7 +84,7 @@ const SalesInvoice: React.FC = () => {
             stockName: item.stockName,
             quantity: item.quantity,
             unit: item.unit,
-            stockLevel: 0, // This would need to be fetched separately if needed
+            stockLevel: 0,
             unitPrice: item.unitPrice,
             vatRate: item.vatRate,
             vatAmount: item.vatAmount,
@@ -123,7 +123,6 @@ const SalesInvoice: React.FC = () => {
       isEditMode
     );
     if (result.success) {
-      // Handle successful save
       console.log("Invoice saved successfully");
     }
   };
