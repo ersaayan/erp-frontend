@@ -52,8 +52,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { InvoiceDetailResponse } from "@/types/invoice-detail";
 
-const InvoiceList: React.FC = () => {
+interface InvoiceListProps {
+  onMenuItemClick: (itemName: string) => void;
+}
+
+const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
   const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +116,59 @@ const InvoiceList: React.FC = () => {
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleRowDblClick = useCallback(
+    async (e: any) => {
+      try {
+        if (e.data.documentType !== "Invoice") {
+          return;
+        }
+
+        // Fetch invoice details
+        const response = await fetch(
+          `${process.env.BASE_URL}/invoices/getInvoiceInfoById/${e.data.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch invoice details");
+        }
+
+        const invoiceDetail: InvoiceDetailResponse = await response.json();
+
+        // Store the invoice data in localStorage
+        localStorage.setItem(
+          "currentInvoiceData",
+          JSON.stringify(invoiceDetail)
+        );
+
+        // Navigate to the appropriate page based on invoice type
+        if (e.data.invoiceType === "Purchase") {
+          onMenuItemClick("Alış Faturası");
+        } else if (e.data.invoiceType === "Sales") {
+          onMenuItemClick("Satış Faturası");
+        }
+
+        toast({
+          title: "Success",
+          description: "Opening invoice form...",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to open invoice. Please try again.",
+        });
+        console.error(error);
+      }
+    },
+    [onMenuItemClick, toast]
+  );
 
   const onExporting = React.useCallback((e: any) => {
     const workbook = new Workbook();
@@ -306,6 +364,7 @@ const InvoiceList: React.FC = () => {
         onSelectionChanged={(e) =>
           setSelectedRowKeys(e.selectedRowKeys as string[])
         }
+        onRowDblClick={handleRowDblClick}
         onRowPrepared={onRowPrepared}
         loadPanel={{
           enabled: loading,

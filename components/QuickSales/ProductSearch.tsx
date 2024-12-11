@@ -15,11 +15,17 @@ import { formatCurrency } from "@/lib/utils";
 
 interface ProductSearchProps {
   onProductSelect: (product: CartItem) => void;
+  warehouseId: string;
+  disabled?: boolean;
 }
 
 type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
 
-const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
+const ProductSearch: React.FC<ProductSearchProps> = ({
+  onProductSelect,
+  warehouseId,
+  disabled = false,
+}) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,7 +35,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
 
   const handleSearch = useCallback(async () => {
     try {
-      if (!debouncedSearchTerm.trim()) {
+      if (!debouncedSearchTerm.trim() || !warehouseId) {
         setResults([]);
         return;
       }
@@ -46,7 +52,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
       else searchParams.append("query", debouncedSearchTerm);
 
       const response = await fetch(
-        `${process.env.BASE_URL}/stockcards/search?${searchParams}`,
+        `${process.env.BASE_URL}/stockcards/byWarehouse/search/${warehouseId}?${searchParams}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -72,7 +78,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchTerm, selectedOption, toast]);
+  }, [debouncedSearchTerm, selectedOption, warehouseId, toast]);
 
   React.useEffect(() => {
     handleSearch();
@@ -93,7 +99,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
       vatAmount: 0,
       totalAmount: parseFloat(product.stockCardPriceLists[0]?.price || "0"),
       unit: product.unit,
-      currency: product.stockCardPriceLists[0]?.currency || "USD",
+      currency: product.stockCardPriceLists[0]?.priceList.currency || "TRY",
     };
 
     onProductSelect(cartItem);
@@ -125,10 +131,11 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
           )}
         </div>
         <Input
-          placeholder="Ürün Ara..."
+          placeholder={disabled ? "Önce depo seçin..." : "Ürün Ara..."}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
+          disabled={disabled}
         />
       </div>
 
@@ -173,47 +180,52 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onProductSelect }) => {
           >
             <ScrollArea className="h-[300px] rounded-md border">
               <div className="p-4 grid grid-cols-1 gap-2">
-                {results.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="relative"
-                  >
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left p-4 h-auto"
-                      onClick={() => handleProductSelect(product)}
+                {results.map((product) => {
+                  const warehouseStock = product.stockCardWarehouse.find(
+                    (w: any) => w.warehouseId === warehouseId
+                  );
+                  return (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      whileHover={{ scale: 1.02 }}
+                      className="relative"
                     >
-                      <div className="flex justify-between w-full">
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {product.productName}
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left p-4 h-auto"
+                        onClick={() => handleProductSelect(product)}
+                      >
+                        <div className="flex justify-between w-full">
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {product.productName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {product.productCode} -{" "}
+                              {product.barcodes[0]?.barcode}
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {product.productCode} -{" "}
-                            {product.barcodes[0]?.barcode}
+                          <div className="text-right">
+                            <div className="font-medium text-primary">
+                              {formatCurrency(
+                                parseFloat(
+                                  product.stockCardPriceLists[0]?.price || "0"
+                                )
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Stok: {warehouseStock?.quantity || 0}{" "}
+                              {product.unit}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-medium text-primary">
-                            {formatCurrency(
-                              parseFloat(
-                                product.stockCardPriceLists[0]?.price || "0"
-                              )
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Stok: {product.stockCardWarehouse[0]?.quantity || 0}{" "}
-                            {product.unit}
-                          </div>
-                        </div>
-                      </div>
-                    </Button>
-                  </motion.div>
-                ))}
+                      </Button>
+                    </motion.div>
+                  );
+                })}
               </div>
             </ScrollArea>
           </motion.div>

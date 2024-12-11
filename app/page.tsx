@@ -35,7 +35,7 @@ import CurrentList from "@/components/CurrentList";
 import CurrentCategories from "@/components/CurrentCategories";
 import AccountSummary from "@/components/AccountSummary";
 import Warehouses from "@/components/Warehouses";
-import InvoiceList from "@/components/InvoiceList";
+import InvoiceListPage from "@/components/InvoiceList";
 import QuickSales from "@/components/QuickSales";
 import VaultOperations from "@/components/VaultOperations";
 import BankOperations from "@/components/BankOperations";
@@ -221,8 +221,9 @@ export default function Home() {
               {activeTab === "Cari Kategorileri" && <CurrentCategories />}
               {activeTab === "Hesap Özeti" && <AccountSummary />}
               {activeTab === "Depo Listesi" && <Warehouses />}
-              {activeTab === "Sipariş Hazırlama" && <OrderPreparation />}
-              {activeTab === "Fatura/İrsaliye Listesi" && <InvoiceList />}
+              {activeTab === "Fatura/İrsaliye Listesi" && (
+                <InvoiceListPage onMenuItemClick={handleMenuItemClick} />
+              )}
               {activeTab === "Hızlı Satış" && <QuickSales />}
               {activeTab === "Cari İşlemleri" && (
                 <CurrentTransactions onMenuItemClick={handleMenuItemClick} />
@@ -233,6 +234,7 @@ export default function Home() {
               {activeTab === "Tanımlar" && <ApiDocumentation />}
               {activeTab === "Alış Faturası" && <PurchaseInvoice />}
               {activeTab === "Satış Faturası" && <SalesInvoice />}
+              {activeTab === "Sipariş Hazırlama" && <OrderPreparation />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
             </TabContainer>
           </main>

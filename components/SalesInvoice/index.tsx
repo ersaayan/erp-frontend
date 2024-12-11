@@ -9,6 +9,7 @@ import PaymentSection from "./PaymentSection";
 import { InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
 import { useSalesInvoice } from "@/hooks/useSalesInvoice";
+import { InvoiceDetailResponse } from "@/types/invoice-detail";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -26,27 +27,81 @@ const SalesInvoice: React.FC = () => {
   const [products, setProducts] = useState<StockItem[]>([]);
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
   const { loading, handleSubmit } = useSalesInvoice();
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  // Load customer data from localStorage if available (from Current Operations)
+  // Load invoice data from localStorage if available
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentSalesInvoice");
-    if (savedCurrentData) {
-      const currentData = JSON.parse(savedCurrentData);
-      setInvoiceData((prev) => ({
-        ...prev,
-        current: {
-          id: currentData.id,
-          currentCode: currentData.currentCode,
-          currentName: currentData.currentName,
-          priceList: currentData.priceList,
-        },
-      }));
-      localStorage.removeItem("currentSalesInvoice");
+    const savedInvoiceData = localStorage.getItem("currentInvoiceData");
+    if (savedInvoiceData) {
+      try {
+        const invoiceDetail: InvoiceDetailResponse =
+          JSON.parse(savedInvoiceData);
+
+        // Set form data
+        setInvoiceData({
+          invoiceNo: invoiceDetail.invoiceNo,
+          gibInvoiceNo: invoiceDetail.gibInvoiceNo,
+          invoiceDate: new Date(invoiceDetail.invoiceDate),
+          paymentDate: new Date(invoiceDetail.paymentDate),
+          paymentTerm: invoiceDetail.paymentTerm,
+          branchCode: invoiceDetail.branchCode,
+          warehouseId: invoiceDetail.warehouseId,
+          description: invoiceDetail.description,
+          current: {
+            id: invoiceDetail.current.id,
+            currentCode: invoiceDetail.current.currentCode,
+            currentName: invoiceDetail.current.currentName,
+            priceList: invoiceDetail.current.priceList,
+          },
+        });
+
+        // Set products
+        setProducts(
+          invoiceDetail.items.map((item) => ({
+            id: item.id,
+            stockId: item.stockId,
+            stockCode: item.stockCode,
+            stockName: item.stockName,
+            quantity: item.quantity,
+            unit: item.unit,
+            stockLevel: 0, // This would need to be fetched separately if needed
+            unitPrice: item.unitPrice,
+            vatRate: item.vatRate,
+            vatAmount: item.vatAmount,
+            totalAmount: item.totalAmount,
+            priceListId: item.priceListId,
+            currency: item.currency,
+            isVatIncluded: item.isVatIncluded,
+          }))
+        );
+
+        // Set payments
+        setPayments(
+          invoiceDetail.payments.map((payment) => ({
+            id: crypto.randomUUID(),
+            method: payment.method,
+            amount: payment.amount,
+            accountId: payment.accountId,
+            currency: payment.currency,
+            description: payment.description,
+          }))
+        );
+
+        setIsEditMode(true);
+        localStorage.removeItem("currentInvoiceData");
+      } catch (error) {
+        console.error("Error parsing invoice data:", error);
+      }
     }
   }, []);
 
   const handleSave = async () => {
-    const result = await handleSubmit(invoiceData, products, payments);
+    const result = await handleSubmit(
+      invoiceData,
+      products,
+      payments,
+      isEditMode
+    );
     if (result.success) {
       // Handle successful save
       console.log("Invoice saved successfully");
@@ -56,7 +111,7 @@ const SalesInvoice: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Alış Faturası</h1>
+        <h1 className="text-2xl font-bold">Satış Faturası</h1>
       </div>
 
       <div className="flex flex-1 gap-4 overflow-hidden">
@@ -74,10 +129,11 @@ const SalesInvoice: React.FC = () => {
             <InvoiceForm
               data={invoiceData}
               onChange={(data) => setInvoiceData(data)}
+              isEditMode={isEditMode}
             />
           </Card>
 
-          <Card className="p-4">
+          <Card className="flex-1 p-4 overflow-hidden">
             <ProductsSection
               products={products}
               onProductsChange={setProducts}
@@ -87,13 +143,14 @@ const SalesInvoice: React.FC = () => {
           </Card>
         </div>
 
-        <Card className="w-[400px] p-4 ">
+        <Card className="w-[400px] p-4">
           <PaymentSection
             products={products}
             payments={payments}
             onPaymentsChange={setPayments}
             onSave={handleSave}
             loading={loading}
+            isEditMode={isEditMode}
           />
         </Card>
       </div>

@@ -1,4 +1,5 @@
 export interface InvoiceFormData {
+    id: string;
     invoiceNo: string;
     gibInvoiceNo: string;
     invoiceDate: Date;

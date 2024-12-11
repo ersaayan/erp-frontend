@@ -12,7 +12,8 @@ export const usePurchaseInvoice = () => {
     const handleSubmit = useCallback(async (
         invoiceData: InvoiceFormData,
         products: StockItem[],
-        payments: PaymentDetails[]
+        payments: PaymentDetails[],
+        isEditMode: boolean = false
     ) => {
         try {
             setLoading(true);
@@ -63,8 +64,14 @@ export const usePurchaseInvoice = () => {
             };
 
             // Send request to API
-            const response = await fetch(`${process.env.BASE_URL}/invoices/purchase`, {
-                method: 'POST',
+            const url = isEditMode
+                ? `${process.env.BASE_URL}/invoices/purchase/${invoiceData.id}`
+                : `${process.env.BASE_URL}/invoices/purchase`;
+
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
@@ -79,7 +86,7 @@ export const usePurchaseInvoice = () => {
 
             toast({
                 title: "Başarılı",
-                description: "Fatura başarıyla kaydedildi",
+                description: isEditMode ? "Fatura başarıyla güncellendi" : "Fatura başarıyla kaydedildi",
                 variant: "success",
             });
 

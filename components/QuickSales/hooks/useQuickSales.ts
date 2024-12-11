@@ -68,30 +68,34 @@ export const useQuickSales = () => {
         setCart((currentCart) => currentCart.filter((item) => item.id !== itemId));
     }, []);
 
-    const processPayment = useCallback(async (paymentDetails: PaymentDetails[]) => {
+    const processPayment = useCallback(async (payments: PaymentDetails[], branchCode: string, warehouseId: string) => {
         try {
             setLoading(true);
 
             const sale: Sale = {
                 id: crypto.randomUUID(),
                 date: new Date(),
-                customer: customer,
-                items: cart,
+
                 subtotal: cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
                 totalDiscount: cart.reduce((sum, item) => sum + item.discountAmount, 0),
                 totalVat: cart.reduce((sum, item) => sum + item.vatAmount, 0),
                 total: cart.reduce((sum, item) => sum + item.totalAmount, 0),
-                payments: paymentDetails.map(payment => ({
+                status: "completed",
+                branchCode: branchCode,
+                warehouseId: warehouseId,
+                customer: customer,
+                items: cart,
+                payments: payments.map(payment => ({
                     method: payment.method === 'openAccount' ? 'transfer' : payment.method,
                     amount: payment.amount,
                     accountId: payment.accountId,
                     currency: payment.currency,
                     description: payment.description
                 })),
-                status: "completed",
+
             };
 
-            const response = await fetch(`${process.env.BASE_URL}/sales`, {
+            const response = await fetch(`${process.env.BASE_URL}/invoices/createQuickSaleInvoiceWithRelations`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

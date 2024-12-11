@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,8 +15,10 @@ interface PaymentSectionProps {
   cart: CartItem[];
   payments: PaymentDetails[];
   onPaymentsChange: (payments: PaymentDetails[]) => void;
-  onProcessPayment: (payments: PaymentDetails[]) => Promise<void>;
+  onProcessPayment: (payments: PaymentDetails[], branchCode: string, warehouseId: string) => Promise<void>;
   loading: boolean;
+  branchCode: string;
+  warehouseId: string;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -23,6 +27,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onPaymentsChange,
   onProcessPayment,
   loading,
+  branchCode,
+  warehouseId,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
@@ -32,21 +38,31 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 
   // Calculate totals with null checks and default values
   const totals = useMemo(() => {
-    const subtotal =
-      cart?.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) ?? 0;
-
-    const totalDiscount =
-      cart?.reduce((sum, item) => sum + (item.discountAmount || 0), 0) ?? 0;
-
-    const totalVat =
-      cart?.reduce((sum, item) => sum + (item.vatAmount || 0), 0) ?? 0;
-
-    const total =
-      cart?.reduce((sum, item) => sum + (item.totalAmount || 0), 0) ?? 0;
-
-    const paid =
-      payments?.reduce((sum, payment) => sum + (payment.amount || 0), 0) ?? 0;
-
+    const subtotal = cart?.reduce(
+      (sum, item) => sum + (item.unitPrice * item.quantity),
+      0
+    ) ?? 0;
+    
+    const totalDiscount = cart?.reduce(
+      (sum, item) => sum + (item.discountAmount || 0),
+      0
+    ) ?? 0;
+    
+    const totalVat = cart?.reduce(
+      (sum, item) => sum + (item.vatAmount || 0),
+      0
+    ) ?? 0;
+    
+    const total = cart?.reduce(
+      (sum, item) => sum + (item.totalAmount || 0),
+      0
+    ) ?? 0;
+    
+    const paid = payments?.reduce(
+      (sum, payment) => sum + (payment.amount || 0),
+      0
+    ) ?? 0;
+    
     const remaining = total - paid;
 
     return {
@@ -86,40 +102,28 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <div className="space-y-4">
         <div className="flex justify-between text-sm">
           <span>Ara Toplam</span>
-          <span>
-            {totals.subtotal.toFixed(2)} {currency}
-          </span>
+          <span>{totals.subtotal.toFixed(2)} {currency}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span>Toplam İndirim</span>
-          <span className="text-red-500">
-            -{totals.totalDiscount.toFixed(2)} {currency}
-          </span>
+          <span className="text-red-500">-{totals.totalDiscount.toFixed(2)} {currency}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span>Toplam KDV</span>
-          <span>
-            {totals.totalVat.toFixed(2)} {currency}
-          </span>
+          <span>{totals.totalVat.toFixed(2)} {currency}</span>
         </div>
         <Separator />
         <div className="flex justify-between font-bold text-lg">
           <span>Genel Toplam</span>
-          <span>
-            {totals.total.toFixed(2)} {currency}
-          </span>
+          <span>{totals.total.toFixed(2)} {currency}</span>
         </div>
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Ödenen</span>
-          <span>
-            {totals.paid.toFixed(2)} {currency}
-          </span>
+          <span>{totals.paid.toFixed(2)} {currency}</span>
         </div>
         <div className="flex justify-between font-bold text-lg">
           <span>Kalan</span>
-          <span>
-            {totals.remaining.toFixed(2)} {currency}
-          </span>
+          <span>{totals.remaining.toFixed(2)} {currency}</span>
         </div>
       </div>
 
@@ -158,7 +162,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <Button
         className="w-full bg-[#84CC16] hover:bg-[#65A30D]"
         size="lg"
-        onClick={() => onProcessPayment(payments || [])}
+        onClick={() => onProcessPayment(payments || [], branchCode, warehouseId)}
         disabled={loading || cart.length === 0 || totals.remaining > 0}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

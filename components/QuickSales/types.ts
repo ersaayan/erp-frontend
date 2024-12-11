@@ -46,4 +46,6 @@ export interface Sale {
     payments: Payment[];
     status: 'pending' | 'completed' | 'cancelled';
     reference?: string;
+    branchCode: string;
+    warehouseId: string;
 }

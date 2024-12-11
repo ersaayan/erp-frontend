@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import ProductSearch from "./ProductSearch";
 import Cart from "./Cart";
@@ -9,6 +9,7 @@ import PaymentSection from "./PaymentSection";
 import { useQuickSales } from "./hooks/useQuickSales";
 import { motion } from "framer-motion";
 import { ShoppingCart, User, CreditCard } from "lucide-react";
+import WarehouseSelect from "./WarehouseSection/WarehouseSelect";
 
 const QuickSales: React.FC = () => {
   const {
@@ -23,6 +24,9 @@ const QuickSales: React.FC = () => {
     setPayments,
     processPayment,
   } = useQuickSales();
+
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
+  const [selectedBranchCode, setSelectedBranchCode] = useState<string>("");
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)]">
@@ -50,7 +54,17 @@ const QuickSales: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           <Card className="p-4 shadow-lg border-muted">
-            <ProductSearch onProductSelect={addToCart} />
+            <WarehouseSelect
+              onWarehouseSelect={(warehouseId: string, branchCode: string) => {
+                setSelectedWarehouseId(warehouseId);
+                setSelectedBranchCode(branchCode);
+              }}
+            />
+            <ProductSearch
+              onProductSelect={addToCart}
+              warehouseId={selectedWarehouseId}
+              disabled={!selectedWarehouseId}
+            />
           </Card>
 
           <Card className="flex-1 p-4 shadow-lg border-muted overflow-hidden flex flex-col min-h-0">
@@ -84,8 +98,16 @@ const QuickSales: React.FC = () => {
               cart={cart}
               payments={payments}
               onPaymentsChange={setPayments}
-              onProcessPayment={processPayment}
+              onProcessPayment={(payments) =>
+                processPayment(
+                  payments,
+                  selectedBranchCode,
+                  selectedWarehouseId
+                )
+              }
               loading={loading}
+              branchCode={selectedBranchCode}
+              warehouseId={selectedWarehouseId}
             />
           </Card>
         </motion.div>
