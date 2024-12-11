@@ -24,4 +24,4 @@ jobs:
             git pull origin master
             bun install
             pm2 delete frontend || true
-            pm2 start --interpreter /root/.bun/bin/bun --name frontend
+            pm2 start /var/www/erp-dev-frontend/ --interpreter /root/.bun/bin/bun dev --name frontend
