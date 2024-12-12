@@ -10,8 +10,11 @@ const BarkodYazdir: React.FC = () => {
 
   const yaziciSec = async () => {
     try {
+      if (!qz.websocket.isActive()) {
+        await qz.websocket.connect();
+      }
       const yazicilar = await qz.printers.find();
-      setYaziciListesi(yazicilar);
+      setYaziciListesi(Array.isArray(yazicilar) ? yazicilar : [yazicilar]);
       setYaziciPopup(true);
     } catch (err) {
       console.error("Yazıcı seçimi hatası:", err);
