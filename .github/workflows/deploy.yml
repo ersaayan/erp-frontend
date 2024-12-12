@@ -24,4 +24,4 @@ jobs:
             git pull origin master
             npm install
             pm2 delete frontend || true
-            pm2 start npm --name frontend -- dev
+            pm2 start npm --name frontend -- run dev
