@@ -45,22 +45,14 @@ const BarkodYazdir: React.FC = () => {
 
       const config = qz.configs.create(yazici);
       const command = `
-I8,A,001
-Q406,024
-q831
-rN
-S4
-D7
-ZT
-JF
-OD
-R111,0
-f100
-N
-A158,30,0,4,1,1,N,"ÜRÜN ÇIZIK DEGILDIR"
-A126,52,0,4,1,1,N,"ÜZERINDEKI 3 JELATINIDE"
-A142,74,0,4,1,1,N,"ÇIKARMAYI UNUTMAYINIZ"
-P${adet}
+^XA
+^PW812
+^LL406
+^FO50,50^BY2
+^BCN,100,Y,N,N
+^FD${stokKodu}^FS
+^PQ${adet}
+^XZ
 `;
 
       const dataToPrint = {
