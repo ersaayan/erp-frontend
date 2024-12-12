@@ -5,7 +5,7 @@ export default function PrintLabel() {
   const [quantity, setQuantity] = useState(1);
 
   const handlePrint = async () => {
-    const response = await fetch("/api/print-label", {
+    const response = await fetch(`${process.env.BASE_URL}/print-label`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
