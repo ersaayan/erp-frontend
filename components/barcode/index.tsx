@@ -45,14 +45,21 @@ const BarkodYazdir: React.FC = () => {
 
       const config = qz.configs.create(yazici);
       const command = `
-^XA
-^PW812
-^LL406
-^FO50,50^BY2
-^BCN,100,Y,N,N
-^FD${stokKodu}^FS
-^PQ${adet}
-^XZ
+I8,A,001
+Q406,024
+q831
+rN
+S4
+D7
+ZT
+JF
+OD
+R111,0
+f100
+N
+A158,30,0,4,1,1,N,"BARKOD:"
+B50,100,0,1,3,5,100,B,"${stokKodu}"
+P${adet}
 `;
 
       const dataToPrint = {
