@@ -94,6 +94,11 @@ const BarkodYazdir: React.FC = () => {
       <div>
         <button onClick={yaziciSec}>Yazıcı Ayarları</button>
       </div>
+      {yazici && (
+        <div>
+          <p>Seçilen Yazıcı: {yazici}</p>
+        </div>
+      )}
       <div>
         <button onClick={barkodYazdir}>Barkod Bas</button>
       </div>
