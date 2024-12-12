@@ -66,6 +66,7 @@ const menuItems = [
       { name: "Cari Listesi", disabled: false },
       { name: "Cari Kategorileri", disabled: false },
       { name: "Hesap Özeti", disabled: false },
+      { name: "Cari Formu", disabled: false },
       // { name: 'Ödeme/Tahsilat Plan', disabled: false },
     ],
   },
@@ -100,6 +101,7 @@ const menuItems = [
     subItems: [
       { name: "Fatura/İrsaliye Listesi", disabled: false },
       { name: "Alış Faturası", disabled: false },
+      { name: "Satış Faturası", disabled: false },
       //  { name: 'Planlı Fatura', disabled: false },
       // { name: "BA/BS", disabled: true },
       // { name: "Gelen E-Faturalar", disabled: true },

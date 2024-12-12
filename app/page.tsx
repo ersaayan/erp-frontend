@@ -50,6 +50,7 @@ import { decodeJWT } from "@/lib/utils/jwt";
 import PurchaseInvoice from "@/components/PurchaseInvoice";
 import SalesInvoice from "@/components/SalesInvoice";
 import OrderPreparation from "@/components/OrderPreparation";
+import CurrentForm from "@/components/CurrentForm";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -219,6 +220,7 @@ export default function Home() {
                 <CurrentList onMenuItemClick={handleMenuItemClick} />
               )}
               {activeTab === "Cari Kategorileri" && <CurrentCategories />}
+              {activeTab === "Cari Formu" && <CurrentForm />}
               {activeTab === "Hesap Özeti" && <AccountSummary />}
               {activeTab === "Depo Listesi" && <Warehouses />}
               {activeTab === "Fatura/İrsaliye Listesi" && (
