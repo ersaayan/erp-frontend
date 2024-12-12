@@ -22,6 +22,6 @@ jobs:
           script: |
             cd /var/www/erp-dev-frontend/
             git pull origin master
-            bun install
+            npm install
             pm2 delete frontend || true
-            pm2 start /var/www/erp-dev-frontend/ --interpreter /root/.bun/bin/bun dev --name frontend
+            pm2 start npm --name frontend -- dev
