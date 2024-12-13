@@ -77,75 +77,102 @@ P${adet}
   };
 
   return (
-    <div>
-      <h1>Barkod Yazdırma</h1>
-      <div>
-        <label>
-          Stok Kodu:
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Barkod Yazdırma</h1>
+
+      <div className="space-y-4">
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Stok Kodu
+          </label>
           <input
             type="text"
             value={stokKodu}
             onChange={(e) => setStokKodu(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            placeholder="Stok kodunu girin"
           />
-        </label>
-      </div>
-      <div>
-        <label>
-          Adet:
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">Adet</label>
           <input
             type="number"
             value={adet}
             onChange={(e) => setAdet(Number(e.target.value))}
+            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            min="1"
           />
-        </label>
-      </div>
-      <div>
-        <button onClick={yaziciSec}>Yazıcı Ayarları</button>
-      </div>
-      {yazici && (
-        <div>
-          <p>Seçilen Yazıcı: {yazici}</p>
         </div>
-      )}
-      <div>
-        <button onClick={barkodYazdir}>Barkod Bas</button>
+
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={yaziciSec}
+            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              />
+            </svg>
+            Yazıcı Ayarları
+          </button>
+
+          {yazici && (
+            <div className="p-3 bg-gray-50 rounded-md">
+              <p className="text-sm text-gray-600">
+                Seçilen Yazıcı: <span className="font-medium">{yazici}</span>
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={barkodYazdir}
+            className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Barkod Bas
+          </button>
+        </div>
       </div>
 
       {yaziciPopup && (
-        <div className="popup">
-          <h2>Yazıcı Seç</h2>
-          <ul>
-            {yaziciListesi.map((yaziciAdi) => (
-              <li key={yaziciAdi}>
-                <button onClick={() => yaziciSecimiKaydet(yaziciAdi)}>
-                  {yaziciAdi}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => setYaziciPopup(false)}>İptal</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Yazıcı Seç
+            </h2>
+            <ul className="space-y-2 max-h-60 overflow-y-auto">
+              {yaziciListesi.map((yaziciAdi) => (
+                <li key={yaziciAdi}>
+                  <button
+                    onClick={() => yaziciSecimiKaydet(yaziciAdi)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  >
+                    {yaziciAdi}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setYaziciPopup(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                İptal
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      <style jsx>{`
-        .popup {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: white;
-          padding: 20px;
-          box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-          z-index: 1000;
-        }
-        .popup ul {
-          list-style: none;
-          padding: 0;
-        }
-        .popup li {
-          margin: 10px 0;
-        }
-      `}</style>
     </div>
   );
 };
