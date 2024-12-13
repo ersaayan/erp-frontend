@@ -35,27 +35,26 @@ export default function BarkodYazdir() {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       const config = qz.configs.create(yazici);
 
-      // Etiket boyutlarına göre QR kod hesaplaması
       const qrKodBoyut = Math.min(etiketBoyutu.en, etiketBoyutu.boy) / 2; // Yüksekliğin yarısı
-      const qrData = await QRCode.toDataURL("Test");
-
       const command = `
-^XA
-^FO50,50
-^BQN,2,${qrKodBoyut}
-^FDQA,Test^FS
-^FO10,10
-^A0N,50,50
-^FDTest Baskısı^FS
-^XZ
-`;
+  ^XA
+  ^PW${etiketBoyutu.en * 8}
+  ^LL${etiketBoyutu.boy * 8}
+  ^FO${etiketBoyutu.en * 4},50
+  ^BQN,2,10
+  ^FDQA,Test^FS
+  ^FO10,10
+  ^A0N,50,50
+  ^FDTest Baskısı^FS
+  ^XZ
+  `;
 
       await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "plain" },
+        { type: "raw", format: "command", data: command },
       ]);
       alert("Test baskısı başarıyla alındı.");
     } catch (error) {
-      alert(`Baskı hatası: ${(error as Error).message}`);
+      alert(`Baskı hatası: ${error.message}`);
     }
   };
 
