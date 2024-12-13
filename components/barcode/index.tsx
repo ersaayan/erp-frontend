@@ -6,7 +6,7 @@ export default function BarkodYazdir() {
   const [stokKodu, setStokKodu] = useState("");
   const [adet, setAdet] = useState(1);
   const [yazici, setYazici] = useState("");
-  const [etiketBoyutu, setEtiketBoyutu] = useState({ en: 50, boy: 25 }); // mm cinsinden
+  const [etiketBoyutu, setEtiketBoyutu] = useState({ en: 80, boy: 40 }); // mm cinsinden
   const [yaziciListesi, setYaziciListesi] = useState<string[]>([]);
   const [yaziciPopup, setYaziciPopup] = useState(false);
 
