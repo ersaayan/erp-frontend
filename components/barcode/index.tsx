@@ -67,7 +67,7 @@ export default function KarekodYazdir() {
 N
 q${etiketBoyutu.en * 8}
 Q${etiketBoyutu.boy * 8},24
-GW50,50,${imageWidth / 8},${imageHeight / 8},${qrCodeImage}
+GW50,50,${imageWidth * 4},${imageHeight * 4},${qrCodeImage}
 A10,${etiketBoyutu.boy * 8 - 20},0,4,1,1,N,"Stok Kodu: ${stokKodu}"
 P${adet}
 `;
