@@ -37,16 +37,22 @@ export default function BarkodYazdir() {
 
       const qrKodBoyut = Math.min(etiketBoyutu.en, etiketBoyutu.boy) / 2; // Yüksekliğin yarısı
       const command = `
-  ^XA
-  ^PW${etiketBoyutu.en * 8}
-  ^LL${etiketBoyutu.boy * 8}
-  ^FO${etiketBoyutu.en * 4},50
-  ^BQN,2,10
-  ^FDQA,Test^FS
-  ^FO10,10
-  ^A0N,50,50
-  ^FDTest Baskısı^FS
-  ^XZ
+
+      ^XA
+
+
+      ^FXfield for the element 'Sample Text Element'
+      ^FO16,16,2
+      ^FWN
+      ^A40,40^FDI'm a text element!^FS
+      
+      ^FXfield for the element 'Sample Barcode Element'
+      ^FO120,160,2
+      ^FWN
+      ^BY4,2,64
+      ^BCN,64,Y,N^FD123456^FS
+      ^XZ
+          
   `;
 
       await qz.print(config, [
