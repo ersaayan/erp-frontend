@@ -91,12 +91,12 @@ export default function KarekodYazdir() {
 
       // EPL komutları
       const command = `
-  N
-  q${etiketBoyutu.en * 8}
-  Q${etiketBoyutu.boy * 8},0
-  GW50,50,${bytesPerRow},${imageHeight},${hexData}
-  A50,${imageHeight + 10},0,3,1,1,N,"Stok Kodu: ${stokKodu}"
-  P${adet}
+N
+q400
+Q200,24
+GW50,50,20,20,FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+A50,300,0,3,1,1,N,"Stok Kodu: TEST"
+P1
   `;
 
       // Yazdırma işlemini gerçekleştir
