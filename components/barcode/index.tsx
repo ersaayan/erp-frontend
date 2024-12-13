@@ -64,20 +64,33 @@ export default function KarekodYazdir() {
 
       // EPL komutlarıyla QR kod ve metin yazdırma
       const command = `
-N
-q${etiketBoyutu.en * 8}
-Q${etiketBoyutu.boy * 8},24
-GW50,50,${imageWidth * 4},${imageHeight * 4},${qrCodeImage}
-A10,${etiketBoyutu.boy * 8 - 20},0,4,1,1,N,"Stok Kodu: ${stokKodu}"
+I8,A,001
+
+Q320,024
+q831
+rN
+S4
+D7
+ZT
+JF
+OD
+R96,0
+f100
+GW237,162,19,150,${qrCodeImage}
+A22,13,0,3,2,2,N,"Stok Kodu: ${stokKodu}"
 P${adet}
 `;
 
       await qz.print(config, [
-        { type: "raw", format: "command", data: command },
+        { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
       alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
-      alert(`Yazdırma hatası: ${error.message}`);
+      if (error instanceof Error) {
+        alert(`Yazdırma hatası: ${error.message}`);
+      } else {
+        alert("Yazdırma hatası: Bilinmeyen bir hata oluştu.");
+      }
     }
   };
 
