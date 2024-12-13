@@ -129,10 +129,23 @@ export default function KarekodYazdir() {
 
       // Construct EPL command
       const command = `
+  I8,A,001
+
+
+  Q320,024
+  q831
+  rN
+  S4
+  D15
+  ZT
+  JF
+  OD
+  R96,0
+  f100
   N
   q${etiketBoyutu.en * 8}
   Q${etiketBoyutu.boy * 8},0
-  GW0,0,${bytesPerRow},${imageHeight},${hexData}
+  GW252,149,${bytesPerRow},${imageHeight},${hexData}
   A0,${imageHeight + 20},0,3,1,1,N,"Stok Kodu: ${stokKodu}"
   P${adet}
   `;
