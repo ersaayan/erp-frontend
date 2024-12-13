@@ -32,31 +32,22 @@ export default function BarkodYazdir() {
     setYaziciPopup(false);
   };
 
-  // Test Baskısı
-  const testBaskisi = async () => {
+  // QR Kod Üretme ve Yazdırma
+  const createQRCode = async (data: string) => {
     try {
-      if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
-      const config = qz.configs.create(yazici);
-
-      // EPL komutlarıyla test baskısı
-      const command = `
-N
-q${etiketBoyutu.en * 8}
-Q${etiketBoyutu.boy * 8},24
-A10,10,0,4,1,1,N,"Test Baskısı"
-b50,50,0,1,2,2,50,N,"TEST"
-P1
-`;
-      await qz.print(config, [
-        { type: "raw", format: "command", data: command },
-      ]);
-      alert("Test baskısı başarıyla alındı.");
+      const qrCodeBase64 = await QRCode.toDataURL(data, {
+        margin: 0,
+        width: etiketBoyutu.en * 8,
+      });
+      const imageData = qrCodeBase64.replace(/^data:image\/png;base64,/, ""); // Base64 verisinden başlığı temizle
+      return imageData;
     } catch (error) {
-      alert(`Baskı hatası: ${error.message}`);
+      console.error("QR kod oluşturulamadı:", error);
+      throw new Error("QR kod oluşturulurken bir hata oluştu.");
     }
   };
 
-  // Barkod Basma İşlevi
+  // Barkod ve QR Kod Basma İşlevi
   const barkodBas = async () => {
     try {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
@@ -64,20 +55,25 @@ P1
         throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
       const config = qz.configs.create(yazici);
 
-      // EPL komutlarıyla barkod basma
+      // QR kodu grafik olarak oluştur ve yazıcıya gönder
+      const qrCodeImage = await createQRCode(stokKodu);
+
+      // EPL komutları
       const command = `
 N
 q${etiketBoyutu.en * 8}
 Q${etiketBoyutu.boy * 8},24
-A10,10,0,4,1,1,N,"Stok Kodu: ${stokKodu}"
-b50,50,0,1,2,2,50,N,"${stokKodu}"
+GW50,50,${(etiketBoyutu.en * 8) / 8},${
+        (etiketBoyutu.boy * 8) / 8
+      },${qrCodeImage}
+A10,${etiketBoyutu.boy * 8 - 20},0,4,1,1,N,"Stok Kodu: ${stokKodu}"
 P${adet}
 `;
 
       await qz.print(config, [
         { type: "raw", format: "command", data: command },
       ]);
-      alert("Barkod başarıyla yazdırıldı.");
+      alert("Barkod ve QR kod başarıyla yazdırıldı.");
     } catch (error) {
       alert(`Barkod yazdırma hatası: ${error.message}`);
     }
@@ -162,20 +158,12 @@ P${adet}
           Yazıcı Seç
         </button>
 
-        {/* Test Baskısı */}
-        <button
-          onClick={testBaskisi}
-          className="w-full bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Test Baskısı
-        </button>
-
-        {/* Barkod Bas */}
+        {/* Barkod ve QR Kod Bas */}
         <button
           onClick={barkodBas}
           className="w-full bg-indigo-500 text-white px-4 py-2 rounded"
         >
-          Barkod Bas
+          Barkod ve QR Kod Bas
         </button>
       </div>
 
