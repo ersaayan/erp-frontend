@@ -48,7 +48,7 @@ export default function KarekodYazdir() {
   };
 
   // QR Kod ve Metin Basma İşlevi
-  const karekodBas = async () => {
+  const  = async () => {
     try {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       if (!stokKodu || adet <= 0)
@@ -64,22 +64,13 @@ export default function KarekodYazdir() {
 
       // EPL komutlarıyla QR kod ve metin yazdırma
       const command = `
-I8,A,001
-
-Q320,024
-q831
-rN
-S4
-D7
-ZT
-JF
-OD
-R96,0
-f100
-GW237,162,19,150,${qrCodeImage}
-A22,13,0,3,2,2,N,"Stok Kodu: ${stokKodu}"
-P${adet}
-`;
+    N
+    q640
+    Q320,0
+    GW240,160,19,150,${qrCodeImage}
+    A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+    P${adet}
+    `;
 
       await qz.print(config, [
         { type: "raw", format: "command", data: command, flavor: "plain" },
@@ -91,6 +82,53 @@ P${adet}
       } else {
         alert("Yazdırma hatası: Bilinmeyen bir hata oluştu.");
       }
+    }
+  };
+  // Function to print QR code and text with updated EPL commands
+  const printQRCodeAndText = async () => {
+    try {
+      // Validate inputs
+      if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
+      if (!stokKodu || adet <= 0)
+    throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
+
+      // Create printer config
+      const config = qz.configs.create(yazici);
+
+      // Generate QR code canvas
+      const canvas = document.createElement("canvas");
+      await QRCode.toCanvas(canvas, stokKodu, {
+    margin: 0,
+    width: Math.round(18.77 * 8), // Convert mm to dots
+      });
+
+      // Convert canvas to binary data
+      const imageDataUrl = canvas.toDataURL("image/bmp");
+      const binary = atob(imageDataUrl.split(",")[1]);
+      const hexData = Array.from(binary)
+    .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
+
+      // Calculate image parameters
+      const bytesPerRow = Math.ceil((18.77 * 8) / 8);
+      const imageHeight = Math.round(18.77 * 8);
+
+      // Construct EPL command with updated label size and positions
+      const command = `
+N
+q640
+Q320,0
+GW240,160,${bytesPerRow},${imageHeight},${hexData}
+A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+P${adet}
+`;
+      await qz.print(config, [
+    { type: "raw", format: "command", data: command, flavor: "plain" },
+      ]);
+      alert("Karekod ve metin başarıyla yazdırıldı.");
+    } catch (error) {
+      alert(`Yazdırma hatası: ${error instanceof Error ? error.message : error}`);
     }
   };
 
@@ -175,7 +213,7 @@ P${adet}
 
         {/* Karekod ve Metin Bas */}
         <button
-          onClick={karekodBas}
+          onClick={printQRCodeAndText}
           className="w-full bg-indigo-500 text-white px-4 py-2 rounded"
         >
           Karekod ve Metin Bas
