@@ -33,7 +33,9 @@ export default function BarkodYazdir() {
   const testBaskisi = async () => {
     try {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
-      const config = qz.configs.create(yazici);
+      const config = qz.configs.create(yazici, {
+        encoding: null, // Veriyi ham olarak gönder
+      });
 
       const command = `^XA
   ^FX field for the element 'Sample Text Element'
@@ -47,10 +49,13 @@ export default function BarkodYazdir() {
   ^BCN,64,Y,N^FD123456^FS
   ^XZ`;
 
-      await qz.print(config, [command]);
+      // Veriyi `qz.print` fonksiyonuna ham olarak gönderin
+      await qz.print(config, [
+        { type: "raw", format: "command", data: command },
+      ]);
 
       alert("Test baskısı başarıyla alındı.");
-    } catch (error) {
+    } catch (error: any) {
       alert(`Baskı hatası: ${error.message}`);
     }
   };
