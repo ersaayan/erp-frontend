@@ -48,7 +48,7 @@ export default function KarekodYazdir() {
   };
 
   // QR Kod ve Metin Basma İşlevi
-  const  = async () => {
+  const karekodbas = async () => {
     try {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       if (!stokKodu || adet <= 0)
@@ -90,7 +90,7 @@ export default function KarekodYazdir() {
       // Validate inputs
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       if (!stokKodu || adet <= 0)
-    throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
+        throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
 
       // Create printer config
       const config = qz.configs.create(yazici);
@@ -98,17 +98,17 @@ export default function KarekodYazdir() {
       // Generate QR code canvas
       const canvas = document.createElement("canvas");
       await QRCode.toCanvas(canvas, stokKodu, {
-    margin: 0,
-    width: Math.round(18.77 * 8), // Convert mm to dots
+        margin: 0,
+        width: Math.round(18.77 * 8), // Convert mm to dots
       });
 
       // Convert canvas to binary data
       const imageDataUrl = canvas.toDataURL("image/bmp");
       const binary = atob(imageDataUrl.split(",")[1]);
       const hexData = Array.from(binary)
-    .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
-    .join("")
-    .toUpperCase();
+        .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
 
       // Calculate image parameters
       const bytesPerRow = Math.ceil((18.77 * 8) / 8);
@@ -124,11 +124,13 @@ A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
 P${adet}
 `;
       await qz.print(config, [
-    { type: "raw", format: "command", data: command, flavor: "plain" },
+        { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
       alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
-      alert(`Yazdırma hatası: ${error instanceof Error ? error.message : error}`);
+      alert(
+        `Yazdırma hatası: ${error instanceof Error ? error.message : error}`
+      );
     }
   };
 
