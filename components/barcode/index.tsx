@@ -47,99 +47,59 @@ export default function KarekodYazdir() {
     }
   };
 
-  // QR Kod ve Metin Basma İşlevi
-  const karekodbas = async () => {
-    try {
-      if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
-      if (!stokKodu || adet <= 0)
-        throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
-      const config = qz.configs.create(yazici);
-
-      // QR kodu grafik olarak oluştur ve yazıcıya gönder
-      const qrCodeImage = await createQRCode(stokKodu);
-
-      // Grafik boyutlarını hesapla
-      const imageWidth = etiketBoyutu.en * 8; // dots (1 mm = 8 dots)
-      const imageHeight = etiketBoyutu.boy * 8; // dots
-
-      // EPL komutlarıyla QR kod ve metin yazdırma
-      const command = `
-    N
-    q640
-    Q320,0
-    GW240,160,19,150,${qrCodeImage}
-    A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
-    P${adet}
-    `;
-
-      await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "plain" },
-      ]);
-      alert("Karekod ve metin başarıyla yazdırıldı.");
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(`Yazdırma hatası: ${error.message}`);
-      } else {
-        alert("Yazdırma hatası: Bilinmeyen bir hata oluştu.");
-      }
-    }
-  };
-  // Function to print QR code and text with updated EPL commands
   const printQRCodeAndText = async () => {
     try {
-      // Validate inputs
+      // Giriş doğrulama
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       if (!stokKodu || adet <= 0)
         throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
 
-      // Create printer config
+      // Yazıcı yapılandırması oluştur
       const config = qz.configs.create(yazici);
 
-      // Generate QR code canvas
+      // QR kodu Canvas üzerinden oluştur
       const canvas = document.createElement("canvas");
       await QRCode.toCanvas(canvas, stokKodu, {
         margin: 0,
         width: Math.round(etiketBoyutu.en * 8),
       });
 
-      // Convert canvas to binary data
+      // Canvas'ı ikili verilere çevir
       const ctx = canvas.getContext("2d");
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const binary = [];
+      const binaryData = [];
 
       for (let y = 0; y < canvas.height; y++) {
-        let row = "";
+        let rowBinary = "";
         for (let x = 0; x < canvas.width; x += 8) {
           let byte = 0;
           for (let bit = 0; bit < 8; bit++) {
-            const i = (y * canvas.width + x + bit) * 4;
-            const alpha = imageData.data[i + 3];
-            byte <= 1;
-            if (alpha < 128) byte |= 1;
+            const i = (y * canvas.width + x + bit) * 4; // RGBA index
+            const pixelValue = imageData.data[i]; // Sadece siyah-beyaz
+            if (pixelValue < 128) byte |= 1 << (7 - bit);
           }
-          binary.push(byte.toString(16).padStart(2, "0"));
+          rowBinary += byte.toString(16).padStart(2, "0");
         }
+        binaryData.push(rowBinary);
       }
 
-      const hexData = binary.join("").toUpperCase();
+      const hexData = binaryData.join("").toUpperCase();
 
-      // Calculate image parameters
+      // Grafik parametrelerini hesapla
       const bytesPerRow = Math.ceil(canvas.width / 8);
       const imageHeight = canvas.height;
 
-      // Construct EPL command
+      // EPL komutları
       const command = `
-  Q320,024
-  q831
-  S4
-  D15
   N
   q${etiketBoyutu.en * 8}
   Q${etiketBoyutu.boy * 8},0
-  GW252,149,${bytesPerRow},${imageHeight},${hexData}
-  A0,${imageHeight + 20},0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+  GW50,50,${bytesPerRow},${imageHeight},${hexData}
+  A50,${imageHeight + 10},0,3,1,1,N,"Stok Kodu: ${stokKodu}"
   P${adet}
   `;
+
+      // Yazdırma işlemini gerçekleştir
       await qz.print(config, [
         { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
