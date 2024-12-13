@@ -28,20 +28,28 @@ const initialFormData: CurrentFormData = {
 };
 
 export const useCurrentForm = () => {
+    // Form verilerini global olarak saklamak için
     const [formData, setFormData] = useState<CurrentFormData>(() => {
+        // Tarayıcı ortamında değilse başlangıç verilerini döndür
         if (typeof window === 'undefined') return initialFormData;
 
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (!savedData) return initialFormData;
-
         try {
+            // LocalStorage'dan verileri al
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (!savedData) return initialFormData;
+
             const parsedData = JSON.parse(savedData);
-            // Convert date strings back to Date objects
-            if (parsedData.birthOfDate) {
-                parsedData.birthOfDate = new Date(parsedData.birthOfDate);
-            }
-            return parsedData;
-        } catch {
+
+            // Tarihi ve diğer verileri doğru formatta dönüştür
+            return {
+                ...initialFormData, // Varsayılan değerleri temel al
+                ...parsedData, // Kaydedilmiş verileri ekle
+                birthOfDate: parsedData.birthOfDate ? new Date(parsedData.birthOfDate) : null,
+                categories: Array.isArray(parsedData.categories) ? parsedData.categories : [],
+                addresses: Array.isArray(parsedData.addresses) ? parsedData.addresses : [],
+            };
+        } catch (error) {
+            console.error('Form verilerini yüklerken hata:', error);
             return initialFormData;
         }
     });
@@ -54,19 +62,21 @@ export const useCurrentForm = () => {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
 
-    // Save form data to localStorage whenever it changes
-    useEffect(() => {
-        if (formData !== initialFormData) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-        }
-    }, [formData]);
-
-    // Update form data
+    // Form verilerini güncelleme
     const updateFormData = useCallback((updates: Partial<CurrentFormData>) => {
-        setFormData(prev => ({ ...prev, ...updates }));
+        setFormData(prev => {
+            const newData = { ...prev, ...updates };
+            // Güncellenmiş verileri hemen localStorage'a kaydet
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+            } catch (error) {
+                console.error('Form verilerini kaydederken hata:', error);
+            }
+            return newData;
+        });
     }, []);
 
-    // Clear form data
+    // Form verilerini temizleme
     const clearFormData = useCallback(() => {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(EDIT_MODE_KEY);
@@ -74,7 +84,7 @@ export const useCurrentForm = () => {
         setIsEditMode(false);
     }, []);
 
-    // Load existing current data for editing
+    // Mevcut veriyi yükleme
     const loadCurrentData = useCallback(async (id: string) => {
         try {
             setLoading(true);
@@ -85,37 +95,39 @@ export const useCurrentForm = () => {
                 credentials: 'include',
             });
 
-            if (!response.ok) throw new Error('Failed to fetch current data');
+            if (!response.ok) throw new Error('Cari veri yüklenemedi');
 
             const data = await response.json();
-            setFormData({
+            const formattedData = {
                 ...data,
                 birthOfDate: data.birthOfDate ? new Date(data.birthOfDate) : null,
-            });
+            };
+
+            setFormData(formattedData);
             setIsEditMode(true);
             localStorage.setItem(EDIT_MODE_KEY, 'true');
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formattedData));
         } catch (error) {
             toast({
                 variant: 'destructive',
-                title: 'Error',
-                description: 'Failed to load current data',
+                title: 'Hata',
+                description: 'Cari veri yüklenirken bir hata oluştu',
             });
         } finally {
             setLoading(false);
         }
     }, [toast]);
 
-    // Handle form submission
+    // Form gönderimi
     const handleSubmit = useCallback(async () => {
         try {
             setLoading(true);
 
-            // Validate required fields
             if (!formData.currentCode || !formData.currentName) {
                 toast({
                     variant: 'destructive',
-                    title: 'Validation Error',
-                    description: 'Please fill in all required fields',
+                    title: 'Doğrulama Hatası',
+                    description: 'Lütfen zorunlu alanları doldurun',
                 });
                 return;
             }
@@ -135,30 +147,29 @@ export const useCurrentForm = () => {
             });
 
             if (!response.ok) {
-                throw new Error(isEditMode ? 'Failed to update current' : 'Failed to create current');
+                throw new Error(isEditMode ? 'Cari güncellenemedi' : 'Cari oluşturulamadı');
             }
 
             toast({
-                title: 'Success',
-                description: isEditMode ? 'Current updated successfully' : 'Current created successfully',
+                title: 'Başarılı',
+                description: isEditMode ? 'Cari başarıyla güncellendi' : 'Cari başarıyla oluşturuldu',
             });
 
             clearFormData();
         } catch (error) {
             toast({
                 variant: 'destructive',
-                title: 'Error',
-                description: error instanceof Error ? error.message : 'Failed to save current',
+                title: 'Hata',
+                description: error instanceof Error ? error.message : 'Cari kaydedilirken bir hata oluştu',
             });
         } finally {
             setLoading(false);
         }
     }, [formData, isEditMode, toast, clearFormData]);
 
-    // Clean up on unmount
+    // Component kaldırıldığında temizlik
     useEffect(() => {
         return () => {
-            // Only clear if not in edit mode
             if (!isEditMode) {
                 clearFormData();
             }

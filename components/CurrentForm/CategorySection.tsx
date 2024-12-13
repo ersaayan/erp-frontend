@@ -19,8 +19,10 @@ interface CategoryNode {
   level: number;
 }
 
-const CategorySection: React.FC = () => {
-  const { formData, updateFormData } = useCurrentForm();
+const CategorySection: React.FC<{
+  formData: any;
+  updateFormData: (data: any) => void;
+}> = ({ formData, updateFormData }) => {
   const { categories, loading, error } = useCurrentCategories();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()

@@ -11,7 +11,39 @@ import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const CurrentForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const { formData, loading, handleSubmit } = useCurrentForm();
+  const { loading, handleSubmit } = useCurrentForm();
+  const [formData, setFormData] = useState({
+    generalInfo: {
+      currentCode: "",
+      currentName: "",
+      firstName: "",
+      lastName: "",
+      priceListId: "",
+      currentType: "",
+      institution: "",
+      identityNo: "",
+      taxNumber: "",
+      taxOffice: "",
+      kepAddress: "",
+      mersisNo: "",
+      sicilNo: "",
+      title: "",
+      webSite: "",
+      birthOfDate: null,
+    },
+    categories: [],
+    addresses: [],
+  });
+
+  const updateFormData = (section: string, data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        ...data,
+      },
+    }));
+  };
 
   return (
     <div className="flex flex-col h-auto">
@@ -39,15 +71,24 @@ const CurrentForm: React.FC = () => {
           </TabsList>
 
           <TabsContent value="general">
-            <GeneralInfo />
+            <GeneralInfo
+              formData={formData.generalInfo}
+              updateFormData={(data) => updateFormData("generalInfo", data)}
+            />
           </TabsContent>
 
           <TabsContent value="categories">
-            <CategorySection />
+            <CategorySection
+              formData={formData.categories}
+              updateFormData={(data) => updateFormData("categories", data)}
+            />
           </TabsContent>
 
           <TabsContent value="address">
-            <AddressInfo />
+            <AddressInfo
+              formData={formData.addresses}
+              updateFormData={(data) => updateFormData("addresses", data)}
+            />
           </TabsContent>
         </Tabs>
       </div>

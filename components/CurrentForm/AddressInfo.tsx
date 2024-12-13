@@ -28,8 +28,10 @@ import { Separator } from "@/components/ui/separator";
 import { ADDRESS_TYPES, AddressInfo as AddressInfoType } from "./types";
 import { useCurrentForm } from "./hooks/useCurrentForm";
 
-const AddressInfo: React.FC = () => {
-  const { formData, updateFormData } = useCurrentForm();
+const AddressInfo: React.FC<{
+  formData: any;
+  updateFormData: (data: any) => void;
+}> = ({ formData, updateFormData }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<number | null>(null);
 
