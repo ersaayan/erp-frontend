@@ -35,29 +35,20 @@ export default function BarkodYazdir() {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       const config = qz.configs.create(yazici);
 
-      const qrKodBoyut = Math.min(etiketBoyutu.en, etiketBoyutu.boy) / 2; // Yüksekliğin yarısı
-      const command = `
+      const command = `^XA
+  ^FX field for the element 'Sample Text Element'
+  ^FO16,16,2
+  ^FWN
+  ^A0N,40,40^FDI'm a text element!^FS
+  ^FX field for the element 'Sample Barcode Element'
+  ^FO120,160,2
+  ^FWN
+  ^BY4,2,64
+  ^BCN,64,Y,N^FD123456^FS
+  ^XZ`;
 
-      ^XA
+      await qz.print(config, [command]);
 
-
-      ^FXfield for the element 'Sample Text Element'
-      ^FO16,16,2
-      ^FWN
-      ^A40,40^FDI'm a text element!^FS
-      
-      ^FXfield for the element 'Sample Barcode Element'
-      ^FO120,160,2
-      ^FWN
-      ^BY4,2,64
-      ^BCN,64,Y,N^FD123456^FS
-      ^XZ
-          
-  `;
-
-      await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "plain" },
-      ]);
       alert("Test baskısı başarıyla alındı.");
     } catch (error) {
       alert(`Baskı hatası: ${error.message}`);
