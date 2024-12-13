@@ -2,7 +2,7 @@ import { useState } from "react";
 import qz from "qz-tray";
 import QRCode from "qrcode";
 
-export default function BarkodYazdir() {
+export default function KarekodYazdir() {
   const [stokKodu, setStokKodu] = useState("");
   const [adet, setAdet] = useState(1);
   const [yazici, setYazici] = useState("");
@@ -47,8 +47,8 @@ export default function BarkodYazdir() {
     }
   };
 
-  // Barkod ve QR Kod Basma İşlevi
-  const barkodBas = async () => {
+  // QR Kod ve Metin Basma İşlevi
+  const karekodBas = async () => {
     try {
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
       if (!stokKodu || adet <= 0)
@@ -58,14 +58,16 @@ export default function BarkodYazdir() {
       // QR kodu grafik olarak oluştur ve yazıcıya gönder
       const qrCodeImage = await createQRCode(stokKodu);
 
-      // EPL komutları
+      // Grafik boyutlarını hesapla
+      const imageWidth = etiketBoyutu.en * 8; // dots (1 mm = 8 dots)
+      const imageHeight = etiketBoyutu.boy * 8; // dots
+
+      // EPL komutlarıyla QR kod ve metin yazdırma
       const command = `
 N
 q${etiketBoyutu.en * 8}
 Q${etiketBoyutu.boy * 8},24
-GW50,50,${(etiketBoyutu.en * 8) / 8},${
-        (etiketBoyutu.boy * 8) / 8
-      },${qrCodeImage}
+GW50,50,${imageWidth / 8},${imageHeight / 8},${qrCodeImage}
 A10,${etiketBoyutu.boy * 8 - 20},0,4,1,1,N,"Stok Kodu: ${stokKodu}"
 P${adet}
 `;
@@ -73,15 +75,15 @@ P${adet}
       await qz.print(config, [
         { type: "raw", format: "command", data: command },
       ]);
-      alert("Barkod ve QR kod başarıyla yazdırıldı.");
+      alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
-      alert(`Barkod yazdırma hatası: ${error.message}`);
+      alert(`Yazdırma hatası: ${error.message}`);
     }
   };
 
   return (
     <div className="p-6 max-w-2xl mx-auto bg-gray-100 rounded-md shadow-md">
-      <h1 className="text-2xl font-bold mb-4">Barkod Yazdırma</h1>
+      <h1 className="text-2xl font-bold mb-4">Karekod Yazdırma</h1>
       <div className="space-y-4">
         {/* Stok Kodu Girişi */}
         <div>
@@ -158,12 +160,12 @@ P${adet}
           Yazıcı Seç
         </button>
 
-        {/* Barkod ve QR Kod Bas */}
+        {/* Karekod ve Metin Bas */}
         <button
-          onClick={barkodBas}
+          onClick={karekodBas}
           className="w-full bg-indigo-500 text-white px-4 py-2 rounded"
         >
-          Barkod ve QR Kod Bas
+          Karekod ve Metin Bas
         </button>
       </div>
 
