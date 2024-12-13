@@ -114,7 +114,7 @@ export default function KarekodYazdir() {
           for (let bit = 0; bit < 8; bit++) {
             const i = (y * canvas.width + x + bit) * 4;
             const alpha = imageData.data[i + 3];
-            byte <<= 1;
+            byte <= 1;
             if (alpha < 128) byte |= 1;
           }
           binary.push(byte.toString(16).padStart(2, "0"));
