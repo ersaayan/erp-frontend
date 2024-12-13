@@ -99,30 +99,43 @@ export default function KarekodYazdir() {
       const canvas = document.createElement("canvas");
       await QRCode.toCanvas(canvas, stokKodu, {
         margin: 0,
-        width: Math.round(18.77 * 8), // Convert mm to dots
+        width: Math.round(etiketBoyutu.en * 8),
       });
 
       // Convert canvas to binary data
-      const imageDataUrl = canvas.toDataURL("image/bmp");
-      const binary = atob(imageDataUrl.split(",")[1]);
-      const hexData = Array.from(binary)
-        .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
-        .join("")
-        .toUpperCase();
+      const ctx = canvas.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const binary = [];
+
+      for (let y = 0; y < canvas.height; y++) {
+        let row = "";
+        for (let x = 0; x < canvas.width; x += 8) {
+          let byte = 0;
+          for (let bit = 0; bit < 8; bit++) {
+            const i = (y * canvas.width + x + bit) * 4;
+            const alpha = imageData.data[i + 3];
+            byte <<= 1;
+            if (alpha < 128) byte |= 1;
+          }
+          binary.push(byte.toString(16).padStart(2, "0"));
+        }
+      }
+
+      const hexData = binary.join("").toUpperCase();
 
       // Calculate image parameters
-      const bytesPerRow = Math.ceil((18.77 * 8) / 8);
-      const imageHeight = Math.round(18.77 * 8);
+      const bytesPerRow = Math.ceil(canvas.width / 8);
+      const imageHeight = canvas.height;
 
-      // Construct EPL command with updated label size and positions
+      // Construct EPL command
       const command = `
-N
-q640
-Q320,0
-GW240,160,${bytesPerRow},${imageHeight},${hexData}
-A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
-P${adet}
-`;
+  N
+  q${etiketBoyutu.en * 8}
+  Q${etiketBoyutu.boy * 8},0
+  GW0,0,${bytesPerRow},${imageHeight},${hexData}
+  A0,${imageHeight + 20},0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+  P${adet}
+  `;
       await qz.print(config, [
         { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
