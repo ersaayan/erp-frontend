@@ -64,7 +64,7 @@ export default function KarekodYazdir() {
 
       // Yazdırma işlemini gerçekleştir
       await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "plain" },
+        { type: "raw", format: "command", data: command, flavor: "hex" },
       ]);
       alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
