@@ -98,49 +98,50 @@ export const useBarcodeGenerator = () => {
             const formattedStockCode = formatStockCodeForDisplay(formData.stockCode);
 
             printWindow.document.write(`
-        <html>
-          <head>
-            <title>Barkod Yazdır</title>
-            <style>
-              @page {
-                size: 80mm 40mm;
-                margin: 0;
-              }
-              body {
-                margin: 0;
-                padding: 0;
-              }
-              .container {
-                width: 80mm;
-                height: 40mm;
-                position: relative;
-              }
-              img.qr-code {
-                position: absolute;
-                width: 20mm;
-                height: 20mm;
-                left: 30mm;
-                top: 3mm;
-              }
-              .stock-code {
-                position: absolute;
-                left: 5mm;
-                top: 25mm;
-                font-family: Arial;
-                font-size: 12pt;
-                font-weight: bold;
-                white-space: pre-line;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <img class="qr-code" src="${previewData.qrCode}" />
-              <div class="stock-code">${formattedStockCode}</div>
-            </div>
-          </body>
-        </html>
-      `);
+            <html>
+              <head>
+                <title>Barkod Yazdır</title>
+                <style>
+                  @page {
+                    size: 80mm 40mm;
+                    margin: 0;
+                  }
+                  body {
+                    margin: 0;
+                    padding: 0;
+                  }
+                  .container {
+                    width: 80mm;
+                    height: 40mm;
+                    position: relative;
+                  }
+                  img.qr-code {
+                    position: absolute;
+                    width: 20mm;
+                    height: 20mm;
+                    left: 30mm;
+                    top: 3mm;
+                  }
+                  .stock-code {
+                    position: absolute;
+                    width: 100%;
+                    top: 25mm;
+                    text-align: center;
+                    font-family: Arial;
+                    font-size: 12pt;
+                    font-weight: bold;
+                    white-space: pre-line;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <img class="qr-code" src="${previewData.qrCode}" />
+                  <div class="stock-code">${formattedStockCode}</div>
+                </div>
+              </body>
+            </html>
+          `);
 
             printWindow.document.close();
 

@@ -3,7 +3,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import BarcodeForm from "./BarcodeForm";
-import BarcodePreview from "./BarcodePreview";
 import { useBarcodeGenerator } from "./hooks/useBarcodeGenerator";
 
 const BarcodeGenerator: React.FC = () => {
@@ -19,7 +18,7 @@ const BarcodeGenerator: React.FC = () => {
 
   return (
     <div className="grid-container">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <Card className="p-6">
           <BarcodeForm
             formData={formData}
@@ -29,10 +28,6 @@ const BarcodeGenerator: React.FC = () => {
             onChange={updateFormData}
             onPrint={handlePrint}
           />
-        </Card>
-
-        <Card className="p-6">
-          <BarcodePreview data={previewData} loading={loading} />
         </Card>
       </div>
     </div>
