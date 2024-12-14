@@ -91,10 +91,10 @@ export default function KarekodYazdir() {
 
       // EPL komutları
       const command = `
-N
-b50,50,Q,s20,"www.zebra.com"
-P1
-  `;
+      N
+      b50,50,Q,s20,"www.zebra.com"
+      P1
+        `;
 
       // Yazdırma işlemini gerçekleştir
       await qz.print(config, [
