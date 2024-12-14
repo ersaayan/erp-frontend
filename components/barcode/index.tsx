@@ -56,13 +56,15 @@ export default function KarekodYazdir() {
       const config = qz.configs.create(yazici);
 
       // EPL komutları
-      const testCommand = `
-N
-A50,50,0,3,1,1,N,"TEST"
-P1
-`;
+      const command = `
+    N
+    q640
+    Q320,0
+    A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+    P${adet}
+    `;
       await qz.print(config, [
-        { type: "raw", format: "command", data: testCommand, flavor: "plain" },
+        { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
 
       alert("Karekod ve metin başarıyla yazdırıldı.");
