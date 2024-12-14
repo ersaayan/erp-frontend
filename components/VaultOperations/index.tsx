@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import VaultOperationsToolbar from "./VaultOperationsToolbar";
 import {
@@ -13,19 +13,36 @@ import VaultMovementsGrid from "./VaultMovementsGrid";
 import { Vault } from "./types";
 
 const VaultOperations: React.FC = () => {
-  const [selectedVault, setSelectedVault] = useState<Vault | null>(null);
+  const [selectedVault, setSelectedVault] = useState<Vault | null>(() => {
+    // Sayfa yüklendiğinde localStorage'dan seçili kasayı al
+    if (typeof window !== "undefined") {
+      const savedVault = localStorage.getItem("selectedVault");
+      return savedVault ? JSON.parse(savedVault) : null;
+    }
+    return null;
+  });
   const [showAllMovements, setShowAllMovements] = useState(false);
 
   const handleVaultSelect = (vault: Vault) => {
+    // Seçili kasayı localStorage'a kaydet
+    localStorage.setItem("selectedVault", JSON.stringify(vault));
     setSelectedVault(vault);
     setShowAllMovements(false);
   };
 
   const handleShowAllMovements = () => {
+    // Tüm hareketler görüntülenirken seçili kasayı temizle
+    localStorage.removeItem("selectedVault");
     setSelectedVault(null);
     setShowAllMovements(true);
   };
 
+  // Component unmount olduğunda seçili kasayı temizle
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("selectedVault");
+    };
+  }, []);
   return (
     <div className="grid-container">
       <VaultOperationsToolbar
