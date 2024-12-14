@@ -11,38 +11,8 @@ import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const CurrentForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const [formData, setFormData] = useState({
-    generalInfo: {
-      currentCode: "",
-      currentName: "",
-      firstName: "",
-      lastName: "",
-      priceListId: "",
-      currentType: "",
-      institution: "",
-      identityNo: "",
-      taxNumber: "",
-      taxOffice: "",
-      kepAddress: "",
-      mersisNo: "",
-      sicilNo: "",
-      title: "",
-      webSite: "",
-      birthOfDate: null,
-    },
-    categories: [],
-    addresses: [],
-  });
-
-  const updateFormData = (section: string, data: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        ...data,
-      },
-    }));
-  };
+  const { formData, loading, updateFormData, handleSubmit, clearFormData } =
+    useCurrentForm();
 
   return (
     <div className="flex flex-col h-auto">
@@ -70,24 +40,18 @@ const CurrentForm: React.FC = () => {
           </TabsList>
 
           <TabsContent value="general">
-            <GeneralInfo
-              formData={formData.generalInfo}
-              updateFormData={(data) => updateFormData("generalInfo", data)}
-            />
+            <GeneralInfo formData={formData} updateFormData={updateFormData} />
           </TabsContent>
 
           <TabsContent value="categories">
             <CategorySection
-              formData={formData.categories}
-              updateFormData={(data) => updateFormData("categories", data)}
+              formData={formData}
+              updateFormData={updateFormData}
             />
           </TabsContent>
 
           <TabsContent value="address">
-            <AddressInfo
-              formData={formData.addresses}
-              updateFormData={(data) => updateFormData("addresses", data)}
-            />
+            <AddressInfo formData={formData} updateFormData={updateFormData} />
           </TabsContent>
         </Tabs>
       </div>

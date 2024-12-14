@@ -28,7 +28,6 @@ const initialFormData: CurrentFormData = {
 };
 
 export const useCurrentForm = () => {
-    // Form verilerini global olarak saklamak için
     const [formData, setFormData] = useState<CurrentFormData>(() => {
         // Tarayıcı ortamında değilse başlangıç verilerini döndür
         if (typeof window === 'undefined') return initialFormData;
