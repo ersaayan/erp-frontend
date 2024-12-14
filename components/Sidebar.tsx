@@ -86,15 +86,15 @@ const menuItems = [
       // { name: "Mal Çıkış", disabled: true },
     ],
   },
-  {
+  /* {
     name: "Pazaryerleri",
     icon: <ShoppingBag className="h-5 w-5" />,
     subItems: [
       { name: "Siparişler", disabled: false },
       { name: "Servisler", disabled: false },
-      // { name: "İşlem Geçmişi", disabled: false },
+      { name: "İşlem Geçmişi", disabled: false },
     ],
-  },
+  }, */
   {
     name: "Fatura / İrsaliye",
     icon: <File className="h-5 w-5" />,
@@ -142,7 +142,7 @@ const menuItems = [
       { name: "Firma", disabled: false },
       // { name: "Günlükler", disabled: false },
       // { name: "Servis Şablonları", disabled: false },
-      { name: "Yedekleme", disabled: false },
+      // { name: "Yedekleme", disabled: false },
       { name: "Bildirimler", disabled: false },
       // { name: "Queue Workers", disabled: false },
     ],
