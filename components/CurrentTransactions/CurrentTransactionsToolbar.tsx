@@ -53,6 +53,11 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
     });
   };
 
+  const handleNewCurrentForm = () => {
+    // Navigate to New Current page
+    onMenuItemClick?.("Yeni Cari");
+  };
+
   const handlePurchaseInvoice = () => {
     if (selectedCurrent) {
       // Store the current data in localStorage
@@ -85,6 +90,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
             variant="outline"
             size="sm"
             className="bg-[#84CC16] hover:bg-[#65A30D]"
+            onClick={handleNewCurrentForm}
           >
             <Plus className="h-4 w-4 mr-2" />
             Yeni Cari

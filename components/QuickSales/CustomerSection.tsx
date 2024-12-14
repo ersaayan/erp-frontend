@@ -13,17 +13,24 @@ import { useToast } from "@/hooks/use-toast";
 interface CustomerSectionProps {
   customer: Customer | null;
   onCustomerSelect: (customer: Customer | null) => void;
+  onMenuItemClick?: (itemName: string) => void;
 }
 
 const CustomerSection: React.FC<CustomerSectionProps> = ({
   customer,
   onCustomerSelect,
+  onMenuItemClick,
 }) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const handleNewCurrentForm = () => {
+    // Navigate to New Current page
+    onMenuItemClick?.("Yeni Cari");
+  };
 
   const searchCustomers = useCallback(async () => {
     if (!debouncedSearchTerm.trim()) {
