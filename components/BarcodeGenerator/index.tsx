@@ -12,9 +12,9 @@ const BarcodeGenerator: React.FC = () => {
     previewData,
     loading,
     error,
+    isQRCodeGenerated,
     updateFormData,
     handlePrint,
-    validateForm,
   } = useBarcodeGenerator();
 
   return (
@@ -25,14 +25,14 @@ const BarcodeGenerator: React.FC = () => {
             formData={formData}
             loading={loading}
             error={error}
-            onSubmit={validateForm}
+            isQRCodeGenerated={isQRCodeGenerated}
             onChange={updateFormData}
             onPrint={handlePrint}
           />
         </Card>
 
         <Card className="p-6">
-          <BarcodePreview data={previewData} />
+          <BarcodePreview data={previewData} loading={loading} />
         </Card>
       </div>
     </div>

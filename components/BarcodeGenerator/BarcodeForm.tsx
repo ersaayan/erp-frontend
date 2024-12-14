@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Printer } from "lucide-react";
+import { AlertCircle, Printer, Loader2 } from "lucide-react";
 import { BarcodeFormData } from "./types";
 
 interface BarcodeFormProps {
   formData: BarcodeFormData;
   loading: boolean;
   error: string | null;
-  onSubmit: () => void;
+  isQRCodeGenerated: boolean;
   onChange: (field: keyof BarcodeFormData, value: string | number) => void;
   onPrint: () => void;
 }
@@ -21,17 +21,12 @@ const BarcodeForm: React.FC<BarcodeFormProps> = ({
   formData,
   loading,
   error,
-  onSubmit,
+  isQRCodeGenerated,
   onChange,
   onPrint,
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       <div>
         <Label htmlFor="stockCode">Stok Kodu</Label>
         <Input
@@ -39,6 +34,7 @@ const BarcodeForm: React.FC<BarcodeFormProps> = ({
           value={formData.stockCode}
           onChange={(e) => onChange("stockCode", e.target.value)}
           placeholder="Stok kodunu giriniz"
+          disabled={loading}
         />
       </div>
 
@@ -64,13 +60,23 @@ const BarcodeForm: React.FC<BarcodeFormProps> = ({
       <Button
         type="button"
         onClick={onPrint}
-        disabled={loading || !formData.stockCode.trim()}
+        disabled={loading || !formData.stockCode.trim() || !isQRCodeGenerated}
         className="w-full"
       >
-        <Printer className="mr-2 h-4 w-4" />
-        Yazdır
+        {loading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Printer className="mr-2 h-4 w-4" />
+        )}
+        {loading ? "İşleniyor..." : "Yazdır"}
       </Button>
-    </form>
+
+      {formData.stockCode.trim() && !isQRCodeGenerated && !error && (
+        <div className="text-sm text-muted-foreground text-center">
+          QR kod oluşturuluyor...
+        </div>
+      )}
+    </div>
   );
 };
 

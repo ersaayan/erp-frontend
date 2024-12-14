@@ -2,12 +2,14 @@
 
 import React, { useRef, useEffect } from "react";
 import { PreviewData } from "./types";
+import { Loader2 } from "lucide-react";
 
 interface BarcodePreviewProps {
   data: PreviewData | null;
+  loading: boolean;
 }
 
-const BarcodePreview: React.FC<BarcodePreviewProps> = ({ data }) => {
+const BarcodePreview: React.FC<BarcodePreviewProps> = ({ data, loading }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -43,6 +45,15 @@ const BarcodePreview: React.FC<BarcodePreviewProps> = ({ data }) => {
       ctx.fillText(data.stockCode, data.textPosition.x, data.textPosition.y);
     }
   }, [data]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <span>QR kod oluşturuluyor...</span>
+      </div>
+    );
+  }
 
   if (!data) {
     return (

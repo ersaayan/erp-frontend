@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { BarcodeFormData, PreviewData } from '../types';
 import { generateQRCode } from '../utils/qrCodeGenerator';
 import { calculatePositions } from '../utils/layoutCalculator';
@@ -16,52 +16,75 @@ export const useBarcodeGenerator = () => {
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isQRCodeGenerated, setIsQRCodeGenerated] = useState(false);
     const { toast } = useToast();
 
     const updateFormData = useCallback((
         field: keyof BarcodeFormData,
         value: string | number
     ) => {
-        // Only allow updating stockCode since dimensions are fixed
         if (field === 'stockCode') {
             setFormData(prev => ({ ...prev, [field]: value as string }));
             setError(null);
+            setIsQRCodeGenerated(false); // Reset QR code status when stock code changes
+            setPreviewData(null); // Clear preview when stock code changes
         }
     }, []);
 
-    const validateForm = useCallback(async () => {
-        const validationError = validateFormData(formData);
-        if (validationError) {
-            setError(validationError);
-            return false;
-        }
+    // Auto-generate QR code when stock code changes
+    useEffect(() => {
+        const generateQRCodeForStockCode = async () => {
+            if (!formData.stockCode.trim()) {
+                setPreviewData(null);
+                setIsQRCodeGenerated(false);
+                return;
+            }
 
-        try {
-            setLoading(true);
-            const qrCode = await generateQRCode(formData.stockCode);
-            const positions = calculatePositions();
+            const validationError = validateFormData(formData);
+            if (validationError) {
+                setError(validationError);
+                setIsQRCodeGenerated(false);
+                return;
+            }
 
-            setPreviewData({
-                qrCode,
-                qrCodeSize: 20, // Fixed QR code size: 20mm
-                qrCodePosition: positions.qrCode,
-                textPosition: positions.text,
-                stockCode: formData.stockCode,
-                paperWidth: 80, // Fixed width
-                paperHeight: 40, // Fixed height
-            });
+            try {
+                setLoading(true);
+                const qrCode = await generateQRCode(formData.stockCode);
+                const positions = calculatePositions();
 
-            return true;
-        } catch (err) {
-            setError('QR kod oluşturulurken bir hata oluştu');
-            return false;
-        } finally {
-            setLoading(false);
-        }
+                setPreviewData({
+                    qrCode,
+                    qrCodeSize: 20,
+                    qrCodePosition: positions.qrCode,
+                    textPosition: positions.text,
+                    stockCode: formData.stockCode,
+                    paperWidth: 80,
+                    paperHeight: 40,
+                });
+                setIsQRCodeGenerated(true);
+                setError(null);
+            } catch (err) {
+                setError('QR kod oluşturulurken bir hata oluştu');
+                setIsQRCodeGenerated(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            generateQRCodeForStockCode();
+        }, 500); // Add debounce delay
+
+        return () => clearTimeout(timeoutId);
     }, [formData.stockCode]);
 
     const handlePrint = useCallback(async () => {
-        if (!await validateForm()) {
+        if (!isQRCodeGenerated || !previewData) {
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Lütfen önce QR kod oluşturulmasını bekleyin",
+            });
             return;
         }
 
@@ -72,7 +95,6 @@ export const useBarcodeGenerator = () => {
                 throw new Error('Yazdırma penceresi açılamadı');
             }
 
-            // Print template with fixed dimensions and positions
             printWindow.document.write(`
         <html>
           <head>
@@ -110,7 +132,7 @@ export const useBarcodeGenerator = () => {
           </head>
           <body>
             <div class="container">
-              <img class="qr-code" src="${previewData?.qrCode}" />
+              <img class="qr-code" src="${previewData.qrCode}" />
               <div class="stock-code">${formData.stockCode}</div>
             </div>
           </body>
@@ -120,10 +142,14 @@ export const useBarcodeGenerator = () => {
             printWindow.document.close();
 
             // Wait for QR code image to load before printing
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
+            const img = new Image();
+            img.src = previewData.qrCode;
+            img.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 100);
+            };
 
             toast({
                 title: "Başarılı",
@@ -138,15 +164,15 @@ export const useBarcodeGenerator = () => {
         } finally {
             setLoading(false);
         }
-    }, [formData.stockCode, previewData, toast, validateForm]);
+    }, [formData.stockCode, previewData, isQRCodeGenerated, toast]);
 
     return {
         formData,
         previewData,
         loading,
         error,
+        isQRCodeGenerated,
         updateFormData,
         handlePrint,
-        validateForm,
     };
 };
