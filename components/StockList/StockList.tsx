@@ -218,8 +218,9 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       setPrintLoading(true);
 
       // selectedRowKeys doğrudan seçili stokların id'lerini içerir
+      // selectedRowKeys doğrudan id'leri içerdiği için düzeltme
       const selectedStocks = stockData.filter((stock) =>
-        selectedRowKeys.includes(stock.id)
+        selectedRowKeys.some((key) => key === stock.id)
       );
 
       // Tüm barkodları içerecek HTML oluştur
@@ -314,7 +315,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
       toast({
         title: "Başarılı",
-        description: "Barkod yazdırma işlemi başlatıldı",
+        description: `${selectedStocks.length} adet barkod yazdırma işlemi başlatıldı`,
       });
     } catch (error) {
       toast({
