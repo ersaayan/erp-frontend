@@ -44,25 +44,13 @@ const BarcodeForm: React.FC<BarcodeFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="paperWidth">Kağıt Genişliği (mm)</Label>
-          <Input
-            id="paperWidth"
-            type="number"
-            min="1"
-            value={formData.paperWidth}
-            onChange={(e) => onChange("paperWidth", Number(e.target.value))}
-          />
+          <Label>Kağıt Genişliği</Label>
+          <Input value="80mm" disabled className="bg-muted" />
         </div>
 
         <div>
-          <Label htmlFor="paperHeight">Kağıt Yüksekliği (mm)</Label>
-          <Input
-            id="paperHeight"
-            type="number"
-            min="1"
-            value={formData.paperHeight}
-            onChange={(e) => onChange("paperHeight", Number(e.target.value))}
-          />
+          <Label>Kağıt Yüksekliği</Label>
+          <Input value="40mm" disabled className="bg-muted" />
         </div>
       </div>
 
@@ -76,7 +64,7 @@ const BarcodeForm: React.FC<BarcodeFormProps> = ({
       <Button
         type="button"
         onClick={onPrint}
-        disabled={loading}
+        disabled={loading || !formData.stockCode.trim()}
         className="w-full"
       >
         <Printer className="mr-2 h-4 w-4" />

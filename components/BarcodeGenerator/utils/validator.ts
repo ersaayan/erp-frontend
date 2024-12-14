@@ -5,13 +5,6 @@ export const validateFormData = (data: BarcodeFormData): string | null => {
         return 'Stok kodu zorunludur';
     }
 
-    if (data.paperWidth < 20) {
-        return 'Kağıt genişliği en az 20mm olmalıdır';
-    }
-
-    if (data.paperHeight < 30) {
-        return 'Kağıt yüksekliği en az 30mm olmalıdır';
-    }
-
+    // Paper dimensions are now fixed, so we don't need to validate them
     return null;
 };

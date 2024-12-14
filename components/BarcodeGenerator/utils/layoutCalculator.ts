@@ -1,16 +1,16 @@
 import { Position } from '../types';
 
-export const calculatePositions = (paperWidth: number, paperHeight: number) => {
-    // QR code position (centered horizontally, 1mm from top)
+export const calculatePositions = () => {
+    // Fixed positions according to specifications
     const qrCodePosition: Position = {
-        x: (paperWidth - 20) / 2, // 20mm is QR code size
-        y: 1,
+        x: 30, // 30mm from right edge
+        y: 3,  // 3mm from top edge
     };
 
-    // Text position (4mm from left edge of QR code, 2mm below QR code)
+    // Text position
     const textPosition: Position = {
-        x: qrCodePosition.x + 4,
-        y: qrCodePosition.y + 20 + 2, // QR code height (20mm) + 2mm gap
+        x: 5,  // 5mm from right edge
+        y: 25, // 25mm from top edge
     };
 
     return {

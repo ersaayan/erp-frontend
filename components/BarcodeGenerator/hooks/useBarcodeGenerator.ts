@@ -7,8 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const initialFormData: BarcodeFormData = {
     stockCode: '',
-    paperWidth: 50,
-    paperHeight: 30,
+    paperWidth: 80, // Fixed width: 80mm
+    paperHeight: 40, // Fixed height: 40mm
 };
 
 export const useBarcodeGenerator = () => {
@@ -22,8 +22,11 @@ export const useBarcodeGenerator = () => {
         field: keyof BarcodeFormData,
         value: string | number
     ) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        setError(null);
+        // Only allow updating stockCode since dimensions are fixed
+        if (field === 'stockCode') {
+            setFormData(prev => ({ ...prev, [field]: value as string }));
+            setError(null);
+        }
     }, []);
 
     const validateForm = useCallback(async () => {
@@ -36,16 +39,16 @@ export const useBarcodeGenerator = () => {
         try {
             setLoading(true);
             const qrCode = await generateQRCode(formData.stockCode);
-            const positions = calculatePositions(formData.paperWidth, formData.paperHeight);
+            const positions = calculatePositions();
 
             setPreviewData({
                 qrCode,
-                qrCodeSize: 20,
+                qrCodeSize: 20, // Fixed QR code size: 20mm
                 qrCodePosition: positions.qrCode,
                 textPosition: positions.text,
                 stockCode: formData.stockCode,
-                paperWidth: formData.paperWidth,
-                paperHeight: formData.paperHeight,
+                paperWidth: 80, // Fixed width
+                paperHeight: 40, // Fixed height
             });
 
             return true;
@@ -55,7 +58,7 @@ export const useBarcodeGenerator = () => {
         } finally {
             setLoading(false);
         }
-    }, [formData]);
+    }, [formData.stockCode]);
 
     const handlePrint = useCallback(async () => {
         if (!await validateForm()) {
@@ -69,14 +72,14 @@ export const useBarcodeGenerator = () => {
                 throw new Error('Yazdırma penceresi açılamadı');
             }
 
-            // Print template
+            // Print template with fixed dimensions and positions
             printWindow.document.write(`
         <html>
           <head>
             <title>Barkod Yazdır</title>
             <style>
               @page {
-                size: ${formData.paperWidth}mm ${formData.paperHeight}mm;
+                size: 80mm 40mm;
                 margin: 0;
               }
               body {
@@ -84,23 +87,24 @@ export const useBarcodeGenerator = () => {
                 padding: 0;
               }
               .container {
-                width: ${formData.paperWidth}mm;
-                height: ${formData.paperHeight}mm;
+                width: 80mm;
+                height: 40mm;
                 position: relative;
               }
               img.qr-code {
                 position: absolute;
                 width: 20mm;
                 height: 20mm;
-                left: ${(formData.paperWidth - 20) / 2}mm;
-                top: 1mm;
+                left: 30mm;
+                top: 3mm;
               }
               .stock-code {
                 position: absolute;
-                left: ${(formData.paperWidth - 20) / 2 + 4}mm;
-                top: 23mm;
+                left: 5mm;
+                top: 25mm;
                 font-family: Arial;
-                font-size: 10pt;
+                font-size: 12pt;
+                font-weight: bold;
               }
             </style>
           </head>
@@ -114,8 +118,12 @@ export const useBarcodeGenerator = () => {
       `);
 
             printWindow.document.close();
-            printWindow.print();
-            printWindow.close();
+
+            // Wait for QR code image to load before printing
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
 
             toast({
                 title: "Başarılı",
@@ -130,7 +138,7 @@ export const useBarcodeGenerator = () => {
         } finally {
             setLoading(false);
         }
-    }, [formData, previewData, toast, validateForm]);
+    }, [formData.stockCode, previewData, toast, validateForm]);
 
     return {
         formData,
