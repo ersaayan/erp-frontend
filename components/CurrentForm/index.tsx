@@ -11,7 +11,6 @@ import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const CurrentForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const { loading, handleSubmit } = useCurrentForm();
   const [formData, setFormData] = useState({
     generalInfo: {
       currentCode: "",

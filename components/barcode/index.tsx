@@ -92,10 +92,7 @@ export default function KarekodYazdir() {
       // EPL komutları
       const command = `
 N
-q400
-Q200,24
-GW50,50,20,20,FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-A50,300,0,3,1,1,N,"Stok Kodu: TEST"
+b50,50,Q,s20,"www.zebra.com"
 P1
   `;
 
