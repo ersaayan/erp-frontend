@@ -56,16 +56,15 @@ export default function KarekodYazdir() {
       const config = qz.configs.create(yazici);
 
       // EPL komutları
-      const command = `
-        N
-        b50,50,Q,,s20,"www.zebra.com"
-        P1
-      `.trim();
-
-      // Yazdırma işlemini gerçekleştir
+      const testCommand = `
+N
+A50,50,0,3,1,1,N,"TEST"
+P1
+`;
       await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "plain" },
+        { type: "raw", format: "command", data: testCommand, flavor: "plain" },
       ]);
+
       alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
       alert(
