@@ -51,50 +51,16 @@ export default function KarekodYazdir() {
     try {
       // Giriş doğrulama
       if (!yazici) throw new Error("Lütfen bir yazıcı seçin.");
-      if (!stokKodu || adet <= 0)
-        throw new Error("Lütfen geçerli bir stok kodu ve adet girin.");
 
       // Yazıcı yapılandırması oluştur
       const config = qz.configs.create(yazici);
 
-      // QR kodu Canvas üzerinden oluştur
-      const canvas = document.createElement("canvas");
-      await QRCode.toCanvas(canvas, stokKodu, {
-        margin: 0,
-        width: Math.round(etiketBoyutu.en * 8),
-      });
-
-      // Canvas'ı ikili verilere çevir
-      const ctx = canvas.getContext("2d");
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const binaryData = [];
-
-      for (let y = 0; y < canvas.height; y++) {
-        let rowBinary = "";
-        for (let x = 0; x < canvas.width; x += 8) {
-          let byte = 0;
-          for (let bit = 0; bit < 8; bit++) {
-            const i = (y * canvas.width + x + bit) * 4; // RGBA index
-            const pixelValue = imageData.data[i]; // Sadece siyah-beyaz
-            if (pixelValue < 128) byte |= 1 << (7 - bit);
-          }
-          rowBinary += byte.toString(16).padStart(2, "0");
-        }
-        binaryData.push(rowBinary);
-      }
-
-      const hexData = binaryData.join("").toUpperCase();
-
-      // Grafik parametrelerini hesapla
-      const bytesPerRow = Math.ceil(canvas.width / 8);
-      const imageHeight = canvas.height;
-
       // EPL komutları
       const command = `
-      N
-      b50,50,Q,s20,"www.zebra.com"
-      P1
-        `;
+        N
+        b50,50,Q,,s20,"www.zebra.com"
+        P1
+      `;
 
       // Yazdırma işlemini gerçekleştir
       await qz.print(config, [
