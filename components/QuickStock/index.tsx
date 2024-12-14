@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import SearchBar from "./SearchBar";
 import StockDetails from "./StockDetails";
+import BarcodeButton from "./BarcodeButton";
 import { Stock } from "./types";
 
 const QuickStock: React.FC = () => {
@@ -13,6 +14,7 @@ const QuickStock: React.FC = () => {
     <div className="flex flex-col h-auto">
       <div className="flex justify-between items-center mb-4 p-4">
         <h2 className="text-2xl font-bold">HIZLI STOK ARAMA</h2>
+        {selectedStock && <BarcodeButton stock={selectedStock} />}
       </div>
 
       <div className="grid grid-cols-2 gap-4 p-4">
