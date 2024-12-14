@@ -52,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card } from "../ui/card";
 
 interface StockListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -387,11 +388,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       {renderToolbarContent()}
 
       {bulkActionsOpen && (
-        <div className="p-4 rounded-md flex items-center">
+        <Card className="p-4 rounded-md flex items-center">
           <Button variant="destructive" onClick={handleDeleteSelected}>
             Seçili Olanları Sil
           </Button>
-        </div>
+        </Card>
       )}
 
       <DataGrid

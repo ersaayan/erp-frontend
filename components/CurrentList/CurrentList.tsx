@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/select";
 import { currentTypes, institutionTypes } from "./data";
 import CurrentDetailView from "./CurrentDetailView";
+import { Card } from "../ui/card";
 
 interface CurrentListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -504,11 +505,11 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
       {renderToolbarContent()}
 
       {bulkActionsOpen && (
-        <div className="bg-gray-100 p-4 rounded-md flex items-center">
+        <Card className="p-4 rounded-md flex items-center">
           <Button variant="destructive" onClick={handleDeleteSelected}>
             Seçili Olanları Sil
           </Button>
-        </div>
+        </Card>
       )}
 
       <DataGrid

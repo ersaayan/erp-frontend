@@ -53,6 +53,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
+import { Card } from "../ui/card";
 
 interface InvoiceListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -342,9 +343,9 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
       {renderToolbarContent()}
 
       {bulkActionsOpen && (
-        <div className="bg-gray-100 p-4 rounded-md flex items-center">
+        <Card className="p-4 rounded-md flex items-center">
           <Button variant="destructive">Seçili Olanları İptal Et</Button>
-        </div>
+        </Card>
       )}
 
       <DataGrid

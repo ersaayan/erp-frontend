@@ -26,14 +26,7 @@ import { exportDataGrid } from "devextreme/excel_exporter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  CheckSquare,
-  Filter,
-  RefreshCw,
-  Settings,
-  Upload,
-} from "lucide-react";
+import { AlertCircle, Filter, RefreshCw, Settings, Upload } from "lucide-react";
 import { CurrentMovement } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -62,7 +55,6 @@ const AccountSummaryGrid: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
 
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -240,23 +232,9 @@ const AccountSummaryGrid: React.FC = () => {
           <Settings className="h-4 w-4 mr-2" />
           Ayarlar
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
-        >
-          <CheckSquare className="h-4 w-4 mr-2" />
-          Toplu İşlemler
-        </Button>
       </div>
     ),
-    [
-      quickFilterText,
-      applyQuickFilter,
-      fetchData,
-      handleImport,
-      bulkActionsOpen,
-    ]
+    [quickFilterText, applyQuickFilter, fetchData, handleImport]
   );
 
   if (error) {
@@ -271,12 +249,6 @@ const AccountSummaryGrid: React.FC = () => {
   return (
     <div className="p-4 space-y-4">
       {renderToolbarContent()}
-
-      {bulkActionsOpen && (
-        <div className="bg-gray-100 p-4 rounded-md flex items-center">
-          <Button variant="destructive">Seçili Olanları Sil</Button>
-        </div>
-      )}
 
       <DataGrid
         ref={dataGridRef}
