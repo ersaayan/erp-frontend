@@ -1,85 +1,52 @@
 import { useState, useCallback, useEffect } from 'react';
-import { BarcodeFormData, PreviewData } from '../types';
-import { generateQRCode } from '../utils/qrCodeGenerator';
-import { calculatePositions } from '../utils/layoutCalculator';
-import { validateFormData } from '../utils/validator';
-import { formatStockCodeForDisplay } from '../utils/stockCodeFormatter';
 import { useToast } from '@/hooks/use-toast';
-
-const initialFormData: BarcodeFormData = {
-    stockCode: '',
-    paperWidth: 80,
-    paperHeight: 40,
-};
+import { BarcodeFormData } from '../types';
+import { validateFormData } from '../utils/validator';
+import { generateQRCode } from '../utils/qrCodeGenerator';
+import { formatStockCodeForDisplay } from '../utils/stockCodeFormatter';
 
 export const useBarcodeGenerator = () => {
-    const [formData, setFormData] = useState<BarcodeFormData>(initialFormData);
-    const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+    const [formData, setFormData] = useState<BarcodeFormData>({
+        stockCode: '',
+        paperWidth: 80, // Fixed width: 80mm
+        paperHeight: 40, // Fixed height: 40mm
+    });
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [qrCodeData, setQrCodeData] = useState<string | null>(null);
     const [isQRCodeGenerated, setIsQRCodeGenerated] = useState(false);
     const { toast } = useToast();
 
-    const updateFormData = useCallback((
-        field: keyof BarcodeFormData,
-        value: string | number
-    ) => {
-        if (field === 'stockCode') {
-            setFormData(prev => ({ ...prev, [field]: value as string }));
-            setError(null);
-            setIsQRCodeGenerated(false);
-            setPreviewData(null);
-        }
+    const updateFormData = useCallback((field: keyof BarcodeFormData, value: string | number) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     }, []);
 
+    // Generate QR code when stock code changes
     useEffect(() => {
-        const generateQRCodeForStockCode = async () => {
+        const generateQR = async () => {
             if (!formData.stockCode.trim()) {
-                setPreviewData(null);
-                setIsQRCodeGenerated(false);
-                return;
-            }
-
-            const validationError = validateFormData(formData);
-            if (validationError) {
-                setError(validationError);
+                setQrCodeData(null);
                 setIsQRCodeGenerated(false);
                 return;
             }
 
             try {
-                setLoading(true);
                 const qrCode = await generateQRCode(formData.stockCode);
-                const positions = calculatePositions();
-
-                setPreviewData({
-                    qrCode,
-                    qrCodeSize: 20,
-                    qrCodePosition: positions.qrCode,
-                    textPosition: positions.text,
-                    stockCode: formData.stockCode,
-                    paperWidth: 80,
-                    paperHeight: 40,
-                });
+                setQrCodeData(qrCode);
                 setIsQRCodeGenerated(true);
                 setError(null);
             } catch (err) {
-                setError('QR kod oluşturulurken bir hata oluştu');
+                setError('QR kod oluşturulamadı');
                 setIsQRCodeGenerated(false);
-            } finally {
-                setLoading(false);
             }
         };
 
-        const timeoutId = setTimeout(() => {
-            generateQRCodeForStockCode();
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
+        generateQR();
     }, [formData.stockCode]);
 
     const handlePrint = useCallback(async () => {
-        if (!isQRCodeGenerated || !previewData) {
+        if (!isQRCodeGenerated || !qrCodeData) {
             toast({
                 variant: "destructive",
                 title: "Hata",
@@ -98,55 +65,55 @@ export const useBarcodeGenerator = () => {
             const formattedStockCode = formatStockCodeForDisplay(formData.stockCode);
 
             printWindow.document.write(`
-            <html>
-              <head>
-                <title>Barkod Yazdır</title>
-                <style>
-                  @page {
-                    size: 80mm 40mm;
-                    margin: 0;
-                  }
-                  body {
-                    margin: 0;
-                    padding: 0;
-                  }
-                  .container {
-                    width: 80mm;
-                    height: 40mm;
-                    position: relative;
-                  }
-                  img.qr-code {
-                    position: absolute;
-                    width: 20mm;
-                    height: 20mm;
-                    left: 30mm;
-                    top: 3mm;
-                  }
-                  .stock-code {
-                    position: absolute;
-                    width: 100%;
-                    top: 25mm;
-                    text-align: center;
-                    font-family: Arial;
-                    font-size: 12pt;
-                    font-weight: bold;
-                    white-space: pre-line;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <img class="qr-code" src="${previewData.qrCode}" />
-                  <div class="stock-code">${formattedStockCode}</div>
-                </div>
-              </body>
-            </html>
-          `);
+        <html>
+          <head>
+            <title>Barkod Yazdır</title>
+            <style>
+              @page {
+                size: 80mm 40mm;
+                margin: 0;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              .container {
+                width: 80mm;
+                height: 40mm;
+                position: relative;
+              }
+              img.qr-code {
+                position: absolute;
+                width: 20mm;
+                height: 20mm;
+                left: 30mm;
+                top: 3mm;
+              }
+              .stock-code {
+                position: absolute;
+                width: 100%;
+                top: 25mm;
+                text-align: center;
+                font-family: Arial;
+                font-size: 12pt;
+                font-weight: bold;
+                white-space: pre-line;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <img class="qr-code" src="${qrCodeData}" />
+              <div class="stock-code">${formattedStockCode}</div>
+            </div>
+          </body>
+        </html>
+      `);
 
             printWindow.document.close();
 
             const img = new Image();
-            img.src = previewData.qrCode;
+            img.src = qrCodeData;
             img.onload = () => {
                 setTimeout(() => {
                     printWindow.print();
@@ -167,11 +134,10 @@ export const useBarcodeGenerator = () => {
         } finally {
             setLoading(false);
         }
-    }, [formData.stockCode, previewData, isQRCodeGenerated, toast]);
+    }, [formData.stockCode, qrCodeData, isQRCodeGenerated, toast]);
 
     return {
         formData,
-        previewData,
         loading,
         error,
         isQRCodeGenerated,
