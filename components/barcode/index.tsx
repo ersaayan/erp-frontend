@@ -57,14 +57,12 @@ export default function KarekodYazdir() {
 
       // EPL komutları
       const command = `
-^XA
-
-
-^FXfield for the element 'Sample Text Element'
-^FO16,16,2
-^FWN
-^A40,40^FDI'm a text element!^FS
-^XZ`;
+    N
+    q640
+    Q320,0
+    A16,16,0,3,1,1,N,"Stok Kodu: ${stokKodu}"
+    P${adet}
+    `;
       await qz.print(config, [
         { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
