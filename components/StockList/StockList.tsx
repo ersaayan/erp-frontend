@@ -23,6 +23,7 @@ import DataGrid, {
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
+import { generateQRCode } from "@/components/BarcodeGenerator/utils/qrCodeGenerator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -30,6 +31,7 @@ import {
   AlertCircle,
   CheckSquare,
   Filter,
+  Loader2,
   RefreshCw,
   Settings,
   Upload,
@@ -73,6 +75,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
+  const [printLoading, setPrintLoading] = useState(false);
 
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -162,7 +165,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
-      const ids = selectedRowKeys.map((key) => key.id); // Ensure only ids are sent
+      const ids = selectedRowKeys; // Use the string values directly
       const response = await fetch(
         `${process.env.BASE_URL}/stockcards/deleteManyStockCardsWithRelations/`,
         {
@@ -201,6 +204,111 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     }
   }, [selectedRowKeys, fetchData, toast]);
 
+  const handleBulkPrint = useCallback(async () => {
+    if (selectedRowKeys.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen barkod yazdırmak için en az bir stok seçin.",
+      });
+      return;
+    }
+
+    try {
+      setPrintLoading(true);
+
+      // Seçili stoklar için barkodları oluştur
+      const selectedStocks = stockData.filter((stock) =>
+        selectedRowKeys.includes(stock.id)
+      );
+
+      // Tüm barkodları içerecek HTML oluştur
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        throw new Error("Yazdırma penceresi açılamadı");
+      }
+
+      // Her stok için QR kod oluştur ve yazdırma şablonuna ekle
+      const stockPromises = selectedStocks.map(async (stock) => {
+        const qrCode = await generateQRCode(stock.productCode);
+        const formattedStockCode = stock.productCode.split("/").join("\n");
+        return `
+          <div class="container">
+            <img class="qr-code" src="${qrCode}" />
+            <div class="stock-code">${formattedStockCode}</div>
+          </div>
+        `;
+      });
+
+      const stockElements = await Promise.all(stockPromises);
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Barkod Yazdır</title>
+            <style>
+              @page {
+                size: 80mm 40mm;
+                margin: 0;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              .container {
+                width: 80mm;
+                height: 40mm;
+                position: relative;
+                page-break-after: always;
+              }
+              img.qr-code {
+                position: absolute;
+                width: 20mm;
+                height: 20mm;
+                left: 30mm;
+                top: 3mm;
+              }
+              .stock-code {
+                position: absolute;
+                width: 100%;
+                top: 25mm;
+                text-align: center;
+                font-family: Arial;
+                font-size: 12pt;
+                font-weight: bold;
+                white-space: pre-line;
+              }
+            </style>
+          </head>
+          <body>
+            ${stockElements.join("")}
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+
+      // Yazdırma işlemini başlat
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+
+      toast({
+        title: "Başarılı",
+        description: "Barkod yazdırma işlemi başlatıldı",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Barkod yazdırma işlemi başlatılırken bir hata oluştu",
+      });
+    } finally {
+      setPrintLoading(false);
+      setBulkActionsOpen(false);
+    }
+  }, [selectedRowKeys, stockData, toast]);
   const onExporting = React.useCallback((e: any) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Stock List");
@@ -389,9 +497,21 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
       {bulkActionsOpen && (
         <Card className="p-4 rounded-md flex items-center">
-          <Button variant="destructive" onClick={handleDeleteSelected}>
-            Seçili Olanları Sil
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="destructive" onClick={handleDeleteSelected}>
+              Seçili Olanları Sil
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleBulkPrint}
+              disabled={printLoading}
+            >
+              {printLoading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Barkod Yazdır
+            </Button>
+          </div>
         </Card>
       )}
 
