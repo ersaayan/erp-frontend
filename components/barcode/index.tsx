@@ -58,13 +58,13 @@ export default function KarekodYazdir() {
       // EPL komutları
       const command = `
         N
-        b264,130,Q,m2,"hello"
+        b50,50,Q,,s20,"www.zebra.com"
         P1
-      `;
+      `.trim();
 
       // Yazdırma işlemini gerçekleştir
       await qz.print(config, [
-        { type: "raw", format: "command", data: command, flavor: "hex" },
+        { type: "raw", format: "command", data: command, flavor: "plain" },
       ]);
       alert("Karekod ve metin başarıyla yazdırıldı.");
     } catch (error) {
