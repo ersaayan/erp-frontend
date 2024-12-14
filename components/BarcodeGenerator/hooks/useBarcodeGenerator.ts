@@ -3,12 +3,13 @@ import { BarcodeFormData, PreviewData } from '../types';
 import { generateQRCode } from '../utils/qrCodeGenerator';
 import { calculatePositions } from '../utils/layoutCalculator';
 import { validateFormData } from '../utils/validator';
+import { formatStockCodeForDisplay } from '../utils/stockCodeFormatter';
 import { useToast } from '@/hooks/use-toast';
 
 const initialFormData: BarcodeFormData = {
     stockCode: '',
-    paperWidth: 80, // Fixed width: 80mm
-    paperHeight: 40, // Fixed height: 40mm
+    paperWidth: 80,
+    paperHeight: 40,
 };
 
 export const useBarcodeGenerator = () => {
@@ -26,12 +27,11 @@ export const useBarcodeGenerator = () => {
         if (field === 'stockCode') {
             setFormData(prev => ({ ...prev, [field]: value as string }));
             setError(null);
-            setIsQRCodeGenerated(false); // Reset QR code status when stock code changes
-            setPreviewData(null); // Clear preview when stock code changes
+            setIsQRCodeGenerated(false);
+            setPreviewData(null);
         }
     }, []);
 
-    // Auto-generate QR code when stock code changes
     useEffect(() => {
         const generateQRCodeForStockCode = async () => {
             if (!formData.stockCode.trim()) {
@@ -73,7 +73,7 @@ export const useBarcodeGenerator = () => {
 
         const timeoutId = setTimeout(() => {
             generateQRCodeForStockCode();
-        }, 500); // Add debounce delay
+        }, 500);
 
         return () => clearTimeout(timeoutId);
     }, [formData.stockCode]);
@@ -94,6 +94,8 @@ export const useBarcodeGenerator = () => {
             if (!printWindow) {
                 throw new Error('Yazdırma penceresi açılamadı');
             }
+
+            const formattedStockCode = formatStockCodeForDisplay(formData.stockCode);
 
             printWindow.document.write(`
         <html>
@@ -127,13 +129,14 @@ export const useBarcodeGenerator = () => {
                 font-family: Arial;
                 font-size: 12pt;
                 font-weight: bold;
+                white-space: pre-line;
               }
             </style>
           </head>
           <body>
             <div class="container">
               <img class="qr-code" src="${previewData.qrCode}" />
-              <div class="stock-code">${formData.stockCode}</div>
+              <div class="stock-code">${formattedStockCode}</div>
             </div>
           </body>
         </html>
@@ -141,7 +144,6 @@ export const useBarcodeGenerator = () => {
 
             printWindow.document.close();
 
-            // Wait for QR code image to load before printing
             const img = new Image();
             img.src = previewData.qrCode;
             img.onload = () => {

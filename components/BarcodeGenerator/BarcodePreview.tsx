@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import { PreviewData } from "./types";
 import { Loader2 } from "lucide-react";
+import { formatStockCode } from "./utils/stockCodeFormatter";
 
 interface BarcodePreviewProps {
   data: PreviewData | null;
@@ -33,16 +34,22 @@ const BarcodePreview: React.FC<BarcodePreviewProps> = ({ data, loading }) => {
           data.qrCodeSize,
           data.qrCodeSize
         );
+
+        // Draw stock code text after QR code is drawn
+        if (data.stockCode) {
+          const stockCodeParts = formatStockCode(data.stockCode);
+          ctx.font = "12px Arial";
+          ctx.fillStyle = "black";
+          ctx.textAlign = "left";
+
+          // Draw each part on a new line
+          stockCodeParts.forEach((part, index) => {
+            const yPosition = data.textPosition.y + index * 6; // 6mm spacing between lines
+            ctx.fillText(part, data.textPosition.x, yPosition);
+          });
+        }
       };
       img.src = data.qrCode;
-    }
-
-    // Draw stock code text
-    if (data.stockCode) {
-      ctx.font = "12px Arial";
-      ctx.fillStyle = "black";
-      ctx.textAlign = "center";
-      ctx.fillText(data.stockCode, data.textPosition.x, data.textPosition.y);
     }
   }, [data]);
 
