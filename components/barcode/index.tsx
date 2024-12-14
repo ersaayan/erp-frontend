@@ -58,7 +58,7 @@ export default function KarekodYazdir() {
       // EPL komutları
       const command = `
         N
-        b50,50,Q,,s20,"www.zebra.com"
+        b264,130,Q,m2,"hello"
         P1
       `;
 
