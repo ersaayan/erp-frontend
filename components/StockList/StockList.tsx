@@ -387,7 +387,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       {renderToolbarContent()}
 
       {bulkActionsOpen && (
-        <div className="bg-gray-100 p-4 rounded-md flex items-center">
+        <div className="p-4 rounded-md flex items-center">
           <Button variant="destructive" onClick={handleDeleteSelected}>
             Seçili Olanları Sil
           </Button>
