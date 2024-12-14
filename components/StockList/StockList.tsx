@@ -165,7 +165,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
-      const ids = selectedRowKeys; // Use the string values directly
+      const ids = selectedRowKeys.map((key) => key.id); // Ensure only ids are sent
       const response = await fetch(
         `${process.env.BASE_URL}/stockcards/deleteManyStockCardsWithRelations/`,
         {
@@ -217,7 +217,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     try {
       setPrintLoading(true);
 
-      // Seçili stoklar için barkodları oluştur
+      // selectedRowKeys doğrudan seçili stokların id'lerini içerir
       const selectedStocks = stockData.filter((stock) =>
         selectedRowKeys.includes(stock.id)
       );
@@ -240,7 +240,14 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         `;
       });
 
-      const stockElements = await Promise.all(stockPromises);
+      let stockElements;
+      try {
+        stockElements = await Promise.all(stockPromises);
+      } catch (error) {
+        throw new Error(
+          "QR kodları oluşturulurken hata oluştu: " + error.message
+        );
+      }
 
       printWindow.document.write(`
         <html>
@@ -288,6 +295,17 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
       printWindow.document.close();
 
+      // QR kodların yüklenmesini bekle
+      const images = printWindow.document.getElementsByTagName("img");
+      await Promise.all(
+        Array.from(images).map(
+          (img) =>
+            new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            })
+        )
+      );
       // Yazdırma işlemini başlat
       setTimeout(() => {
         printWindow.print();
@@ -302,7 +320,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Barkod yazdırma işlemi başlatılırken bir hata oluştu",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Barkod yazdırma işlemi başlatılırken bir hata oluştu",
       });
     } finally {
       setPrintLoading(false);
