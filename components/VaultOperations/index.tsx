@@ -37,12 +37,6 @@ const VaultOperations: React.FC = () => {
     setShowAllMovements(true);
   };
 
-  // Component unmount olduğunda seçili kasayı temizle
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("selectedVault");
-    };
-  }, []);
   return (
     <div className="grid-container">
       <VaultOperationsToolbar

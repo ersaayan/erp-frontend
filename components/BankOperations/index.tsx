@@ -38,12 +38,6 @@ const BankOperations: React.FC = () => {
     setShowAllMovements(true);
   };
 
-  // Component unmount olduğunda seçili bankayı temizle
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("selectedBank");
-    };
-  }, []);
   return (
     <div className="grid-container">
       <BankOperationsToolbar

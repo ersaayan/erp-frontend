@@ -36,12 +36,6 @@ const PosOperations: React.FC = () => {
     setShowAllMovements(true);
   };
 
-  // Component unmount olduğunda seçili POS'u temizle
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("selectedPos");
-    };
-  }, []);
   return (
     <div className="grid-container">
       <PosOperationsToolbar
