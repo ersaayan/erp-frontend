@@ -52,6 +52,7 @@ import SalesInvoice from "@/components/SalesInvoice";
 import OrderPreparation from "@/components/OrderPreparation";
 import CurrentForm from "@/components/CurrentForm";
 import BarcodeGenerator from "@/components/BarcodeGenerator";
+import StockCount from "@/components/StockCount";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -238,7 +239,8 @@ export default function Home() {
               {activeTab === "Tanımlar" && <ApiDocumentation />}
               {activeTab === "Alış Faturası" && <PurchaseInvoice />}
               {activeTab === "Satış Faturası" && <SalesInvoice />}
-              {activeTab === "Sipariş Hazırlama" && <OrderPreparation />}
+              {activeTab === "Sipariş Paketleme" && <OrderPreparation />}
+              {activeTab === "Stok Sayım" && <StockCount />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
             </TabContainer>
           </main>
