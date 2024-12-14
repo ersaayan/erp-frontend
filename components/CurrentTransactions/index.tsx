@@ -40,13 +40,6 @@ const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
     setSelectedCurrent(current);
   };
 
-  // Component unmount olduğunda seçili cariyi temizle
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("selectedCurrent");
-    };
-  }, []);
-
   return (
     <div className="grid-container">
       <CurrentTransactionsToolbar
