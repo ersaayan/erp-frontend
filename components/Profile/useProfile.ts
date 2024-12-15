@@ -4,7 +4,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export const useProfile = () => {
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
 
     const fetchProfile = useCallback(async (): Promise<UserProfile | null> => {
@@ -21,12 +20,10 @@ export const useProfile = () => {
                 throw new Error("Failed to fetch profile data");
             }
 
-            const data = await response.json();
-            setError(null);
+            const data: UserProfile = await response.json();
             return data;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to load profile";
-            setError(errorMessage);
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -75,7 +72,6 @@ export const useProfile = () => {
 
     return {
         loading,
-        error,
         fetchProfile,
         updateProfile,
     };

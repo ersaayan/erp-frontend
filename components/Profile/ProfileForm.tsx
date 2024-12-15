@@ -1,31 +1,23 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Form, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { Company } from "@/components/users/types";
 import { useProfile } from "./useProfile";
 import { useCompanies } from "@/hooks/use-companies";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@radix-ui/react-select";
+import { FormItem } from "devextreme-react/cjs/data-grid";
+import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FormField, FormLabel, FormControl, FormMessage } from "../ui/form";
 import { ProfileFormData } from "./types";
 
 // Form validation schema
@@ -44,8 +36,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const ProfileForm: React.FC = () => {
-  const { loading, error, fetchProfile, updateProfile } = useProfile();
-  const { companies, loading: companiesLoading } = useCompanies();
+  const { loading, fetchProfile, updateProfile } = useProfile();
+  const { companies } = useCompanies();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,12 +52,11 @@ const ProfileForm: React.FC = () => {
     },
   });
 
-  // Fetch user data and companies
+  // Fetch user data and set form values
   useEffect(() => {
     const fetchData = async () => {
       const userData = await fetchProfile();
       if (userData) {
-        // Set form values
         form.reset({
           username: userData.username,
           email: userData.email,
@@ -85,15 +76,6 @@ const ProfileForm: React.FC = () => {
     const { username, ...updateData } = values;
     await updateProfile(updateData as ProfileFormData);
   };
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <Form {...form}>
