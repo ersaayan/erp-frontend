@@ -551,6 +551,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         onExporting={onExporting}
         height="calc(100vh - 200px)"
         selectedRowKeys={selectedRowKeys}
+        selection={{ mode: "multiple" }}
         onSelectionChanged={(e) =>
           setSelectedRowKeys(e.selectedRowKeys as string[])
         }
