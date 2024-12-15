@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import DataGrid, {
   Column,
   Export,
@@ -66,6 +66,14 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     pageSize: "50",
     virtualScrolling: true,
   });
+  // Sayfa yüklendiğinde localStorage'dan seçili stokları al
+  const [selectedStocks, setSelectedStocks] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const savedStocks = localStorage.getItem("selectedStocks");
+      return savedStocks ? JSON.parse(savedStocks) : [];
+    }
+    return [];
+  });
 
   const handleRowDblClick = useCallback(
     async (e: any) => {
@@ -87,6 +95,17 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     [onMenuItemClick, toast]
   );
 
+  // Seçili stokları localStorage'a kaydet
+  useEffect(() => {
+    localStorage.setItem("selectedStocks", JSON.stringify(selectedRowKeys));
+  }, [selectedRowKeys]);
+
+  // Component unmount olduğunda seçili stokları temizle
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("selectedStocks");
+    };
+  }, []);
   const handleSettingsChange = useCallback(
     (key: string, value: boolean | string) => {
       setSettings((prev) => ({ ...prev, [key]: value }));
@@ -163,9 +182,14 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         wordWrapEnabled={true}
         height="calc(100vh - 200px)"
         selectedRowKeys={selectedRowKeys}
-        onSelectionChanged={(e) =>
-          setSelectedRowKeys(e.selectedRowKeys as string[])
-        }
+        onSelectionChanged={(e) => {
+          const newSelectedKeys = e.selectedRowKeys as string[];
+          setSelectedRowKeys(newSelectedKeys);
+          localStorage.setItem(
+            "selectedStocks",
+            JSON.stringify(newSelectedKeys)
+          );
+        }}
         onRowDblClick={handleRowDblClick}
         loadPanel={{ enabled: loading }}
       >

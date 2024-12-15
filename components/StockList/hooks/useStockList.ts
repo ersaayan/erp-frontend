@@ -11,6 +11,13 @@ export const useStockList = () => {
         USD_TRY: number;
         EUR_TRY: number;
     } | null>(null);
+    const [selectedStocks, setSelectedStocks] = useState<string[]>(() => {
+        if (typeof window !== 'undefined') {
+            const savedStocks = localStorage.getItem('selectedStocks');
+            return savedStocks ? JSON.parse(savedStocks) : [];
+        }
+        return [];
+    });
     const { toast } = useToast();
 
     const fetchData = useCallback(async () => {
@@ -98,6 +105,8 @@ export const useStockList = () => {
         loading,
         error,
         exchangeRates,
+        selectedStocks,
+        setSelectedStocks,
         fetchData,
         handleDeleteSelected,
     };
