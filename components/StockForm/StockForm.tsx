@@ -445,7 +445,11 @@ const StockForm: React.FC = () => {
 
       <div className="flex-grow overflow-auto px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-4">
+          <TabsList
+            className={`grid w-full mb-4 ${
+              formState.isUpdateMode ? "grid-cols-7" : "grid-cols-6"
+            }`}
+          >
             <TabsTrigger value="genel">Genel</TabsTrigger>
             <TabsTrigger value="diger">Diğer</TabsTrigger>
             <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
