@@ -53,6 +53,7 @@ import OrderPreparation from "@/components/OrderPreparation";
 import CurrentForm from "@/components/CurrentForm";
 import BarcodeGenerator from "@/components/BarcodeGenerator";
 import StockCount from "@/components/StockCount";
+import ProfilePage from "@/components/Profile";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -94,6 +95,11 @@ export default function Home() {
     if (activeTab === tabName) {
       setActiveTab(newOpenTabs[newOpenTabs.length - 1] || null);
     }
+  };
+
+  const handleProfile = () => {
+    // Navigate to New Current page
+    handleMenuItemClick("Profil");
   };
 
   const handleLogout = () => {
@@ -188,6 +194,10 @@ export default function Home() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleProfile}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Çıkış Yap</span>
@@ -242,6 +252,7 @@ export default function Home() {
               {activeTab === "Sipariş Paketleme" && <OrderPreparation />}
               {activeTab === "Stok Sayım" && <StockCount />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
+              {activeTab === "Profil" && <ProfilePage />}
             </TabContainer>
           </main>
         </div>
