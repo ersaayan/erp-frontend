@@ -12,7 +12,7 @@ export const useBulkPrint = () => {
             toast({
                 variant: "destructive",
                 title: "Hata",
-                description: "Yazdırılacak stok bulunamadı.",
+                description: "Lütfen barkod yazdırmak için en az bir stok seçin.",
             });
             return;
         }
@@ -28,19 +28,31 @@ export const useBulkPrint = () => {
             // Her stok için QR kod oluştur
             const stockElements = await Promise.all(
                 selectedStocks.map(async (stock) => {
-                    const qrCode = await generateQRCode(stock.productCode);
-                    const formattedStockCode = stock.productCode.split('/').join('\n');
-                    return `
-                        <div class="container">
-                            <img class="qr-code" src="${qrCode}" />
-                            <div class="stock-code">${formattedStockCode}</div>
-                        </div>
-                    `;
+                    try {
+                        const qrCode = await generateQRCode(stock.productCode);
+                        const formattedStockCode = stock.productCode.split('/').join('\n');
+                        return `
+                            <div class="container">
+                                <img class="qr-code" src="${qrCode}" />
+                                <div class="stock-code">${formattedStockCode}</div>
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error(`Error generating QR code for stock ${stock.productCode}:`, error);
+                        return '';
+                    }
                 })
             );
 
+            // Boş olmayan elementleri filtrele
+            const validStockElements = stockElements.filter(element => element !== '');
+
+            if (validStockElements.length === 0) {
+                throw new Error('Hiçbir barkod oluşturulamadı');
+            }
+
             // HTML şablonunu oluştur
-            printWindow.document.write(`
+            const htmlContent = `
                 <html>
                     <head>
                         <title>Barkod Yazdır</title>
@@ -79,15 +91,16 @@ export const useBulkPrint = () => {
                         </style>
                     </head>
                     <body>
-                        ${stockElements.join('')}
+                        ${validStockElements.join('')}
                     </body>
                 </html>
-            `);
+            `;
 
+            printWindow.document.write(htmlContent);
             printWindow.document.close();
 
             // Görsellerin yüklenmesini bekle
-            await new Promise((resolve) => {
+            const loadImages = () => new Promise((resolve) => {
                 const images = printWindow.document.getElementsByTagName('img');
                 let loadedImages = 0;
                 const totalImages = images.length;
@@ -97,7 +110,7 @@ export const useBulkPrint = () => {
                     return;
                 }
 
-                Array.from(images).forEach((img) => {
+                for (const img of images) {
                     if (img.complete) {
                         loadedImages++;
                         if (loadedImages === totalImages) resolve(null);
@@ -111,8 +124,10 @@ export const useBulkPrint = () => {
                             if (loadedImages === totalImages) resolve(null);
                         };
                     }
-                });
+                }
             });
+
+            await loadImages();
 
             // Yazdırma işlemini başlat
             setTimeout(() => {
@@ -122,7 +137,7 @@ export const useBulkPrint = () => {
 
             toast({
                 title: "Başarılı",
-                description: `${selectedStocks.length} adet barkod yazdırma işlemi başlatıldı`,
+                description: `${validStockElements.length} adet barkod yazdırma işlemi başlatıldı`,
             });
         } catch (error) {
             toast({
