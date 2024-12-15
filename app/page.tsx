@@ -41,7 +41,6 @@ import VaultOperations from "@/components/VaultOperations";
 import BankOperations from "@/components/BankOperations";
 import PosOperations from "@/components/PosOperations";
 import CurrentTransactions from "@/components/CurrentTransactions";
-import ApiDocumentation from "@/components/Settings/ApiDocumentation";
 import UsersPage from "@/components/users";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -53,7 +52,7 @@ import OrderPreparation from "@/components/OrderPreparation";
 import CurrentForm from "@/components/CurrentForm";
 import BarcodeGenerator from "@/components/BarcodeGenerator";
 import StockCount from "@/components/StockCount";
-import ProfilePage from "@/components/Profile";
+import ProfileForm from "@/components/Profile/ProfileForm";
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -246,13 +245,12 @@ export default function Home() {
               {activeTab === "Kasa İşlemleri" && <VaultOperations />}
               {activeTab === "Banka İşlemleri" && <BankOperations />}
               {activeTab === "POS İşlemleri" && <PosOperations />}
-              {activeTab === "Tanımlar" && <ApiDocumentation />}
               {activeTab === "Alış Faturası" && <PurchaseInvoice />}
               {activeTab === "Satış Faturası" && <SalesInvoice />}
               {activeTab === "Sipariş Paketleme" && <OrderPreparation />}
               {activeTab === "Stok Sayım" && <StockCount />}
               {activeTab === "Kullanıcılar" && <UsersPage />}
-              {activeTab === "Profil" && <ProfilePage />}
+              {activeTab === "Profil" && <ProfileForm />}
             </TabContainer>
           </main>
         </div>
