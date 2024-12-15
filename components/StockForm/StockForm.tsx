@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import StockProperties from "./StockProperties";
 import StockManufacturers from "./StockManufacturers";
 import StockUnits from "./StockUnits";
+import StockMovements from "./StockMovements";
 import CategorySelector from "./CategorySelector";
 import { Alert, AlertDescription } from "../ui/alert";
 import { useWarehouses } from "./hooks/useWarehouses";
@@ -124,7 +125,11 @@ const StockForm: React.FC = () => {
   const [unitList, setUnitList] = useState<StockUnit[]>([]);
   // Initialize state from formState
   useEffect(() => {
-    if (formState.attributes.length > 0 && attributes.length > 0 && selectedProperties.length === 0) {
+    if (
+      formState.attributes.length > 0 &&
+      attributes.length > 0 &&
+      selectedProperties.length === 0
+    ) {
       const transformedProperties = formState.attributes.reduce((acc, attr) => {
         const attribute = attributes.find((a) => a.id === attr.attributeId);
         if (!attribute) return acc;
@@ -152,7 +157,7 @@ const StockForm: React.FC = () => {
     if (formState.manufacturers.length > 0) {
       setManufacturers(
         formState.manufacturers.map((m) => ({
-          id: m.id?.toString() || '', // Ensure 'id' is a string
+          id: m.id?.toString() || "", // Ensure 'id' is a string
           brandName: "",
           brandCode: "",
           currentId: m.currentId,
@@ -166,10 +171,11 @@ const StockForm: React.FC = () => {
     if (formState.priceListItems.length > 0) {
       setUnitList(
         formState.priceListItems.map((item) => {
-          const calculatedPriceWithVat = item.price * (1 + (item.vatRate ?? 0) / 100);
+          const calculatedPriceWithVat =
+            item.price * (1 + (item.vatRate ?? 0) / 100);
 
           return {
-            id: item.id?.toString() || '', // Ensure 'id' is a string
+            id: item.id?.toString() || "", // Ensure 'id' is a string
             value: "",
             label: "",
             priceListId: item.priceListId,
@@ -183,17 +189,35 @@ const StockForm: React.FC = () => {
     }
 
     if (formState.barcodes.length > 0) {
-      setBarcodes(formState.barcodes.map(b => ({ id: Math.random().toString(), text: b.barcode })));
+      setBarcodes(
+        formState.barcodes.map((b) => ({
+          id: Math.random().toString(),
+          text: b.barcode,
+        }))
+      );
     }
 
     if (formState.marketNames.length > 0) {
-      setMarketNames(formState.marketNames.map(m => ({ id: Math.random().toString(), text: m.marketName })));
+      setMarketNames(
+        formState.marketNames.map((m) => ({
+          id: Math.random().toString(),
+          text: m.marketName,
+        }))
+      );
     }
 
     if (formState.categoryItem.length > 0) {
-      setSelectedCategories(formState.categoryItem.map(c => c.categoryId));
+      setSelectedCategories(formState.categoryItem.map((c) => c.categoryId));
     }
-  }, [formState.attributes, attributes, formState.manufacturers, formState.priceListItems, formState.barcodes, formState.marketNames, formState.categoryItem]);
+  }, [
+    formState.attributes,
+    attributes,
+    formState.manufacturers,
+    formState.priceListItems,
+    formState.barcodes,
+    formState.marketNames,
+    formState.categoryItem,
+  ]);
 
   const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
@@ -248,10 +272,14 @@ const StockForm: React.FC = () => {
 
     try {
       // Yeni değerleri lokal değişkenlerde saklayın
-      const updatedMarketNames = marketNames.map((tag) => ({ marketName: tag.text }));
+      const updatedMarketNames = marketNames.map((tag) => ({
+        marketName: tag.text,
+      }));
       const updatedMarketNamesState = marketNames.map((tag) => tag.text);
 
-      const updatedCategoryItems = selectedCategories.map((categoryId) => ({ categoryId: categoryId }));
+      const updatedCategoryItems = selectedCategories.map((categoryId) => ({
+        categoryId: categoryId,
+      }));
       const updatedCategoryItemsState = selectedCategories;
 
       const updatedAttributes = selectedProperties.flatMap((prop) => {
@@ -262,7 +290,7 @@ const StockForm: React.FC = () => {
       });
 
       const updatedManufacturers = manufacturers.map((m) => ({
-        id: m.id?.toString() || '', // Ensure 'id' is a string
+        id: m.id?.toString() || "", // Ensure 'id' is a string
         productCode: m.code,
         productName: m.stockName,
         barcode: m.barcode,
@@ -271,10 +299,11 @@ const StockForm: React.FC = () => {
       }));
 
       const updatedPriceListItems = unitList.map((unit) => {
-        const calculatedPriceWithVat = unit.price * (1 + (unit.vatRate ?? 0) / 100);
+        const calculatedPriceWithVat =
+          unit.price * (1 + (unit.vatRate ?? 0) / 100);
 
         return {
-          id: unit.id?.toString() || '', // Ensure 'id' is a string
+          id: unit.id?.toString() || "", // Ensure 'id' is a string
           priceListId: unit.priceListId,
           price: unit.price,
           vatRate: unit.vatRate,
@@ -284,11 +313,9 @@ const StockForm: React.FC = () => {
       });
 
       const updatedBarcodes = [
-        ...barcodes.map((tag) => ({ barcode: tag.text }))
+        ...barcodes.map((tag) => ({ barcode: tag.text })),
       ];
-      const updatedBarcodesState = [
-        ...barcodes.map((tag) => tag.text)
-      ];
+      const updatedBarcodesState = [...barcodes.map((tag) => tag.text)];
 
       // State'i güncelleyin (opsiyonel)
       updateAttributes(updatedAttributes);
@@ -425,6 +452,9 @@ const StockForm: React.FC = () => {
             <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
             <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
             <TabsTrigger value="birimler">Birimler</TabsTrigger>
+            {formState.isUpdateMode && (
+              <TabsTrigger value="hareketler">Hareketler</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="genel">
@@ -445,8 +475,9 @@ const StockForm: React.FC = () => {
                           disabled={categoriesLoading}
                         >
                           <RefreshCcw
-                            className={`h-4 w-4 mr-2 ${categoriesLoading ? "animate-spin" : ""
-                              }`}
+                            className={`h-4 w-4 mr-2 ${
+                              categoriesLoading ? "animate-spin" : ""
+                            }`}
                           />
                           Yenile
                         </Button>
@@ -615,8 +646,9 @@ const StockForm: React.FC = () => {
                             parseFloat(e.target.value)
                           )
                         }
-                        className={`text-right ${formErrors.maliyetFiyat ? "border-destructive" : ""
-                          }`}
+                        className={`text-right ${
+                          formErrors.maliyetFiyat ? "border-destructive" : ""
+                        }`}
                       />
                       {formErrors.maliyetFiyat && (
                         <p className="text-sm text-destructive mt-1">
@@ -985,7 +1017,7 @@ const StockForm: React.FC = () => {
                           onChange={(e) =>
                             updateEFatura(
                               formState.eFatura[0]?.productCode || "",
-                              e.target.value,
+                              e.target.value
                             )
                           }
                           placeholder="Ürün adını giriniz"
@@ -1000,7 +1032,7 @@ const StockForm: React.FC = () => {
                           onChange={(e) =>
                             updateEFatura(
                               e.target.value,
-                              formState.eFatura[0]?.productName || "",
+                              formState.eFatura[0]?.productName || ""
                             )
                           }
                           placeholder="Ürün kodunu giriniz"
@@ -1029,6 +1061,10 @@ const StockForm: React.FC = () => {
 
           <TabsContent value="birimler">
             <StockUnits units={unitList} setUnits={setUnitList} />
+          </TabsContent>
+
+          <TabsContent value="hareketler">
+            <StockMovements productCode={formState.stockCard.productName} />
           </TabsContent>
         </Tabs>
       </div>
