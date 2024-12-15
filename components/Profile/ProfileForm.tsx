@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Company } from "@/components/users/types";
+import { useProfile } from "./useProfile";
+import { useCompanies } from "@/hooks/use-companies";
+import { ProfileFormData } from "./types";
 
 // Form validation schema
 const formSchema = z.object({
@@ -42,10 +44,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const ProfileForm: React.FC = () => {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { loading, error, fetchProfile, updateProfile } = useProfile();
+  const { companies, loading: companiesLoading } = useCompanies();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,32 +63,8 @@ const ProfileForm: React.FC = () => {
   // Fetch user data and companies
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [userResponse, companiesResponse] = await Promise.all([
-          fetch(`${process.env.BASE_URL}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            },
-            credentials: "include",
-          }),
-          fetch(`${process.env.BASE_URL}/companies`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            },
-            credentials: "include",
-          }),
-        ]);
-
-        if (!userResponse.ok || !companiesResponse.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const [userData, companiesData] = await Promise.all([
-          userResponse.json(),
-          companiesResponse.json(),
-        ]);
-
+      const userData = await fetchProfile();
+      if (userData) {
         // Set form values
         form.reset({
           username: userData.username,
@@ -99,62 +75,15 @@ const ProfileForm: React.FC = () => {
           address: userData.address || "",
           companyCode: userData.companyCode,
         });
-
-        setCompanies(companiesData);
-        setError(null);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Profil bilgileri yüklenirken bir hata oluştu"
-        );
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Profil bilgileri yüklenemedi",
-        });
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
-  }, [form, toast]);
+  }, [form, fetchProfile]);
 
   const onSubmit = async (values: FormData) => {
-    try {
-      setLoading(true);
-
-      const response = await fetch(`${process.env.BASE_URL}/users/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        credentials: "include",
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
-      }
-
-      toast({
-        title: "Başarılı",
-        description: "Profil bilgileriniz güncellendi",
-      });
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description:
-          err instanceof Error
-            ? err.message
-            : "Profil güncellenirken bir hata oluştu",
-      });
-    } finally {
-      setLoading(false);
-    }
+    const { username, ...updateData } = values;
+    await updateProfile(updateData as ProfileFormData);
   };
 
   if (error) {
