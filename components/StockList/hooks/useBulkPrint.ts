@@ -12,7 +12,7 @@ export const useBulkPrint = () => {
             toast({
                 variant: "destructive",
                 title: "Hata",
-                description: "Lütfen barkod yazdırmak için en az bir stok seçin.",
+                description: "Yazdırılacak stok bulunamadı.",
             });
             return;
         }

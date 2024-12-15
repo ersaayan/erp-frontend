@@ -74,6 +74,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     }
     return [];
   });
+  // Sayfa yüklendiğinde verileri getir
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRowDblClick = useCallback(
     async (e: any) => {
@@ -160,6 +164,15 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <BulkActions
           onDelete={() => handleDeleteSelected(selectedRowKeys)}
           onPrint={() => {
+            if (selectedRowKeys.length === 0) {
+              toast({
+                variant: "destructive",
+                title: "Hata",
+                description:
+                  "Lütfen barkod yazdırmak için en az bir stok seçin.",
+              });
+              return;
+            }
             const selectedStocks = stockData.filter((stock) =>
               selectedRowKeys.includes(stock.id)
             );

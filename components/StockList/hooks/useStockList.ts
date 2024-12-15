@@ -23,6 +23,11 @@ export const useStockList = () => {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
+            // Önce localStorage'dan seçili stokları al
+            const savedStocks = localStorage.getItem('selectedStocks');
+            if (savedStocks) {
+                setSelectedStocks(JSON.parse(savedStocks));
+            }
             const [stockResponse, ratesResponse] = await Promise.all([
                 fetch(`${process.env.BASE_URL}/stockcards/stockCardsWithRelations`, {
                     headers: {
