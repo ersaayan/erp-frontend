@@ -86,6 +86,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     virtualScrolling: true,
   });
 
+  const onSelectionChanged = useCallback((e: any) => {
+    setSelectedRowKeys(e.selectedRowKeys);
+  }, []);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -552,9 +556,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         height="calc(100vh - 200px)"
         selectedRowKeys={selectedRowKeys}
         selection={{ mode: "multiple" }}
-        onSelectionChanged={(e) =>
-          setSelectedRowKeys(e.selectedRowKeys as string[])
-        }
+        onSelectionChanged={onSelectionChanged}
         onRowDblClick={handleRowDblClick}
         loadPanel={{
           enabled: loading,

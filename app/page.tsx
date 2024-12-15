@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import StockList from "@/components/StockList";
+import StockList from "@/components/StockList/StockList";
 import StockForm from "@/components/StockForm/StockForm";
 import StockMovements from "@/components/StockMovements";
 import TabContainer from "@/components/TabContainer";
