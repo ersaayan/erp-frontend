@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
@@ -405,6 +406,7 @@ const StockForm: React.FC = () => {
         title: "Hata",
         description: "Resimler yüklenirken bir hata oluştu",
       });
+      console.error(error);
     } finally {
       setImageUploadLoading(false);
     }

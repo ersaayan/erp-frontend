@@ -1,5 +1,3 @@
-import { number } from "prop-types";
-
 export interface Attribute {
     id: string;
     attributeName: string;

@@ -25,6 +25,7 @@ const MovementsToolbar: React.FC = () => {
         title: "Error",
         description: "Failed to refresh stock movements",
       });
+      console.error(error);
     }
   };
 

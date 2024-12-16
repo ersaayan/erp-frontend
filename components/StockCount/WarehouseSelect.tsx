@@ -42,6 +42,7 @@ const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
         setWarehouses(data);
       } catch (err) {
         setError("Depolar yüklenirken bir hata oluştu");
+        console.error(err);
       } finally {
         setLoading(false);
       }

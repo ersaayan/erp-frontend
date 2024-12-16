@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback } from 'react';
 import { purchaseInvoiceSchema, productSchema, paymentSchema } from '@/lib/validations/purchaseInvoice';
 import { useToast } from '@/hooks/use-toast';

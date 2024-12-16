@@ -76,6 +76,7 @@ export const useStockCount = () => {
                 title: "Hata",
                 description: "Stok sayımı kaydedilirken bir hata oluştu",
             });
+            console.error(error);
         } finally {
             setLoading(false);
         }

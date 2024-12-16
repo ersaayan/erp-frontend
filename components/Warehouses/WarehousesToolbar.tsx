@@ -26,6 +26,7 @@ const WarehousesToolbar: React.FC = () => {
         title: "Error",
         description: "Failed to refresh warehouses",
       });
+      console.error(error);
     }
   };
 

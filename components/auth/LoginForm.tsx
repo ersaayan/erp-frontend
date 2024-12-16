@@ -68,6 +68,7 @@ export function LoginForm() {
         title: "Hata",
         description: "Bir hata oluştu. Lütfen tekrar deneyin.",
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

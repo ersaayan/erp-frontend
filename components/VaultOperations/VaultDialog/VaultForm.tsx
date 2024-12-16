@@ -94,6 +94,7 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
           title: "Error",
           description: "Failed to fetch branches",
         });
+        console.error(error);
       }
     };
 
@@ -135,6 +136,7 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
         title: "Error",
         description: "Failed to delete vault",
       });
+      console.error(error);
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);
@@ -186,6 +188,7 @@ const VaultForm: React.FC<VaultFormProps> = ({ vault, onClose }) => {
         title: "Error",
         description: "Failed to save vault",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }

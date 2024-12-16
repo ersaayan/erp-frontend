@@ -87,6 +87,7 @@ export const usePurchaseInvoiceForm = (initialData?: Partial<InvoiceFormData>) =
             purchaseInvoiceSchema.parse(data);
             return true;
         } catch (error) {
+            console.error(error);
             return false;
         }
     }, []);

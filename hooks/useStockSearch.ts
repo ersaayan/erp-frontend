@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 
 export interface StockSearchResult {
@@ -63,6 +62,7 @@ export const useStockSearch = (selectedPriceListId?: string) => {
                 title: "Error",
                 description: "Failed to search stocks",
             });
+            console.error(error);
             setResults([]);
         } finally {
             setLoading(false);

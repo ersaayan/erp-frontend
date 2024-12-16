@@ -27,7 +27,7 @@ import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { documentTypes, warehouses, branches, currencies } from "./data";
+import { documentTypes, warehouses, branches } from "./data";
 import { StockMovement } from "./types";
 import { useToast } from "@/hooks/use-toast";
 

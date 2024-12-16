@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { User, UserFormData } from "@/components/users/types";
 
 const getAuthHeader = () => ({

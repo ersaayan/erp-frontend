@@ -26,6 +26,7 @@ const UsersToolbar: React.FC = () => {
         title: "Error",
         description: "Failed to refresh users",
       });
+      console.error(error);
     }
   };
 
