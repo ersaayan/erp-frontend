@@ -42,7 +42,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 
       setLoading(true);
 
-      let searchParams = new URLSearchParams();
+      const searchParams = new URLSearchParams();
       if (selectedOption === "barcodeOnly")
         searchParams.append("barcodes", debouncedSearchTerm);
       else if (selectedOption === "stockCodeOnly")

@@ -457,7 +457,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
               variant="outline"
               size="sm"
               onClick={() => setShowPreview(true)}
-              disabled={selectedStocks.length === 0 || loading}
+              disabled={selectedRowKeys.length === 0 || loading}
               className="min-w-[120px]"
             >
               {loading ? (
