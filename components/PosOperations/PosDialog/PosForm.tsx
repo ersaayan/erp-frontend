@@ -140,6 +140,7 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
         title: "Error",
         description: "Failed to delete POS",
       });
+      throw error;
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);
@@ -188,6 +189,7 @@ const PosForm: React.FC<PosFormProps> = ({ pos, onClose }) => {
         title: "Error",
         description: "Failed to save POS",
       });
+      throw error;
     } finally {
       setLoading(false);
     }

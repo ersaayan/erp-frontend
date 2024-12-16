@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { OrderFormData, Branch, Warehouse } from "./types";
-import { useToast } from "@/hooks/use-toast";
 
 interface OrderFormProps {
   data: OrderFormData;
@@ -36,7 +35,6 @@ const OrderForm: React.FC<OrderFormProps> = ({ data, onChange }) => {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {

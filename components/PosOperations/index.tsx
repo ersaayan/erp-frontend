@@ -9,7 +9,6 @@ import {
 import PosGrid from "./PosGrid";
 import PosMovementsGrid from "./PosMovementsGrid";
 import { Pos } from "./types";
-import { useEffect } from "react";
 
 const PosOperations: React.FC = () => {
   const [selectedPos, setSelectedPos] = useState<Pos | null>(() => {

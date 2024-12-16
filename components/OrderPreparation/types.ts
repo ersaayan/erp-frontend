@@ -1,4 +1,3 @@
-import { Current } from "@/components/CurrentList/types";
 
 export interface OrderFormData {
     orderNo: string;
