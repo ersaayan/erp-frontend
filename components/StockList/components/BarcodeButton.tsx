@@ -3,38 +3,38 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
-import { useBarcodeGenerator } from "@/components/BarcodeGenerator/hooks/useBarcodeGenerator";
 import { StockCard } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import { generateQRCode } from "@/components/BarcodeGenerator/utils/qrCodeGenerator";
 
 interface BarcodeButtonProps {
-  stocks: StockCard[];
+  selectedStocks: StockCard[];
 }
 
-const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
-  const { loading, handlePrint } = useBarcodeGenerator();
+const BarcodeButton: React.FC<BarcodeButtonProps> = ({ selectedStocks }) => {
+  const [loading, setLoading] = useState(false);
   const [qrCodesReady, setQrCodesReady] = useState(false);
-  const [qrCodesData, setQrCodesData] = useState<string[] | null>(null);
+  const [qrCodesData, setQrCodesData] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     const generateQRs = async () => {
-      if (!stocks || stocks.length === 0) {
+      if (selectedStocks.length === 0) {
         setQrCodesReady(false);
-        setQrCodesData(null);
+        setQrCodesData([]);
         return;
       }
 
       try {
-        const qrCodes = await Promise.all(
-          stocks.map((stock) => generateQRCode(stock.productCode))
+        const codes = await Promise.all(
+          selectedStocks.map((stock) => generateQRCode(stock.productCode))
         );
-        setQrCodesData(qrCodes);
+        setQrCodesData(codes);
         setQrCodesReady(true);
       } catch (err) {
+        console.error("Error generating QR codes:", err);
         setQrCodesReady(false);
-        setQrCodesData(null);
+        setQrCodesData([]);
         toast({
           variant: "destructive",
           title: "Hata",
@@ -44,92 +44,105 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
     };
 
     generateQRs();
-  }, [stocks?.length, toast]);
+  }, [selectedStocks, toast]);
 
-  const handleClick = async () => {
+  const handlePrint = async () => {
     if (
-      stocks.length === 0 ||
+      selectedStocks.length === 0 ||
       !qrCodesReady ||
-      !qrCodesData ||
       qrCodesData.length === 0
     ) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "QR kodlar henüz hazır değil",
+        description: "Yazdırılacak barkod bulunamadı",
       });
       return;
     }
 
     try {
+      setLoading(true);
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
         throw new Error("Yazdırma penceresi açılamadı");
       }
 
       let bodyContent = "";
-
-      stocks.forEach((stock, index) => {
+      selectedStocks.forEach((stock, index) => {
         const qrCode = qrCodesData[index];
-        const formattedStockCode = stock.productCode.split("/").join("<br>");
+        const formattedStockCode = stock.productCode.split("/").join("\n");
         bodyContent += `
-        <div class="barcode-container">
-          <img src="${qrCode}" alt="QR Kod" />
-          <p>${formattedStockCode}</p>
-        </div>
-      `;
+          <div class="barcode-container">
+            <img class="qr-code" src="${qrCode}" />
+            <div class="stock-code">${formattedStockCode}</div>
+          </div>
+        `;
       });
 
       printWindow.document.write(`
-      <html>
-        <head>
-          <title>Barkod Yazdır</title>
-          <style>
-            @page {
-              size: 80mm 40mm;
-              margin: 0;
-            }
-            body {
-              display: flex;
-              flex-wrap: wrap;
-              margin: 0;
-              padding: 0;
-            }
-            .barcode-container {
-              width: 80mm;
-              height: 40mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-            }
-            img {
-              max-width: 100%;
-              max-height: 70%;
-            }
-            p {
-              margin: 0;
-              font-size: 12px;
-              text-align: center;
-            }
-          </style>
-        </head>
-        <body>
-          ${bodyContent}
-        </body>
-      </html>
-    `);
+        <html>
+          <head>
+            <title>Barkod Yazdır</title>
+            <style>
+              @page {
+                size: 80mm 40mm;
+                margin: 0;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              .barcode-container {
+                width: 80mm;
+                height: 40mm;
+                position: relative;
+              }
+              .qr-code {
+                position: absolute;
+                width: 20mm;
+                height: 20mm;
+                left: 30mm;
+                top: 3mm;
+              }
+              .stock-code {
+                position: absolute;
+                width: 100%;
+                top: 25mm;
+                text-align: center;
+                font-family: Arial;
+                font-size: 12pt;
+                font-weight: bold;
+                white-space: pre-line;
+              }
+            </style>
+          </head>
+          <body>
+            ${bodyContent}
+          </body>
+        </html>
+      `);
 
       printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    } catch (err) {
+
+      // Wait for images to load before printing
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+        setLoading(false);
+      }, 500);
+
+      toast({
+        title: "Başarılı",
+        description: "Barkod yazdırma işlemi başlatıldı",
+      });
+    } catch (error) {
+      console.error("Print error:", error);
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Barkodlar yazdırılamadı",
+        description: "Yazdırma işlemi başlatılırken bir hata oluştu",
       });
+      setLoading(false);
     }
   };
 
@@ -137,15 +150,15 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
     <Button
       variant="outline"
       size="sm"
-      onClick={handleClick}
-      disabled={stocks.length === 0 || loading || !qrCodesReady}
+      onClick={handlePrint}
+      disabled={selectedStocks.length === 0 || loading || !qrCodesReady}
       className="min-w-[120px]"
     >
       <Printer className="h-4 w-4 mr-2" />
       {loading
         ? "Yazdırılıyor..."
         : qrCodesReady
-        ? "Barkodları Yazdır"
+        ? "Barkod Yazdır"
         : "QR Kodlar Hazırlanıyor..."}
     </Button>
   );

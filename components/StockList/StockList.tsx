@@ -405,7 +405,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             <Button variant="destructive" onClick={handleDeleteSelected}>
               Seçili Olanları Sil
             </Button>
-            <BarcodeButton stocks={selectedStocks || []} />
+            <BarcodeButton selectedStocks={selectedStocks} />
           </div>
         </Card>
       )}
