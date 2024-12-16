@@ -1,7 +1,6 @@
 export interface BarcodeData {
     stockCode: string;
     stockName: string;
-    barcode: string;
 }
 
 export interface BarcodeTemplate {
