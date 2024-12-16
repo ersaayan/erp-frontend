@@ -55,6 +55,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "../ui/card";
+import BarcodeButton from "./components/BarcodeButton";
 
 interface StockListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -527,16 +528,13 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             <Button variant="destructive" onClick={handleDeleteSelected}>
               Seçili Olanları Sil
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleBulkPrint}
-              disabled={printLoading}
-            >
-              {printLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Barkod Yazdır
-            </Button>
+            {selectedRowKeys && (
+              <BarcodeButton
+                stocks={stockData.filter((stock) =>
+                  selectedRowKeys.includes(stock.productCode)
+                )}
+              />
+            )}
           </div>
         </Card>
       )}
