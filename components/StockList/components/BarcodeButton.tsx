@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateQRCode } from "@/components/BarcodeGenerator/utils/qrCodeGenerator";
 
 interface BarcodeButtonProps {
-  stocks: StockCard[] | null;
+  stocks: StockCard[];
 }
 
 const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
@@ -20,7 +20,7 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
 
   useEffect(() => {
     const generateQRs = async () => {
-      if (!stocks) {
+      if (!stocks || stocks.length === 0) {
         setQrCodesReady(false);
         setQrCodesData(null);
         return;
@@ -48,7 +48,6 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
 
   const handleClick = async () => {
     if (
-      !stocks ||
       stocks.length === 0 ||
       !qrCodesReady ||
       !qrCodesData ||
@@ -139,11 +138,15 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
       variant="outline"
       size="sm"
       onClick={handleClick}
-      disabled={!stocks || stocks.length === 0 || loading}
+      disabled={stocks.length === 0 || loading || !qrCodesReady}
       className="min-w-[120px]"
     >
       <Printer className="h-4 w-4 mr-2" />
-      {loading ? "Yazdırılıyor..." : "Barkodları Yazdır"}
+      {loading
+        ? "Yazdırılıyor..."
+        : qrCodesReady
+        ? "Barkodları Yazdır"
+        : "QR Kodlar Hazırlanıyor..."}
     </Button>
   );
 };
