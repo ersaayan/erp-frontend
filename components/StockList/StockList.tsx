@@ -521,10 +521,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   return (
     <div className="p-4 space-y-4">
       {renderToolbarContent()}
+
       {selectedRowKeys && (
         <BarcodeButton
           stocks={stockData.filter((stock) =>
-            selectedRowKeys.includes(stock.productCode)
+            selectedRowKeys.includes(stock.id)
           )}
         />
       )}
