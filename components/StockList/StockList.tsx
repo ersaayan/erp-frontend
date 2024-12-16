@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import DataGrid, {
   Column,
   Export,
@@ -92,11 +98,8 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     setSelectedRowKeys(e.selectedRowKeys);
   }, []);
 
-  const selectedStocks = React.useMemo(
-    () =>
-      stockData.filter((stock) =>
-        selectedRowKeys.includes(stock.id, stock.productCode)
-      ),
+  const selectedStocks = useMemo(
+    () => stockData.filter((stock) => selectedRowKeys.includes(stock.id)),
     [stockData, selectedRowKeys]
   );
 
@@ -138,19 +141,15 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     }
   }, [toast]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const handleRowDblClick = useCallback(
     async (e: any) => {
       try {
-        // Store the stock data in localStorage
         localStorage.setItem("currentStockData", JSON.stringify(e.data));
-
-        // Open the stock form in a new tab
         onMenuItemClick("Stok Formu");
-
         toast({
           title: "Success",
           description: "Opening stock form...",
@@ -179,18 +178,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
-
-      // Convert selected stocks to barcode data
-      const barcodeData: BarcodeData[] = selectedRowKeys.map((data) => ({
-        stockCode: data.productCode,
+      const barcodeData: BarcodeData[] = selectedStocks.map((stock) => ({
+        stockCode: stock.productCode,
       }));
-
-      // Initialize printer with default template
       const printer = new BarcodePrinter();
-
-      // Print barcodes
       await printer.printBarcodes(barcodeData);
-
       toast({
         title: "Başarılı",
         description: "Barkod yazdırma işlemi başlatıldı",
@@ -223,7 +215,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
-      const ids = selectedRowKeys.map((key) => key.id); // Ensure only ids are sent
+      const ids = selectedRowKeys;
       const response = await fetch(
         `${process.env.BASE_URL}/stockcards/deleteManyStockCardsWithRelations/`,
         {
@@ -262,7 +254,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     }
   }, [selectedRowKeys, fetchData, toast]);
 
-  const onExporting = React.useCallback((e: any) => {
+  const onExporting = useCallback((e: any) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Stock List");
 
