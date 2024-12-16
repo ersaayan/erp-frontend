@@ -11,7 +11,6 @@ interface PosOperationsToolbarProps {
   onShowAllMovements: () => void;
   selectedPos: Pos | null;
 }
-
 const PosOperationsToolbar: React.FC<PosOperationsToolbarProps> = ({
   onShowAllMovements,
   selectedPos,
