@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProductTable from "./ProductTable";
 import ProductSelectionDialog from "./ProductSelectionDialog";
 import { StockItem } from "../types";
 import { Current } from "@/components/CurrentList/types";
-import { cn } from "@/lib/utils";
 
 interface ProductsSectionProps {
   products: StockItem[];

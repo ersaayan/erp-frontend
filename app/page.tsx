@@ -21,7 +21,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import ServicesCosts from "@/components/Services-Costs";
 import StockVouchers from "@/components/StockVouchers";
 import BundleSetStocks from "@/components/BundleSetStocks";
 import BundleSetStockForm from "@/components/BundleSetStockForm";
@@ -224,7 +223,6 @@ export default function Home() {
               {activeTab === "Stok Formu" && <StockForm />}
               {activeTab === "Bundle/Set Stoklar" && <BundleSetStocks />}
               {activeTab === "Bundle/Set Stok Formu" && <BundleSetStockForm />}
-              {activeTab === "Hizmet - Masraflar" && <ServicesCosts />}
               {activeTab === "Fişler" && <StockVouchers />}
               {activeTab === "Hareketler" && <StockMovements />}
               {activeTab === "Hızlı Stok" && <QuickStock />}

@@ -81,6 +81,7 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
         title: "Error",
         description: "Failed to search products",
       });
+      console.error(error);
       setProducts([]);
     } finally {
       setLoading(false);

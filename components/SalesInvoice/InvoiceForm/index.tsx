@@ -26,7 +26,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { InvoiceFormData, Branch, Warehouse } from "../types";
 import { useToast } from "@/hooks/use-toast";
-import { FormField } from "../FormField";
 import { FormSection } from "../FormSection";
 
 interface InvoiceFormProps {
@@ -157,6 +156,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           title: "Error",
           description: "Failed to generate invoice number",
         });
+        console.error(error);
         setIsSerial(false);
       }
     }
@@ -198,6 +198,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           title: "Error",
           description: "Failed to generate GİB invoice number",
         });
+        console.error(error);
         setIsGprSerial(false);
       }
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -7,7 +8,6 @@ import ProductTable from "./ProductTable";
 import ProductSelectionDialog from "./ProductSelectionDialog";
 import { StockItem } from "../types";
 import { Current } from "@/components/CurrentList/types";
-import { cn } from "@/lib/utils";
 
 interface ProductsSectionProps {
   products: StockItem[];

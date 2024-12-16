@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
 import CustomerSearch from "./CustomerSearch";
 import CustomerInfo from "./CustomerInfo";
 import { Current } from "@/components/CurrentList/types";
