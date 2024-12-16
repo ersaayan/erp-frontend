@@ -7,7 +7,7 @@ import StockForm from "@/components/StockForm/StockForm";
 import StockMovements from "@/components/StockMovements";
 import TabContainer from "@/components/TabContainer";
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { Menu, Bell, ChevronDown, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import ExchangeRateDisplay from "@/components/ExchangeRateDisplay";
 import {
@@ -62,7 +62,10 @@ export default function Home() {
   const { toast } = useToast();
   const { logout } = useAuthService();
   const [username, setUsername] = useState<string>("User");
-  const [notifications, setNotifications] = useState([
+
+  // TODO Gerçek bildirim sistemine bağlanılacak.
+
+  const [notifications] = useState([
     { id: 1, message: "Yeni bir bildirim var" },
     { id: 2, message: "Önemli güncelleme mevcut" },
   ]);
@@ -114,8 +117,9 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Çıkış yapılırken bir hata oluştu",
+        description: "Çıkış yapılırken bir hata oluştu.",
       });
+      throw error;
     }
   };
 

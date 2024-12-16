@@ -9,19 +9,25 @@ import dynamic from "next/dynamic";
 // SVG'leri dinamik olarak import ediyoruz
 const LogoDark = dynamic(
   () =>
-    import("@/public/logo-dark.svg").then(
-      (mod) => (props: React.SVGProps<SVGSVGElement>) =>
+    import("@/public/logo-dark.svg").then((mod) => {
+      const Component = (props: React.SVGProps<SVGSVGElement>) => (
         <mod.default {...props} />
-    ),
+      );
+      Component.displayName = "LogoDark";
+      return Component;
+    }),
   { ssr: false }
 );
 
 const LogoLight = dynamic(
   () =>
-    import("@/public/logo-light.svg").then(
-      (mod) => (props: React.SVGProps<SVGSVGElement>) =>
+    import("@/public/logo-light.svg").then((mod) => {
+      const Component = (props: React.SVGProps<SVGSVGElement>) => (
         <mod.default {...props} />
-    ),
+      );
+      Component.displayName = "LogoLight";
+      return Component;
+    }),
   { ssr: false }
 );
 

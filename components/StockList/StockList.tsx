@@ -78,7 +78,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
-  const [printLoading, setPrintLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -94,7 +93,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   }, []);
 
   const selectedStocks = React.useMemo(
-    () => stockData.filter((stock) => selectedRowKeys.includes(stock.id)),
+    () =>
+      stockData.filter((stock) =>
+        selectedRowKeys.includes(stock.id, stock.productCode)
+      ),
     [stockData, selectedRowKeys]
   );
 
@@ -179,9 +181,8 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       setLoading(true);
 
       // Convert selected stocks to barcode data
-      const barcodeData: BarcodeData[] = selectedStocks.map((stock) => ({
-        stockCode: stock.productCode,
-        stockName: stock.productName,
+      const barcodeData: BarcodeData[] = selectedRowKeys.map((data) => ({
+        stockCode: data.productCode,
       }));
 
       // Initialize printer with default template
