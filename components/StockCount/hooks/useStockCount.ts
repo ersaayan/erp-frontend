@@ -43,7 +43,7 @@ export const useStockCount = () => {
         try {
             setLoading(true);
 
-            const response = await fetch(`${process.env.BASE_URL}/warehouses/stoktake`, {
+            const response = await fetch(`${process.env.BASE_URL}/warehouses/stocktake`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
