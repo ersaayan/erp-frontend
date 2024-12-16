@@ -20,7 +20,7 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
 
   useEffect(() => {
     const generateQRs = async () => {
-      if (!stocks || stocks.length === 0) {
+      if (!stocks) {
         setQrCodesReady(false);
         setQrCodesData(null);
         return;
@@ -44,7 +44,7 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
     };
 
     generateQRs();
-  }, [stocks, toast]);
+  }, [stocks?.length, toast]);
 
   const handleClick = async () => {
     if (
@@ -139,15 +139,11 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stocks }) => {
       variant="outline"
       size="sm"
       onClick={handleClick}
-      disabled={!stocks || stocks.length === 0 || loading || !qrCodesReady}
+      disabled={!stocks || stocks.length === 0 || loading}
       className="min-w-[120px]"
     >
       <Printer className="h-4 w-4 mr-2" />
-      {loading
-        ? "Yazdırılıyor..."
-        : qrCodesReady
-        ? "Barkodları Yazdır"
-        : "QR Kodlar Hazırlanıyor..."}
+      {loading ? "Yazdırılıyor..." : "Barkodları Yazdır"}
     </Button>
   );
 };
