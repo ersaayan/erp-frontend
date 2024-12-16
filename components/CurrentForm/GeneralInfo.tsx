@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CURRENT_TYPES, INSTITUTION_TYPES, PriceList } from "./types";
-import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const GeneralInfo: React.FC<{
   formData: any;

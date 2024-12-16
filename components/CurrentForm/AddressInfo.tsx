@@ -26,7 +26,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ADDRESS_TYPES, AddressInfo as AddressInfoType } from "./types";
-import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const AddressInfo: React.FC<{
   formData: any;

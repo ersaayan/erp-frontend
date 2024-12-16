@@ -231,6 +231,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
           title: "Error",
           description: "Failed to import file. Please try again.",
         });
+        throw error;
       } finally {
         setLoading(false);
         if (event.target) {

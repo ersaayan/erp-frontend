@@ -11,8 +11,7 @@ import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const CurrentForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const { formData, loading, updateFormData, handleSubmit, clearFormData } =
-    useCurrentForm();
+  const { formData, loading, updateFormData, handleSubmit } = useCurrentForm();
 
   return (
     <div className="flex flex-col h-auto">

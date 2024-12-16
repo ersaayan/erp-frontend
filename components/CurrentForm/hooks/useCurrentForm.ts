@@ -112,6 +112,7 @@ export const useCurrentForm = () => {
                 title: 'Hata',
                 description: 'Cari veri yüklenirken bir hata oluştu',
             });
+            throw error;
         } finally {
             setLoading(false);
         }

@@ -8,7 +8,6 @@ import { Check, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCurrentForm } from "./hooks/useCurrentForm";
 import { useCurrentCategories } from "./hooks/useCurrentCategories";
 
 interface CategoryNode {
