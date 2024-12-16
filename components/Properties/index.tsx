@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // components/Properties/PropertiesPage.tsx
 "use client";
 

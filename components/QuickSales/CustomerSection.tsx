@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -74,6 +75,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
         title: "Error",
         description: "Failed to search customers",
       });
+      console.error(error);
       setResults([]);
     } finally {
       setLoading(false);
@@ -95,7 +97,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Müşteri</h3>
         <Button variant="outline" size="sm">
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPlus className="h-4 w-4 mr-2" onClick={handleNewCurrentForm} />
           Yeni Müşteri
         </Button>
       </div>

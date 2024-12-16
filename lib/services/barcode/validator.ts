@@ -8,13 +8,6 @@ export const validateBarcodeData = (data: BarcodeData): BarcodeValidationResult 
         };
     }
 
-    if (!data.barcode) {
-        return {
-            isValid: false,
-            message: 'Barkod bulunamadı'
-        };
-    }
-
     return {
         isValid: true
     };

@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-} from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import DataGrid, {
   Column,
   Export,

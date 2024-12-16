@@ -74,6 +74,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
         title: "Error",
         description: "Failed to search products",
       });
+      console.error(error);
       setResults([]);
     } finally {
       setLoading(false);

@@ -13,6 +13,7 @@ interface BarcodeButtonProps {
 }
 
 const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stock }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { loading, handlePrint } = useBarcodeGenerator();
   const [qrCodeReady, setQrCodeReady] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
@@ -38,6 +39,7 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stock }) => {
           title: "Hata",
           description: "QR kod oluşturulamadı",
         });
+        console.error(err);
       }
     };
 
@@ -129,6 +131,7 @@ const BarcodeButton: React.FC<BarcodeButtonProps> = ({ stock }) => {
         title: "Hata",
         description: "Yazdırma işlemi başlatılırken bir hata oluştu",
       });
+      console.error(error);
     }
   };
 

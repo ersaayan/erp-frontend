@@ -160,6 +160,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           title: "Error",
           description: "Failed to generate invoice number",
         });
+        throw error;
         setIsSerial(false);
       }
     }
@@ -201,6 +202,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           title: "Error",
           description: "Failed to generate GİB invoice number",
         });
+        throw error;
         setIsGprSerial(false);
       }
     }

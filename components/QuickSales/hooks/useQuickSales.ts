@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { CartItem, Customer, Payment, Sale } from "../types";
+import { CartItem, Customer, Sale } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import Decimal from "decimal.js";
 import { PaymentDetails } from "../PaymentSection/types";

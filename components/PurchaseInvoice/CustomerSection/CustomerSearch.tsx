@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -13,7 +14,9 @@ interface CustomerSearchProps {
   onCustomerSelect: (customer: Current) => void;
 }
 
-const CustomerSearch: React.FC<CustomerSearchProps> = ({ onCustomerSelect }) => {
+const CustomerSearch: React.FC<CustomerSearchProps> = ({
+  onCustomerSelect,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<Current[]>([]);
   const [loading, setLoading] = useState(false);

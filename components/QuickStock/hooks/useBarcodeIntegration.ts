@@ -25,6 +25,7 @@ export const useBarcodeIntegration = () => {
                 title: "Hata",
                 description: "Barkod yazdırma işlemi başarısız oldu",
             });
+            console.error(error);
         }
     }, [handlePrint, toast]);
 

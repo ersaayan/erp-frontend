@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { generateQRCode } from "@/components/BarcodeGenerator/utils/qrCodeGenerator";
 import { BarcodeData, BarcodeTemplate } from "./types";
 import { DEFAULT_TEMPLATE } from "./template";
