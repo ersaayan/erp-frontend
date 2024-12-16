@@ -453,60 +453,58 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             <Button variant="destructive" onClick={handleDeleteSelected}>
               Seçili Olanları Sil
             </Button>
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview(true)}
-                disabled={selectedStocks.length === 0 || loading}
-                className="min-w-[120px]"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Printer className="h-4 w-4 mr-2" />
-                )}
-                {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
-              </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(true)}
+              disabled={selectedStocks.length === 0 || loading}
+              className="min-w-[120px]"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Printer className="h-4 w-4 mr-2" />
+              )}
+              {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
+            </Button>
 
-              <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <div className="space-y-4">
-                      <p>Seçili Ürünler:</p>
-                      <ul className="list-disc pl-4 space-y-2">
-                        {selectedStocks.map((stock) => (
-                          <li key={stock.id}>
-                            {stock.productName} ({stock.productCode})
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+            <Dialog open={showPreview} onOpenChange={setShowPreview}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <div className="space-y-4">
+                    <p>Seçili Ürünler:</p>
+                    <ul className="list-disc pl-4 space-y-2">
+                      {selectedStocks.map((stock) => (
+                        <li key={stock.id}>
+                          {stock.productName} ({stock.productCode})
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowPreview(false)}
-                    >
-                      İptal
-                    </Button>
-                    <Button
-                      onClick={handlePrint}
-                      disabled={loading}
-                      className="bg-[#84CC16] hover:bg-[#65A30D]"
-                    >
-                      {loading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Yazdır
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPreview(false)}
+                  >
+                    İptal
+                  </Button>
+                  <Button
+                    onClick={handlePrint}
+                    disabled={loading}
+                    className="bg-[#84CC16] hover:bg-[#65A30D]"
+                  >
+                    {loading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Yazdır
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </Card>
       )}
