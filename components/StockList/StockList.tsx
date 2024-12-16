@@ -494,7 +494,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   </Button>
                   <Button
                     onClick={handlePrint}
-                    disabled={loading}
                     className="bg-[#84CC16] hover:bg-[#65A30D]"
                   >
                     {loading && (
