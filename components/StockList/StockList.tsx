@@ -90,6 +90,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     setSelectedRowKeys(e.selectedRowKeys);
   }, []);
 
+  const selectedStocks = stockData.filter((stock) =>
+    selectedRowKeys.includes(stock.id)
+  );
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -400,13 +404,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             <Button variant="destructive" onClick={handleDeleteSelected}>
               Seçili Olanları Sil
             </Button>
-            {selectedRowKeys && (
-              <BarcodeButton
-                stocks={stockData.filter((stock) =>
-                  selectedRowKeys.includes(stock.productCode)
-                )}
-              />
-            )}
+            {selectedRowKeys && <BarcodeButton stocks={selectedStocks} />}
           </div>
         </Card>
       )}
