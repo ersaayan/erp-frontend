@@ -11,7 +11,6 @@ import {
 import BanksGrid from "./BanksGrid";
 import BankMovementsGrid from "./BankMovementsGrid";
 import { Bank } from "./types";
-import { useEffect } from "react";
 
 const BankOperations: React.FC = () => {
   const [selectedBank, setSelectedBank] = useState<Bank | null>(() => {

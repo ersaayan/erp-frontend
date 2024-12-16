@@ -1,70 +1,70 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { BarcodeFormData } from '../types';
-import { validateFormData } from '../utils/validator';
 import { generateQRCode } from '../utils/qrCodeGenerator';
 import { formatStockCodeForDisplay } from '../utils/stockCodeFormatter';
 
 export const useBarcodeGenerator = () => {
-    const [formData, setFormData] = useState<BarcodeFormData>({
-        stockCode: '',
-        paperWidth: 80, // Fixed width: 80mm
-        paperHeight: 40, // Fixed height: 40mm
-    });
+  const [formData, setFormData] = useState<BarcodeFormData>({
+    stockCode: '',
+    paperWidth: 80, // Fixed width: 80mm
+    paperHeight: 40, // Fixed height: 40mm
+  });
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [qrCodeData, setQrCodeData] = useState<string | null>(null);
-    const [isQRCodeGenerated, setIsQRCodeGenerated] = useState(false);
-    const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+  const [isQRCodeGenerated, setIsQRCodeGenerated] = useState(false);
+  const { toast } = useToast();
 
-    const updateFormData = useCallback((field: keyof BarcodeFormData, value: string | number) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    }, []);
+  const updateFormData = useCallback((field: keyof BarcodeFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
 
-    // Generate QR code when stock code changes
-    useEffect(() => {
-        const generateQR = async () => {
-            if (!formData.stockCode.trim()) {
-                setQrCodeData(null);
-                setIsQRCodeGenerated(false);
-                return;
-            }
+  // Generate QR code when stock code changes
+  useEffect(() => {
+    const generateQR = async () => {
+      if (!formData.stockCode.trim()) {
+        setQrCodeData(null);
+        setIsQRCodeGenerated(false);
+        return;
+      }
 
-            try {
-                const qrCode = await generateQRCode(formData.stockCode);
-                setQrCodeData(qrCode);
-                setIsQRCodeGenerated(true);
-                setError(null);
-            } catch (err) {
-                setError('QR kod oluşturulamadı');
-                setIsQRCodeGenerated(false);
-            }
-        };
+      try {
+        const qrCode = await generateQRCode(formData.stockCode);
+        setQrCodeData(qrCode);
+        setIsQRCodeGenerated(true);
+        setError(null);
+      } catch (err) {
+        setError('QR kod oluşturulamadı');
+        setIsQRCodeGenerated(false);
+        throw err;
+      }
+    };
 
-        generateQR();
-    }, [formData.stockCode]);
+    generateQR();
+  }, [formData.stockCode]);
 
-    const handlePrint = useCallback(async () => {
-        if (!isQRCodeGenerated || !qrCodeData) {
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Lütfen önce QR kod oluşturulmasını bekleyin",
-            });
-            return;
-        }
+  const handlePrint = useCallback(async () => {
+    if (!isQRCodeGenerated || !qrCodeData) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen önce QR kod oluşturulmasını bekleyin",
+      });
+      return;
+    }
 
-        try {
-            setLoading(true);
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                throw new Error('Yazdırma penceresi açılamadı');
-            }
+    try {
+      setLoading(true);
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('Yazdırma penceresi açılamadı');
+      }
 
-            const formattedStockCode = formatStockCodeForDisplay(formData.stockCode);
+      const formattedStockCode = formatStockCodeForDisplay(formData.stockCode);
 
-            printWindow.document.write(`
+      printWindow.document.write(`
         <html>
           <head>
             <title>Barkod Yazdır</title>
@@ -110,38 +110,39 @@ export const useBarcodeGenerator = () => {
         </html>
       `);
 
-            printWindow.document.close();
+      printWindow.document.close();
 
-            const img = new Image();
-            img.src = qrCodeData;
-            img.onload = () => {
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 100);
-            };
+      const img = new Image();
+      img.src = qrCodeData;
+      img.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 100);
+      };
 
-            toast({
-                title: "Başarılı",
-                description: "Barkod yazdırma işlemi başlatıldı",
-            });
-        } catch (err) {
-            toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Yazdırma işlemi başlatılırken bir hata oluştu",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, [formData.stockCode, qrCodeData, isQRCodeGenerated, toast]);
+      toast({
+        title: "Başarılı",
+        description: "Barkod yazdırma işlemi başlatıldı",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Yazdırma işlemi başlatılırken bir hata oluştu",
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [formData.stockCode, qrCodeData, isQRCodeGenerated, toast]);
 
-    return {
-        formData,
-        loading,
-        error,
-        isQRCodeGenerated,
-        updateFormData,
-        handlePrint,
-    };
+  return {
+    formData,
+    loading,
+    error,
+    isQRCodeGenerated,
+    updateFormData,
+    handlePrint,
+  };
 };

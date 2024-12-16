@@ -143,6 +143,7 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
         title: "Error",
         description: "Failed to delete bank",
       });
+      throw error;
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);
@@ -193,6 +194,7 @@ const BankForm: React.FC<BankFormProps> = ({ bank, onClose }) => {
         title: "Error",
         description: "Failed to save bank",
       });
+      throw error;
     } finally {
       setLoading(false);
     }

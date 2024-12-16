@@ -310,7 +310,9 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
           dataField="bankType"
           caption="Tip"
           calculateCellValue={(rowData: BankMovement) =>
-            MOVEMENT_TYPE_TRANSLATIONS[rowData.bankType] || rowData.bankType
+            MOVEMENT_TYPE_TRANSLATIONS[
+              rowData.bankType as keyof typeof MOVEMENT_TYPE_TRANSLATIONS
+            ] || rowData.bankType
           }
         />
 

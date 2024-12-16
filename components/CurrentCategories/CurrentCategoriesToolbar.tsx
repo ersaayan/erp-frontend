@@ -26,6 +26,7 @@ const CurrentCategoriesToolbar: React.FC = () => {
         title: "Error",
         description: "Failed to refresh current categories",
       });
+      throw error;
     }
   };
 

@@ -84,6 +84,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
+  const [selectedStocks, setSelectedStocks] = useState<StockCard[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -96,12 +97,9 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
   const onSelectionChanged = useCallback((e: any) => {
     setSelectedRowKeys(e.selectedRowKeys);
+    const selectedItems = e.selectedRowsData || [];
+    setSelectedStocks(selectedItems);
   }, []);
-
-  const selectedStocks = useMemo(
-    () => stockData.filter((stock) => selectedRowKeys.includes(stock.id)),
-    [stockData, selectedRowKeys]
-  );
 
   const fetchData = useCallback(async () => {
     try {
@@ -471,7 +469,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   <div className="space-y-4">
                     <p>Seçili Ürünler:</p>
                     <ul className="list-disc pl-4 space-y-2">
-                      {selectedStocks.map((stock) => (
+                      {selectedStocks?.map((stock) => (
                         <li key={stock.id}>
                           {stock.productName} ({stock.productCode})
                         </li>

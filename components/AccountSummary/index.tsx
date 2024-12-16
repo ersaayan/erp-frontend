@@ -1,6 +1,4 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
-import AccountSummaryToolbar from "./AccountSummaryToolbar";
 import AccountSummaryGrid from "./AccountSummaryGrid";
 
 const AccountSummary: React.FC = () => {
