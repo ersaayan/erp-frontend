@@ -501,7 +501,7 @@ const StockForm: React.FC = () => {
                   </div>
 
                   {/* Basic Info Section */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="productName">Stok Adı</Label>
                       <Input
@@ -539,6 +539,20 @@ const StockForm: React.FC = () => {
                           {formErrors.productCode}
                         </p>
                       )}
+                    </div>
+                    <div>
+                      <Label>Barkodlar</Label>
+                      <TagInput
+                        tags={barcodes}
+                        setTags={setBarcodes}
+                        placeholder="Barkod girin ve Enter'a basın"
+                        styleClasses={{
+                          input: "w-full",
+                          tag: { body: "bg-red-500/10 text-red-500" },
+                        }}
+                        activeTagIndex={activeTagIndex}
+                        setActiveTagIndex={setActiveTagIndex}
+                      />
                     </div>
                   </div>
 
@@ -578,7 +592,7 @@ const StockForm: React.FC = () => {
                         <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           <span className="text-muted-foreground">
-                            Y��kleniyor...
+                            Yükleniyor...
                           </span>
                         </div>
                       ) : brandsError ? (
