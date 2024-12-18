@@ -65,9 +65,6 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
     if (!mounted) return;
 
     if (priceLists.length > 0) {
