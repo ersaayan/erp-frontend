@@ -23,5 +23,6 @@ jobs:
             cd /var/www/erp-dev-frontend/
             git pull origin master
             npm install
+            npm run build
             pm2 delete frontend || true
-            pm2 start npm --name frontend -- run dev
+            pm2 start npm --name frontend -- start
