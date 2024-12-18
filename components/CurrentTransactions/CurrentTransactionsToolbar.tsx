@@ -55,7 +55,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
 
   const handleNewCurrentForm = () => {
     // Navigate to New Current page
-    onMenuItemClick?.("Yeni Cari");
+    onMenuItemClick?.("Cari Formu");
   };
 
   const handlePurchaseInvoice = () => {

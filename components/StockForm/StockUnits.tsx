@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import DataGrid, {
   Column,
   Export,
@@ -25,6 +25,7 @@ import { usePriceLists } from "./hooks/usePriceLists";
 import { useStockForm } from "./hooks/useStockForm";
 import { StockUnit } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface StockUnitsProps {
   units: StockUnit[];
@@ -35,30 +36,40 @@ const generateBarcode = () => {
   return Math.floor(Math.random() * 9000000000000) + 1000000000000;
 };
 
-const onExporting = (e: any) => {
-  const workbook = new Workbook();
-  const worksheet = workbook.addWorksheet("Birimler");
+const onExporting = useCallback(
+  (e: any) => {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet("Birimler");
 
-  exportDataGrid({
-    component: e.component,
-    worksheet,
-    autoFilterEnabled: true,
-  }).then(() => {
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      saveAs(
-        new Blob([buffer], { type: "application/octet-stream" }),
-        "Birimler.xlsx"
-      );
+    exportDataGrid({
+      component: e.component,
+      worksheet,
+      autoFilterEnabled: true,
+    }).then(() => {
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        saveAs(
+          new Blob([buffer], { type: "application/octet-stream" }),
+          "Birimler.xlsx"
+        );
+      });
     });
-  });
-};
+  },
+  [Workbook, exportDataGrid, saveAs]
+);
 
 const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
   const { toast } = useToast();
   const { priceLists, loading, error } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     if (priceLists.length > 0) {
       const unitsFromPriceLists = priceLists.map((priceList) => {
         const formItem = formState.priceListItems.find(
@@ -97,7 +108,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
         setUnits(unitsFromPriceLists);
       }
     }
-}, [priceLists, formState.priceListItems, setUnits, units]);
+  }, [priceLists, formState.priceListItems, setUnits, units, mounted]);
 
   useEffect(() => {
     const unitsToUpdate = units.map((unit) => ({
@@ -115,7 +126,11 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
     ) {
       updatePriceListItems(unitsToUpdate);
     }
-}, [units, formState.priceListItems, updatePriceListItems]);
+  }, [units, formState.priceListItems, updatePriceListItems]);
+
+  if (!mounted) {
+    return null;
+  }
 
   const calculatePriceWithVat = (price: number, vatRate: number) => {
     return price * (1 + vatRate / 100);
