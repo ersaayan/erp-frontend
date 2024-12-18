@@ -25,7 +25,6 @@ import { usePriceLists } from "./hooks/usePriceLists";
 import { useStockForm } from "./hooks/useStockForm";
 import { StockUnit } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 interface StockUnitsProps {
   units: StockUnit[];
