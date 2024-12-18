@@ -36,32 +36,32 @@ const generateBarcode = () => {
   return Math.floor(Math.random() * 9000000000000) + 1000000000000;
 };
 
-const onExporting = useCallback(
-  (e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Birimler");
-
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      autoFilterEnabled: true,
-    }).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "Birimler.xlsx"
-        );
-      });
-    });
-  },
-  [Workbook, exportDataGrid, saveAs]
-);
-
 const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
   const { toast } = useToast();
   const { priceLists, loading, error } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
+
+  const onExporting = useCallback(
+    (e: any) => {
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet("Birimler");
+
+      exportDataGrid({
+        component: e.component,
+        worksheet,
+        autoFilterEnabled: true,
+      }).then(() => {
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            "Birimler.xlsx"
+          );
+        });
+      });
+    },
+    [Workbook, exportDataGrid, saveAs]
+  );
 
   useEffect(() => {
     setMounted(true);
