@@ -69,15 +69,32 @@ export default function Home() {
     { id: 2, message: "Önemli güncelleme mevcut" },
   ]);
 
+  const initialState = {
+    access:
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("access")
+        : false,
+    refresh:
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("refresh")
+        : false,
+    auth_token:
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("auth_token")
+        : false,
+    isAuthenticated: null,
+    user: null,
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const token = initialState.auth_token;
     if (token) {
       const decoded = decodeJWT(token);
       if (decoded?.username) {
         setUsername(decoded.username);
       }
     }
-  }, []);
+  }, [initialState.auth_token]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);

@@ -97,7 +97,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
         setUnits(unitsFromPriceLists);
       }
     }
-  }, [priceLists, formState.priceListItems]);
+}, [priceLists, formState.priceListItems, setUnits, units]);
 
   useEffect(() => {
     const unitsToUpdate = units.map((unit) => ({
@@ -115,7 +115,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
     ) {
       updatePriceListItems(unitsToUpdate);
     }
-  }, [units]);
+}, [units, formState.priceListItems, updatePriceListItems]);
 
   const calculatePriceWithVat = (price: number, vatRate: number) => {
     return price * (1 + vatRate / 100);

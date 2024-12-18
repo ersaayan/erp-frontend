@@ -210,15 +210,16 @@ const StockForm: React.FC = () => {
     if (formState.categoryItem.length > 0) {
       setSelectedCategories(formState.categoryItem.map((c) => c.categoryId));
     }
-  }, [
-    formState.attributes,
-    attributes,
-    formState.manufacturers,
-    formState.priceListItems,
-    formState.barcodes,
-    formState.marketNames,
-    formState.categoryItem,
-  ]);
+}, [
+formState.attributes,
+attributes,
+formState.manufacturers,
+formState.priceListItems,
+formState.barcodes,
+formState.marketNames,
+formState.categoryItem,
+selectedProperties.length,
+]);
 
   const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
@@ -351,24 +352,26 @@ const StockForm: React.FC = () => {
         description: error.message,
       });
     }
-  }, [
-    attributes,
-    barcodes,
-    formState,
-    manufacturers,
-    marketNames,
-    priceLists,
-    selectedCategories,
-    selectedProperties,
-    unitList,
-    updateAttributes,
-    updateBarcodes,
-    updateCategories,
-    updateManufacturers,
-    updateMarketNames,
-    updatePriceListItems,
-    validateForm,
-  ]);
+}, [
+attributes,
+barcodes,
+formState,
+manufacturers,
+marketNames,
+priceLists,
+selectedCategories,
+selectedProperties,
+unitList,
+updateAttributes,
+updateBarcodes,
+updateCategories,
+updateManufacturers,
+updateMarketNames,
+updatePriceListItems,
+validateForm,
+saveStockCard,
+toast,
+]);
 
   const handleImageUpload = async () => {
     try {

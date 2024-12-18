@@ -64,7 +64,7 @@ const StockManufacturers: React.FC<StockManufacturersProps> = ({
         }))
       );
     }
-  }, [formState.manufacturers]);
+}, [formState.manufacturers, setManufacturers]);
 
   const addManufacturer = () => {
     const newManufacturer: Manufacturer = {

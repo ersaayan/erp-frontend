@@ -195,7 +195,7 @@ export const useStockForm = () => {
                 console.error('Error parsing stock data:', err);
             }
         }
-    }, []);
+    }, [formState]);
 
     const updateStockCard = useCallback(<K extends keyof StockFormState['stockCard']>(
         field: K,

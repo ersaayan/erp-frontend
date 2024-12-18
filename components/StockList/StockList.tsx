@@ -193,7 +193,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       setLoading(false);
       setShowPreview(false);
     }
-  }, [selectedStocks, toast]);
+}, [selectedStocks, toast, selectedRowKeys.length]);
 
   const handleDeleteSelected = useCallback(async () => {
     if (selectedRowKeys.length === 0) {
