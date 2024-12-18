@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface AuthState {
     token: string | null;
@@ -6,19 +7,30 @@ interface AuthState {
     clearToken: () => void;
 }
 
-const useAuthStore = create<AuthState>((set) => ({
-    token: typeof window !== "undefined" ? localStorage.getItem("auth_token") : null,
-    setToken: (token) => {
-        localStorage.setItem("auth_token", token);
-        document.cookie = `auth_token=${token}; path=/; max-age=86400`; // 24 saat
-        set({ token });
-    },
-    clearToken: () => {
-        localStorage.removeItem("auth_token");
-        document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        set({ token: null });
-    },
-}));
+const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            token: null,
+            setToken: (token) => {
+                if (typeof window !== "undefined") {
+                    document.cookie = `auth_token=${token}; path=/; max-age=86400`; // 24 hours
+                }
+                set({ token });
+            },
+            clearToken: () => {
+                if (typeof window !== "undefined") {
+                    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                }
+                set({ token: null });
+            },
+        }),
+        {
+            name: 'auth-storage',
+            storage: createJSONStorage(() => (typeof window !== "undefined" ? localStorage : null)),
+            skipHydration: true,
+        }
+    )
+);
 
 interface LoginResponse {
     success: boolean;
@@ -27,17 +39,20 @@ interface LoginResponse {
 }
 
 export const getAuthHeader = () => {
-    const token = localStorage.getItem('auth_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (typeof window === "undefined") return {};
+    const store = useAuthStore.getState();
+    return store.token ? { Authorization: `Bearer ${store.token}` } : {};
 };
 
 export const isAuthenticated = () => {
-    return !!localStorage.getItem('auth_token');
+    if (typeof window === "undefined") return false;
+    const store = useAuthStore.getState();
+    return !!store.token;
 };
 
 export const handleAuthError = (error: any) => {
-    if (error.status === 401) {
-        localStorage.removeItem('auth_token');
+    if (error.status === 401 && typeof window !== "undefined") {
+        useAuthStore.getState().clearToken();
         window.location.href = '/auth/login';
     }
     throw error;
@@ -52,7 +67,7 @@ export const useAuthService = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                    ...getAuthHeader(),
                 },
                 body: JSON.stringify({ email, password }),
             });
@@ -79,11 +94,6 @@ export const useAuthService = () => {
 
     const logout = () => {
         clearToken();
-    };
-
-    const isAuthenticated = () => {
-        const token = localStorage.getItem("auth_token");
-        return !!token;
     };
 
     return {
