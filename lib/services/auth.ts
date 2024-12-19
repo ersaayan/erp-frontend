@@ -14,6 +14,7 @@ const useAuthStore = create<AuthState>()(
             setToken: (token) => {
                 if (typeof window !== "undefined") {
                     document.cookie = `auth_token=${token}; path=/; max-age=86400`; // 24 hours
+                    localStorage.setItem("auth_token", token);
                 }
                 set({ token });
             },
