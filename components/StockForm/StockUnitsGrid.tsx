@@ -28,7 +28,6 @@ export default function StockUnitsGrid({
   units,
   setUnits,
 }: StockUnitsGridProps) {
-  const { priceLists } = usePriceLists();
   const { priceLists, loading, error } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
