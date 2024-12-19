@@ -10,23 +10,34 @@ import { MainTabs } from "./MainTabs";
 export default function MainContent() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("sidebarCollapsed") === "true";
+      const sidebarState = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("sidebarCollapsed="));
+      return sidebarState ? sidebarState.split("=")[1] === "true" : false;
     }
     return false;
   });
 
   const [openTabs, setOpenTabs] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const savedTabs = localStorage.getItem("openTabs");
-      return savedTabs ? JSON.parse(savedTabs) : [];
+      const savedTabs = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("openTabs="));
+      const tabsValue = savedTabs ? savedTabs.split("=")[1] : "";
+      return tabsValue ? JSON.parse(decodeURIComponent(tabsValue)) : [];
     }
     return [];
   });
 
   const [activeTab, setActiveTab] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
-      const savedActiveTab = localStorage.getItem("activeTab");
-      return savedActiveTab || null;
+      const savedActiveTab = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("activeTab="));
+      const activeTabValue = savedActiveTab
+        ? savedActiveTab.split("=")[1]
+        : null;
+      return activeTabValue ? decodeURIComponent(activeTabValue) : null;
     }
     return null;
   });
@@ -37,28 +48,36 @@ export default function MainContent() {
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
-    localStorage.setItem("sidebarCollapsed", (!isSidebarCollapsed).toString());
+    document.cookie = `sidebarCollapsed=${!isSidebarCollapsed}; path=/; max-age=31536000`;
   };
 
   const handleMenuItemClick = (itemName: string) => {
     if (!openTabs.includes(itemName)) {
       const newTabs = [...openTabs, itemName];
       setOpenTabs(newTabs);
-      localStorage.setItem("openTabs", JSON.stringify(newTabs));
+      document.cookie = `openTabs=${encodeURIComponent(
+        JSON.stringify(newTabs)
+      )}; path=/; max-age=31536000`;
     }
     setActiveTab(itemName);
-    localStorage.setItem("activeTab", itemName);
+    document.cookie = `activeTab=${encodeURIComponent(
+      itemName
+    )}; path=/; max-age=31536000`;
   };
 
   const handleCloseTab = (tabName: string) => {
     const newOpenTabs = openTabs.filter((tab) => tab !== tabName);
     setOpenTabs(newOpenTabs);
-    localStorage.setItem("openTabs", JSON.stringify(newOpenTabs));
+    document.cookie = `openTabs=${encodeURIComponent(
+      JSON.stringify(newOpenTabs)
+    )}; path=/; max-age=31536000`;
 
     if (activeTab === tabName) {
       const newActiveTab = newOpenTabs[newOpenTabs.length - 1] || null;
       setActiveTab(newActiveTab);
-      localStorage.setItem("activeTab", newActiveTab || "");
+      document.cookie = `activeTab=${encodeURIComponent(
+        newActiveTab || ""
+      )}; path=/; max-age=31536000`;
     }
   };
 
