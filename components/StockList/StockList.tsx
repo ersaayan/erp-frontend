@@ -575,15 +575,15 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Column dataField="unit" caption="Unit" />
         <Column caption="Category" calculateCellValue={getCategoryPath} />
 
-        <Column caption="Warehouses">
-          {stockData.length > 0 &&
-            stockData[0].stockCardWarehouse.map((warehouse) => (
+        {stockData.length > 0 && (
+          <Column caption="Warehouses">
+            {stockData[0].stockCardWarehouse?.map((warehouse) => (
               <Column
                 key={warehouse.warehouse.id}
                 caption={warehouse.warehouse.warehouseName}
                 calculateCellValue={(rowData: StockCard) => {
                   const warehouseData = rowData.stockCardWarehouse.find(
-                    (w) => w.warehouse.id === warehouse.warehouse.id
+                    (w) => w?.warehouse?.id === warehouse?.warehouse?.id
                   );
                   return warehouseData
                     ? parseInt(warehouseData.quantity, 10)
@@ -593,28 +593,30 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                 format="#,##0"
               />
             ))}
-        </Column>
+          </Column>
+        )}
 
-        <Column caption="Prices">
-          {stockData.length > 0 &&
-            stockData[0].stockCardPriceLists.map((priceList) => (
+        {stockData.length > 0 && (
+          <Column caption="Prices">
+            {stockData[0].stockCardPriceLists?.map((priceList) => (
               <Column
                 key={priceList.priceList.id}
                 caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
                 calculateCellValue={(rowData: StockCard) => {
                   const priceData = rowData.stockCardPriceLists.find(
-                    (p) => p.priceList.id === priceList.priceList.id
+                    (p) => p?.priceList?.id === priceList?.priceList?.id
                   );
                   if (!priceData) return 0;
 
                   const price = parseFloat(priceData.price);
-                  return priceList.priceList.currency === "USD"
+                  return priceList?.priceList?.currency === "USD"
                     ? renderPriceWithTRY(price, "USD")
                     : price.toFixed(2);
                 }}
               />
             ))}
-        </Column>
+          </Column>
+        )}
 
         <Column dataField="productType" caption="Product Type" />
         <Column dataField="stockStatus" caption="Status" dataType="boolean" />
@@ -627,7 +629,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
         <Summary>
           {stockData.length > 0 &&
-            stockData[0].stockCardWarehouse.map((warehouse) => (
+            stockData[0].stockCardWarehouse?.map((warehouse) => (
               <TotalItem
                 key={warehouse.warehouse.id}
                 column={warehouse.warehouse.warehouseName}
