@@ -103,16 +103,24 @@ const StockForm: React.FC = () => {
     loading: saveLoading,
     error: saveError,
     updateStockCard,
+    updateAttributes,
     updateBarcodes,
     updateMarketNames,
     updateCategories,
-    updateWarehouse,
-    updateEFatura,
-    updateAttributes,
-    updateManufacturers,
     updatePriceListItems,
+    updateWarehouse,
+    updateManufacturers,
+    updateEFatura,
     saveStockCard,
+    clearFormData,
   } = useStockForm();
+
+  // Clear form data when component unmounts
+  useEffect(() => {
+    return () => {
+      clearFormData();
+    };
+  }, [clearFormData]);
 
   const { priceLists } = usePriceLists();
   const [selectedProperties, setSelectedProperties] = useState([]);

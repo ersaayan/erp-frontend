@@ -28,6 +28,15 @@ const TabContainer: React.FC<TabContainerProps> = ({
   const tabsListRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const handleCloseTab = (tabName: string) => {
+    // Clear form data when closing Stok Formu tab
+    if (tabName === "Stok Formu") {
+      localStorage.removeItem("stockFormData");
+    }
+
+    onCloseTab(tabName);
+  };
+
   useEffect(() => {
     const updateLayout = () => {
       if (tabsListRef.current && containerRef.current) {
@@ -92,7 +101,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
-                    onCloseTab(tab);
+                    handleCloseTab(tab);
                   }}
                   className="ml-2 rounded-full hover:bg-background p-0.5 cursor-pointer"
                 >
