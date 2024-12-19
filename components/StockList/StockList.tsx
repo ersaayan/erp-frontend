@@ -291,22 +291,48 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const handleImport = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      if (!file) return;
+      if (!file) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Lütfen bir dosya seçin",
+        });
+        return;
+      }
 
       setLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const formData = new FormData();
+        formData.append("excelFile", file);
+
+        const response = await fetch(`${process.env.BASE_URL}/import-stock`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Dosya yükleme başarısız oldu");
+        }
+
+        await fetchData(); // Stok listesini yenile
+
         toast({
           title: "Success",
-          description: `File "${file.name}" imported successfully.`,
+          description: `${file.name} dosyası başarıyla içe aktarıldı.`,
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to import file. Please try again.",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Dosya içe aktarma işlemi başarısız oldu.",
         });
-        throw error;
       } finally {
         setLoading(false);
         if (event.target) {
@@ -314,7 +340,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         }
       }
     },
-    [toast]
+    [toast, fetchData]
   );
 
   const calculateTotalQuantity = useCallback((rowData: StockCard) => {
@@ -543,7 +569,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <ColumnChooser enabled={true} mode="select" />
 
         <Column dataField="productCode" caption="Stock Code" fixed={true} />
-        <Column dataField="productName" caption="Stock Name" />
+        <Column dataField="productName" caption="Stock Name" minWidth={200} />
         <Column dataField="brand.brandName" caption="Brand" />
         <Column dataField="unit" caption="Unit" />
         <Column caption="Category" calculateCellValue={getCategoryPath} />
