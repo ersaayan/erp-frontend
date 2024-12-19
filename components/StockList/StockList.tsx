@@ -193,7 +193,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       setLoading(false);
       setShowPreview(false);
     }
-}, [selectedStocks, toast, selectedRowKeys.length]);
+  }, [selectedStocks, toast, selectedRowKeys.length]);
 
   const handleDeleteSelected = useCallback(async () => {
     if (selectedRowKeys.length === 0) {
@@ -707,7 +707,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   setSettings((prev) => ({ ...prev, pageSize: value }))
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Select page size" />
                 </SelectTrigger>
                 <SelectContent>
