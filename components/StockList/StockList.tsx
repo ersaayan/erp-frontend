@@ -615,13 +615,13 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Export enabled={true} allowExportSelectedData={true} />
         <ColumnChooser enabled={true} mode="select" />
 
-        <Column dataField="productCode" caption="Stock Code" fixed={true} />
-        <Column dataField="productName" caption="Stock Name" minWidth={200} />
-        <Column dataField="brand.brandName" caption="Brand" />
-        <Column dataField="unit" caption="Unit" />
-        <Column caption="Category" calculateCellValue={getCategoryPath} />
+        <Column dataField="productCode" caption="Stok Kodu" fixed={true} />
+        <Column dataField="productName" caption="Stok Adı" minWidth={200} />
+        <Column dataField="brand.brandName" caption="Marka" />
+        <Column dataField="unit" caption="Birim" />
+        <Column caption="Kategori" calculateCellValue={getCategoryPath} />
 
-        <Column caption="Warehouses">
+        <Column caption="Depolar">
           {getAllWarehouses().map((warehouse) => (
             <Column
               key={warehouse.id}
@@ -638,7 +638,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           ))}
         </Column>
 
-        <Column caption="Prices">
+        <Column caption="Fiyatlar">
           {getAllPriceLists().map((priceList) => (
             <Column
               key={priceList.id}
@@ -658,8 +658,8 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           ))}
         </Column>
 
-        <Column dataField="productType" caption="Product Type" />
-        <Column dataField="stockStatus" caption="Status" dataType="boolean" />
+        <Column dataField="productType" caption="Stok Tipi" />
+        <Column dataField="stockStatus" caption="Durum" dataType="boolean" />
         <Column
           dataField="createdAt"
           caption="Created Date"
@@ -677,7 +677,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             />
           ))}
           <TotalItem
-            column="Total Stock"
+            column="Toplam Stok"
             summaryType="sum"
             valueFormat="#,##0"
           />
