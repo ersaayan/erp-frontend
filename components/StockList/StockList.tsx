@@ -544,10 +544,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Column
           dataField="productCode"
           caption="Stock Code"
-          width={120}
+          width={200}
           fixed={true}
         />
-        <Column dataField="productName" caption="Stock Name" width={200} />
+        <Column dataField="productName" caption="Stock Name" width={250} />
         <Column dataField="brand.brandName" caption="Brand" width={120} />
         <Column dataField="unit" caption="Unit" width={80} />
         <Column
