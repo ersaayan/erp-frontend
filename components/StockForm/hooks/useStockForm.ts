@@ -100,6 +100,7 @@ export const useStockForm = () => {
     const [formState, setFormState] = useState<StockFormState>(() => {
         if (typeof window === "undefined") return initialState;
 
+        // Check for existing form data first
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (!savedData) return initialState;
 
@@ -216,13 +217,12 @@ export const useStockForm = () => {
         }
     }, [formState]);
 
-    // Clear form data when component unmounts
-    useEffect(() => {
-        return () => {
-            if (typeof window !== "undefined") {
-                localStorage.removeItem(STORAGE_KEY);
-            }
-        };
+    // Clear form data only when form is submitted successfully
+    const clearFormData = useCallback(() => {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem(STORAGE_KEY);
+            setFormState(initialState);
+        }
     }, []);
 
     const updateStockCard = useCallback(<K extends keyof StockFormState['stockCard']>(
@@ -373,7 +373,10 @@ export const useStockForm = () => {
                 throw new Error('Error saving stock card');
             }
 
-            return await response.json();;
+            // Clear form data only after successful save
+            clearFormData();
+
+            return await response.json();
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -402,5 +405,6 @@ export const useStockForm = () => {
         updateManufacturers,
         updateEFatura,
         saveStockCard,
+        clearFormData,
     };
 };
