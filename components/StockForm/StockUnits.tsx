@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
-
 import React, { useEffect, useState, useCallback } from "react";
 import DataGrid, {
   Column,
@@ -25,6 +23,12 @@ import { usePriceLists } from "./hooks/usePriceLists";
 import { useStockForm } from "./hooks/useStockForm";
 import { StockUnit } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import dynamic from "next/dynamic";
+
+// DevExtreme DataGrid'i client-side only olarak import et
+const DynamicDataGrid = dynamic(() => Promise.resolve(DataGrid), {
+  ssr: false,
+});
 
 interface StockUnitsProps {
   units: StockUnit[];
@@ -35,35 +39,35 @@ const generateBarcode = () => {
   return Math.floor(Math.random() * 9000000000000) + 1000000000000;
 };
 
+const onExporting = useCallback((e: any) => {
+  const workbook = new Workbook();
+  const worksheet = workbook.addWorksheet("Birimler");
+
+  exportDataGrid({
+    component: e.component,
+    worksheet,
+    autoFilterEnabled: true,
+  }).then(() => {
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      saveAs(
+        new Blob([buffer], { type: "application/octet-stream" }),
+        "Birimler.xlsx"
+      );
+    });
+  });
+}, []);
+
 const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
   const { toast } = useToast();
   const { priceLists, loading, error } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
 
-  const onExporting = useCallback(
-    (e: any) => {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet("Birimler");
-
-      exportDataGrid({
-        component: e.component,
-        worksheet,
-        autoFilterEnabled: true,
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-          saveAs(
-            new Blob([buffer], { type: "application/octet-stream" }),
-            "Birimler.xlsx"
-          );
-        });
-      });
-    },
-    [Workbook, exportDataGrid, saveAs]
-  );
-
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!mounted) return;
 
     if (priceLists.length > 0) {
@@ -213,7 +217,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
   return (
     <Card>
       <CardContent className="pt-6">
-        <DataGrid
+        <DynamicDataGrid
           dataSource={units}
           showBorders={true}
           showRowLines={true}
@@ -308,7 +312,7 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
             <Item name="exportButton" location="after" />
             <Item name="columnChooserButton" location="after" />
           </Toolbar>
-        </DataGrid>
+        </DynamicDataGrid>
       </CardContent>
     </Card>
   );
