@@ -20,7 +20,7 @@ import { usePriceLists } from "./hooks/usePriceLists";
 import { useStockForm } from "./hooks/useStockForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-
+import { ErrorBoundary } from "./ErrorBoundary";
 // Barcode generator function
 const generateBarcode = () => {
   return Math.floor(Math.random() * 1000000000000).toString();
@@ -31,12 +31,12 @@ interface StockUnitsGridProps {
   setUnits: React.Dispatch<React.SetStateAction<StockUnit[]>>;
 }
 
-export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
+const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
   units,
   setUnits,
 }) => {
   const {
-    priceLists,
+    priceLists = [],
     loading: priceListsLoading,
     error: priceListsError,
   } = usePriceLists();
@@ -74,49 +74,42 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
     return () => setMounted(false);
   }, []);
 
-  // Initialize units from price lists
   useEffect(() => {
-    if (!mounted || !priceLists?.length) return;
+    if (!mounted || !Array.isArray(priceLists)) return;
 
     try {
-      const unitsFromPriceLists = priceLists.map((priceList) => {
-        const formItem = formState.priceListItems.find(
-          (item) => item.priceListId === priceList.id
-        );
+      const unitsFromPriceLists = priceLists
+        .map((priceList) => {
+          if (!priceList?.id) return null;
 
-        return formItem
-          ? {
-              id: formItem.id?.toString() || "",
-              value: "",
-              label: "",
-              priceListId: formItem.priceListId,
-              vatRate: formItem.vatRate,
-              price: formItem.price,
-              priceWithVat: parseFloat(
-                (formItem.price * (1 + (formItem.vatRate ?? 0) / 100)).toFixed(
-                  2
-                )
-              ),
-              barcode: formItem.barcode,
-            }
-          : {
-              id: "",
-              value: "",
-              label: "",
-              priceListId: priceList.id,
-              vatRate: priceList.isVatIncluded ? 20 : null,
-              price: 0,
-              priceWithVat: priceList.isVatIncluded ? 0 : null,
-              barcode: generateBarcode(),
-            };
-      });
+          const existingUnit = units.find(
+            (unit) => unit.priceListId === priceList.id
+          );
+          if (existingUnit) return existingUnit;
+
+          const formItem = formState.priceListItems?.find(
+            (item) => item?.priceListId === priceList.id
+          );
+
+          return {
+            id: formItem?.id?.toString() || "",
+            value: "",
+            label: "",
+            priceListId: priceList.id,
+            vatRate: formItem?.vatRate ?? (priceList.isVatIncluded ? 20 : null),
+            price: formItem?.price ?? 0,
+            priceWithVat: formItem?.priceWithVat ?? 0,
+            barcode: formItem?.barcode || generateBarcode(),
+          };
+        })
+        .filter(Boolean);
 
       if (JSON.stringify(units) !== JSON.stringify(unitsFromPriceLists)) {
         setUnits(unitsFromPriceLists);
       }
     } catch (error) {
-      setError("Birim listesi oluşturulurken bir hata oluştu");
       console.error("Units initialization error:", error);
+      setError("Birim listesi oluşturulurken bir hata oluştu");
     }
   }, [priceLists, formState.priceListItems, setUnits, units, mounted]);
 
@@ -320,5 +313,21 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
         <Item name="columnChooserButton" location="after" />
       </Toolbar>
     </DataGrid>
+  );
+};
+
+export const StockUnitsGrid: React.FC<StockUnitsGridProps> = (props) => {
+  return (
+    <ErrorBoundary
+      fallback={
+        <Alert variant="destructive">
+          <AlertDescription>
+            Birimler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.
+          </AlertDescription>
+        </Alert>
+      }
+    >
+      <StockUnitsGridContent {...props} />
+    </ErrorBoundary>
   );
 };
