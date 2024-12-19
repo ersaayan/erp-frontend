@@ -2,14 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Zoom ayarlarını güncelleyelim */
 html {
-  zoom: 0.8;
-  -moz-transform: scale(0.8);
-  -moz-transform-origin: 0 0;
+  font-size: 87.5%; /* 14px - daha hassas kontrol için */
+}
+
+/* Belirli ekran boyutları için responsive ayarlar */
+@media screen and (min-width: 1536px) {
+  html {
+    font-size: 100%; /* Büyük ekranlarda normal boyut */
+  }
+}
+
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 75%; /* Mobil cihazlarda daha küçük */
+  }
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  /* Smooth scaling için */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
