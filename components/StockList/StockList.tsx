@@ -544,10 +544,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Column
           dataField="productCode"
           caption="Stock Code"
-          width={200}
+          width={120}
           fixed={true}
         />
-        <Column dataField="productName" caption="Stock Name" width={250} />
+        <Column dataField="productName" caption="Stock Name" width={200} />
         <Column dataField="brand.brandName" caption="Brand" width={120} />
         <Column dataField="unit" caption="Unit" width={80} />
         <Column
@@ -582,11 +582,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         </Column>
 
         <Column caption="Prices">
-          {/* Debug line to check data */}
-          {console.log("All price lists:", stockData[0]?.stockCardPriceLists)}
-
-          {/* Instead of using stockData[0], use the current row data */}
-          {rowData?.stockCardPriceLists.map((priceList) => (
+          {stockData[0]?.stockCardPriceLists.map((priceList) => (
             <Column
               key={priceList.priceList.id}
               caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
@@ -601,6 +597,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   ? renderPriceWithTRY(price, "USD")
                   : price.toFixed(2);
               }}
+              width={150}
             />
           ))}
         </Column>
