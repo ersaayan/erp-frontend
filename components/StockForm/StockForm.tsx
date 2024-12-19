@@ -1076,10 +1076,6 @@ const StockForm: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="birimler">
-            <StockUnits units={unitList} setUnits={setUnitList} />
-          </TabsContent>
-
           <TabsContent value="hareketler">
             <StockMovements productCode={formState.stockCard.productName} />
           </TabsContent>
