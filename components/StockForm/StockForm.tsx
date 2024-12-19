@@ -115,13 +115,6 @@ const StockForm: React.FC = () => {
     clearFormData,
   } = useStockForm();
 
-  // Clear form data when component unmounts
-  useEffect(() => {
-    return () => {
-      clearFormData();
-    };
-  }, [clearFormData]);
-
   const { priceLists } = usePriceLists();
   const [selectedProperties, setSelectedProperties] = useState([]);
 
