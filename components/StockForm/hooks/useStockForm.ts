@@ -293,10 +293,11 @@ export const useStockForm = () => {
         }));
     }, []);
 
-    /* const calculatePriceWithVat = (price: number, vatRate: number | null) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const calculatePriceWithVat = (price: number, vatRate: number | null) => {
         const result = price * (1 + (vatRate ?? 0) / 100);
         return parseFloat(result.toFixed(2));
-    }; */
+    };
 
     const saveStockCard = async (priceLists: PriceList[], updatedFormState: StockFormState) => {
         try {

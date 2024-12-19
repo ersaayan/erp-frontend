@@ -18,10 +18,12 @@ import { exportDataGrid } from "devextreme/excel_exporter";
 import { StockUnit } from "./types";
 import { usePriceLists } from "./hooks/usePriceLists";
 import { useStockForm } from "./hooks/useStockForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
-// Barcode generator fonksiyonu
+// Barcode generator function
 const generateBarcode = () => {
-  return Math.floor(Math.random() * 1000000000000);
+  return Math.floor(Math.random() * 1000000000000).toString();
 };
 
 interface StockUnitsGridProps {
@@ -33,158 +35,200 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
   units,
   setUnits,
 }) => {
-  const { priceLists } = usePriceLists();
+  const {
+    priceLists,
+    loading: priceListsLoading,
+    error: priceListsError,
+  } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
-  const onExporting = useCallback((e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Birimler");
+  const [error, setError] = useState<string | null>(null);
 
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      autoFilterEnabled: true,
-    }).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "Birimler.xlsx"
-        );
+  // Excel export handler
+  const onExporting = useCallback((e: any) => {
+    try {
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet("Birimler");
+
+      exportDataGrid({
+        component: e.component,
+        worksheet,
+        autoFilterEnabled: true,
+      }).then(() => {
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            "Birimler.xlsx"
+          );
+        });
       });
-    });
+    } catch (error) {
+      setError("Excel dışa aktarma işlemi sırasında bir hata oluştu");
+      console.error("Export error:", error);
+    }
   }, []);
 
+  // Component mount effect
   useEffect(() => {
     setMounted(true);
+    return () => setMounted(false);
   }, []);
 
+  // Initialize units from price lists
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !priceLists?.length) return;
 
-    if (priceLists.length > 0) {
+    try {
       const unitsFromPriceLists = priceLists.map((priceList) => {
         const formItem = formState.priceListItems.find(
           (item) => item.priceListId === priceList.id
         );
 
-        if (formItem) {
-          return {
-            id: formItem.id?.toString() || "",
-            value: "",
-            label: "",
-            priceListId: formItem.priceListId,
-            vatRate: formItem.vatRate,
-            price: formItem.price,
-            priceWithVat: parseFloat(
-              (formItem.price * (1 + (formItem.vatRate ?? 0) / 100)).toFixed(2)
-            ),
-            barcode: formItem.barcode,
-          };
-        } else {
-          return {
-            id: "",
-            value: "",
-            label: "",
-            priceListId: priceList.id,
-            vatRate: priceList.isVatIncluded ? 20 : null,
-            price: 0,
-            priceWithVat: priceList.isVatIncluded ? 0 : null,
-            barcode: generateBarcode().toString(),
-          };
-        }
+        return formItem
+          ? {
+              id: formItem.id?.toString() || "",
+              value: "",
+              label: "",
+              priceListId: formItem.priceListId,
+              vatRate: formItem.vatRate,
+              price: formItem.price,
+              priceWithVat: parseFloat(
+                (formItem.price * (1 + (formItem.vatRate ?? 0) / 100)).toFixed(
+                  2
+                )
+              ),
+              barcode: formItem.barcode,
+            }
+          : {
+              id: "",
+              value: "",
+              label: "",
+              priceListId: priceList.id,
+              vatRate: priceList.isVatIncluded ? 20 : null,
+              price: 0,
+              priceWithVat: priceList.isVatIncluded ? 0 : null,
+              barcode: generateBarcode(),
+            };
       });
 
-      // Units değişti mi kontrol et
       if (JSON.stringify(units) !== JSON.stringify(unitsFromPriceLists)) {
         setUnits(unitsFromPriceLists);
       }
+    } catch (error) {
+      setError("Birim listesi oluşturulurken bir hata oluştu");
+      console.error("Units initialization error:", error);
     }
   }, [priceLists, formState.priceListItems, setUnits, units, mounted]);
 
+  // Update form state when units change
   useEffect(() => {
-    const unitsToUpdate = units.map((unit) => ({
-      id: unit.id,
-      priceListId: unit.priceListId,
-      vatRate: unit.vatRate,
-      price: unit.price,
-      priceWithVat: unit.priceWithVat,
-      barcode: unit.barcode,
-    }));
+    try {
+      if (!units?.length) return;
 
-    // FormState değişti mi kontrol et
-    if (
-      JSON.stringify(formState.priceListItems) !== JSON.stringify(unitsToUpdate)
-    ) {
-      updatePriceListItems(unitsToUpdate);
+      const unitsToUpdate = units.map((unit) => ({
+        id: unit.id,
+        priceListId: unit.priceListId,
+        vatRate: unit.vatRate,
+        price: unit.price,
+        priceWithVat: unit.priceWithVat,
+        barcode: unit.barcode,
+      }));
+
+      if (
+        JSON.stringify(formState.priceListItems) !==
+        JSON.stringify(unitsToUpdate)
+      ) {
+        updatePriceListItems(unitsToUpdate);
+      }
+    } catch (error) {
+      setError("Form güncelleme sırasında bir hata oluştu");
+      console.error("Form update error:", error);
     }
   }, [units, formState.priceListItems, updatePriceListItems]);
 
-  if (!mounted) {
-    return null;
+  // Loading state check
+  if (!mounted || priceListsLoading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Yükleniyor...</span>
+      </div>
+    );
   }
 
-  const calculatePriceWithVat = (price: number, vatRate: number) => {
-    return price * (1 + vatRate / 100);
+  // Error state check
+  if (priceListsError || error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          {priceListsError || error || "Bir hata oluştu"}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Price calculation with VAT
+  const calculatePriceWithVat = (price: number, vatRate: number | null) => {
+    if (!price || !vatRate) return price;
+    return parseFloat((price * (1 + vatRate / 100)).toFixed(2));
   };
 
+  // Editor preparing handler
   const onEditorPreparing = (e: any) => {
-    if (!e?.dataField || !e?.row?.data?.priceListId) {
-      return;
-    }
+    if (!e?.dataField || !e?.row?.data?.priceListId) return;
 
     const priceList = priceLists.find((pl) => pl.id === e.row.data.priceListId);
-
-    if (e.dataField === "vatRate") {
-      if (e.editorOptions) {
-        e.editorOptions.disabled = !priceList?.isVatIncluded;
-      }
+    if (e.dataField === "vatRate" && e.editorOptions) {
+      e.editorOptions.disabled = !priceList?.isVatIncluded;
     }
   };
 
+  // Row update handler
   const onRowUpdated = (e: any) => {
-    const { data } = e;
-    if (!data?.priceListId) {
-      return;
-    }
+    try {
+      const { data } = e;
+      if (!data?.priceListId) return;
 
-    const updatedUnits = units.map((unit) => {
-      if (unit.priceListId === data.priceListId) {
-        const priceList = priceLists.find((pl) => pl.id === unit.priceListId);
-        const updatedUnit = { ...unit, ...data };
+      const updatedUnits = units.map((unit) => {
+        if (unit.priceListId === data.priceListId) {
+          const priceList = priceLists.find((pl) => pl.id === unit.priceListId);
+          const updatedUnit = { ...unit, ...data };
 
-        if (priceList?.isVatIncluded && updatedUnit.vatRate !== null) {
-          updatedUnit.priceWithVat = calculatePriceWithVat(
-            updatedUnit.price,
-            updatedUnit.vatRate
-          );
-        } else {
-          updatedUnit.priceWithVat = updatedUnit.price;
+          updatedUnit.priceWithVat =
+            priceList?.isVatIncluded && updatedUnit.vatRate !== null
+              ? calculatePriceWithVat(updatedUnit.price, updatedUnit.vatRate)
+              : updatedUnit.price;
+
+          return updatedUnit;
         }
+        return unit;
+      });
 
-        return updatedUnit;
+      if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
+        setUnits(updatedUnits);
       }
-      return unit;
-    });
-
-    // Units değişti mi kontrol et
-    if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
-      setUnits(updatedUnits);
+    } catch (error) {
+      setError("Satır güncelleme sırasında bir hata oluştu");
+      console.error("Row update error:", error);
     }
   };
 
+  // Row removing handler
   const onRowRemoving = (e: any) => {
-    e.cancel = true;
+    try {
+      e.cancel = true;
+      const updatedUnits = units.map((unit) =>
+        unit.priceListId === e.data.priceListId
+          ? { ...unit, price: 0, vatRate: 0, priceWithVat: 0 }
+          : unit
+      );
 
-    const updatedUnits = units.map((unit) => {
-      if (unit.priceListId === e.data.priceListId) {
-        return { ...unit, price: 0, vatRate: 0, priceWithVat: 0 };
+      if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
+        setUnits(updatedUnits);
       }
-      return unit;
-    });
-
-    // Units değişti mi kontrol et
-    if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
-      setUnits(updatedUnits);
+    } catch (error) {
+      setError("Satır silme sırasında bir hata oluştu");
+      console.error("Row removing error:", error);
     }
   };
 
@@ -198,7 +242,7 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
       columnAutoWidth={true}
       wordWrapEnabled={true}
       onExporting={onExporting}
-      onRowUpdated={onRowUpdated} // Burada onCellValueChanged yerine onRowUpdated kullanıyoruz
+      onRowUpdated={onRowUpdated}
       onEditorPreparing={onEditorPreparing}
       onRowRemoving={onRowRemoving}
     >
@@ -222,9 +266,11 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
           dataSource={priceLists}
           valueExpr="id"
           displayExpr={(item: any) =>
-            `${item.priceListName} (${item.currency})${
-              item.isVatIncluded ? " - KDV Dahil" : ""
-            }`
+            item
+              ? `${item.priceListName} (${item.currency})${
+                  item.isVatIncluded ? " - KDV Dahil" : ""
+                }`
+              : ""
           }
         />
       </Column>
@@ -249,9 +295,6 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
           );
           return priceList?.isVatIncluded ? rowData.vatRate : 0;
         }}
-        cellRender={(cellData: any) => {
-          return cellData.value?.toString() || "0";
-        }}
       />
 
       <Column
@@ -264,16 +307,9 @@ export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
           const priceList = priceLists.find(
             (pl) => pl.id === rowData.priceListId
           );
-          if (!priceList?.isVatIncluded || rowData.vatRate === null)
-            return rowData.price;
-          return calculatePriceWithVat(rowData.price, rowData.vatRate);
-        }}
-        cellRender={(cellData: any) => {
-          const priceList = priceLists.find(
-            (pl) => pl.id === cellData.data.priceListId
-          );
-          if (!priceList?.isVatIncluded) return cellData.data.price.toFixed(2);
-          return cellData.value?.toFixed(2) || "0.00";
+          return priceList?.isVatIncluded && rowData.vatRate !== null
+            ? calculatePriceWithVat(rowData.price, rowData.vatRate)
+            : rowData.price;
         }}
       />
 
