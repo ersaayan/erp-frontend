@@ -654,14 +654,6 @@ const StockForm: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Units and Price Lists Section */}
-                  <div className="space-y-2">
-                    <Label className="text-lg font-semibold">
-                      Birim ve Fiyat Listesi
-                    </Label>
-                    <StockUnits units={unitList} setUnits={setUnitList} />
-                  </div>
-
                   <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="maliyetFiyat">Maliyet</Label>
@@ -771,6 +763,14 @@ const StockForm: React.FC = () => {
                         className="text-right"
                       />
                     </div>
+                  </div>
+
+                  {/* Units and Price Lists Section */}
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold">
+                      Birim ve Fiyat Listesi
+                    </Label>
+                    <StockUnits units={unitList} setUnits={setUnitList} />
                   </div>
 
                   {/* Images Section */}
