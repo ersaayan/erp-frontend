@@ -27,7 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import StockProperties from "./StockProperties";
 import StockManufacturers from "./StockManufacturers";
-import StockUnits from "./Birimler";
+import StockUnits from "./StockUnits";
 import StockMovements from "./StockMovements";
 import CategorySelector from "./CategorySelector";
 import { Alert, AlertDescription } from "../ui/alert";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import GeneralInfo from "./GeneralInfo";
 import StockProperties from "@/components/StockForm/StockProperties";
-import StockUnits from "@/components/StockForm/Birimler";
+import StockUnits from "@/components/StockForm/StockUnits";
 import GroupStocks from "./GroupStocks";
 import { Card, CardContent } from "../ui/card";
 import { StockUnit } from "@/components/StockForm/types";
