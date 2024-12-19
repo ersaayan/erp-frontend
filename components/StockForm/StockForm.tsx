@@ -27,7 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import StockProperties from "./StockProperties";
 import StockManufacturers from "./StockManufacturers";
-import StockUnits from "./StockUnits";
+import StockUnits from "./Birimler";
 import StockMovements from "./StockMovements";
 import CategorySelector from "./CategorySelector";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -210,16 +210,16 @@ const StockForm: React.FC = () => {
     if (formState.categoryItem.length > 0) {
       setSelectedCategories(formState.categoryItem.map((c) => c.categoryId));
     }
-}, [
-formState.attributes,
-attributes,
-formState.manufacturers,
-formState.priceListItems,
-formState.barcodes,
-formState.marketNames,
-formState.categoryItem,
-selectedProperties.length,
-]);
+  }, [
+    formState.attributes,
+    attributes,
+    formState.manufacturers,
+    formState.priceListItems,
+    formState.barcodes,
+    formState.marketNames,
+    formState.categoryItem,
+    selectedProperties.length,
+  ]);
 
   const validateForm = useCallback((): boolean => {
     const errors: FormErrors = {};
@@ -352,26 +352,26 @@ selectedProperties.length,
         description: error.message,
       });
     }
-}, [
-attributes,
-barcodes,
-formState,
-manufacturers,
-marketNames,
-priceLists,
-selectedCategories,
-selectedProperties,
-unitList,
-updateAttributes,
-updateBarcodes,
-updateCategories,
-updateManufacturers,
-updateMarketNames,
-updatePriceListItems,
-validateForm,
-saveStockCard,
-toast,
-]);
+  }, [
+    attributes,
+    barcodes,
+    formState,
+    manufacturers,
+    marketNames,
+    priceLists,
+    selectedCategories,
+    selectedProperties,
+    unitList,
+    updateAttributes,
+    updateBarcodes,
+    updateCategories,
+    updateManufacturers,
+    updateMarketNames,
+    updatePriceListItems,
+    validateForm,
+    saveStockCard,
+    toast,
+  ]);
 
   const handleImageUpload = async () => {
     try {
