@@ -582,11 +582,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         </Column>
 
         <Column caption="Prices">
-          {/* Debug line to check data */}
-          {console.log("All price lists:", stockData[0]?.stockCardPriceLists)}
-
-          {/* Instead of using stockData[0], use the current row data */}
-          {rowData?.stockCardPriceLists.map((priceList) => (
+          {stockData[0]?.stockCardPriceLists.map((priceList) => (
             <Column
               key={priceList.priceList.id}
               caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
