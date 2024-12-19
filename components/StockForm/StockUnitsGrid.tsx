@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import DataGrid, {
   Column,
   Export,
@@ -16,20 +16,26 @@ import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { StockUnit } from "./types";
+import { usePriceLists } from "./hooks/usePriceLists";
+import { useStockForm } from "./hooks/useStockForm";
+
+// Barcode generator fonksiyonu
+const generateBarcode = () => {
+  return Math.floor(Math.random() * 1000000000000);
+};
 
 interface StockUnitsGridProps {
   units: StockUnit[];
   setUnits: React.Dispatch<React.SetStateAction<StockUnit[]>>;
 }
 
-export default function StockUnitsGrid({
+export const StockUnitsGrid: React.FC<StockUnitsGridProps> = ({
   units,
   setUnits,
-}: StockUnitsGridProps) {
+}) => {
   const { priceLists } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
-
   const onExporting = useCallback((e: any) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Birimler");
@@ -279,4 +285,4 @@ export default function StockUnitsGrid({
       </Toolbar>
     </DataGrid>
   );
-}
+};
