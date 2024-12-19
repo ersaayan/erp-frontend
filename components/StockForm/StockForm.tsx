@@ -766,8 +766,6 @@ const StockForm: React.FC = () => {
                     </div>
                   </div>
 
-                  <StockUnits units={unitList} setUnits={setUnitList} />
-
                   {/* Images Section */}
                   <div className="space-y-2">
                     <Label className="text-lg font-semibold">Resimler</Label>
