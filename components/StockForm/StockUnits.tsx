@@ -5,7 +5,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { StockUnit } from "./types";
 import { ErrorBoundary } from "./ErrorBoundary";
-// Dynamic import for DataGrid component
+// StockUnits.tsx
 const StockUnitsGrid = dynamic(() => import("./StockUnitsGrid"), {
   ssr: false,
   loading: () => (
@@ -36,7 +36,7 @@ export default function StockUnits({ units, setUnits }: StockUnitsProps) {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Bileşen yüklenirken bir hata oluştu.
+                  Bileşen yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.
                 </AlertDescription>
               </Alert>
             }

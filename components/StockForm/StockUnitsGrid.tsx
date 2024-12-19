@@ -1,5 +1,9 @@
 "use client";
-
+import { useState, useEffect, useCallback } from "react";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver-es";
+import { exportDataGrid } from "devextreme/excel_exporter";
+import { useStockForm } from "./hooks/useStockForm";
 import React from "react";
 import DataGrid, {
   Column,
@@ -31,6 +35,10 @@ export default function StockUnitsGrid({
   const { priceLists, loading, error } = usePriceLists();
   const { formState, updatePriceListItems } = useStockForm();
   const [mounted, setMounted] = useState(false);
+
+  const generateBarcode = () => {
+    return Math.floor(Math.random() * 9000000000000) + 1000000000000;
+  };
 
   const onExporting = useCallback((e: any) => {
     const workbook = new Workbook();
