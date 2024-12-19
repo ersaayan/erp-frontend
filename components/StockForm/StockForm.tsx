@@ -886,20 +886,6 @@ const StockForm: React.FC = () => {
                   {/* Codes Section */}
                   <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
-                      <Label>Barkodlar</Label>
-                      <TagInput
-                        tags={barcodes}
-                        setTags={setBarcodes}
-                        placeholder="Barkod girin ve Enter'a basın"
-                        styleClasses={{
-                          input: "w-full",
-                          tag: { body: "bg-red-500/10 text-red-500" },
-                        }}
-                        activeTagIndex={activeTagIndex}
-                        setActiveTagIndex={setActiveTagIndex}
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label>Piyasa Adları</Label>
                       <TagInput
                         tags={marketNames}
