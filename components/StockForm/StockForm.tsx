@@ -766,12 +766,8 @@ const StockForm: React.FC = () => {
                   </div>
 
                   {/* Price List Section */}
-                  <div className="space-y-2">
-                    <Label className="text-lg font-semibold">
-                      Fiyat Listesi
-                    </Label>
-                    <StockUnits unitList={unitList} setUnitList={setUnitList} />
-                  </div>
+                  <Label className="text-lg font-semibold">Fiyat Listesi</Label>
+                  <StockUnits unitList={unitList} setUnitList={setUnitList} />
 
                   {/* Images Section */}
                   <div className="space-y-2">
