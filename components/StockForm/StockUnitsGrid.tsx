@@ -45,12 +45,12 @@ export default function StockUnitsGrid({
       />
 
       <Column
-        dataField="priceListId"
+        dataField="priceListName"
         caption="Fiyat Listesi"
         lookup={{
           dataSource: priceLists,
           valueExpr: "id",
-          displayExpr: "name",
+          displayExpr: "priceListName",
         }}
       />
       <Column dataField="price" caption="Fiyat" dataType="number" />
