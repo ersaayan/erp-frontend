@@ -343,6 +343,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     [toast, fetchData]
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const calculateTotalQuantity = useCallback((rowData: StockCard) => {
     return rowData.stockCardWarehouse.reduce((total, warehouse) => {
       return total + parseInt(warehouse.quantity, 10);
@@ -573,48 +574,46 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Column dataField="brand.brandName" caption="Brand" />
         <Column dataField="unit" caption="Unit" />
         <Column caption="Category" calculateCellValue={getCategoryPath} />
-        <Column
-          caption="Total Stock"
-          calculateCellValue={calculateTotalQuantity}
-          dataType="number"
-          format="#,##0"
-        />
 
         <Column caption="Warehouses">
-          {stockData[0]?.stockCardWarehouse.map((warehouse) => (
-            <Column
-              key={warehouse.warehouse.id}
-              caption={warehouse.warehouse.warehouseName}
-              calculateCellValue={(rowData: StockCard) => {
-                const warehouseData = rowData.stockCardWarehouse.find(
-                  (w) => w.warehouse.id === warehouse.warehouse.id
-                );
-                return warehouseData ? parseInt(warehouseData.quantity, 10) : 0;
-              }}
-              dataType="number"
-              format="#,##0"
-            />
-          ))}
+          {stockData.length > 0 &&
+            stockData[0].stockCardWarehouse.map((warehouse) => (
+              <Column
+                key={warehouse.warehouse.id}
+                caption={warehouse.warehouse.warehouseName}
+                calculateCellValue={(rowData: StockCard) => {
+                  const warehouseData = rowData.stockCardWarehouse.find(
+                    (w) => w.warehouse.id === warehouse.warehouse.id
+                  );
+                  return warehouseData
+                    ? parseInt(warehouseData.quantity, 10)
+                    : 0;
+                }}
+                dataType="number"
+                format="#,##0"
+              />
+            ))}
         </Column>
 
         <Column caption="Prices">
-          {stockData[0]?.stockCardPriceLists.map((priceList) => (
-            <Column
-              key={priceList.priceList.id}
-              caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
-              calculateCellValue={(rowData: StockCard) => {
-                const priceData = rowData.stockCardPriceLists.find(
-                  (p) => p.priceList.id === priceList.priceList.id
-                );
-                if (!priceData) return 0;
+          {stockData.length > 0 &&
+            stockData[0].stockCardPriceLists.map((priceList) => (
+              <Column
+                key={priceList.priceList.id}
+                caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
+                calculateCellValue={(rowData: StockCard) => {
+                  const priceData = rowData.stockCardPriceLists.find(
+                    (p) => p.priceList.id === priceList.priceList.id
+                  );
+                  if (!priceData) return 0;
 
-                const price = parseFloat(priceData.price);
-                return priceList.priceList.currency === "USD"
-                  ? renderPriceWithTRY(price, "USD")
-                  : price.toFixed(2);
-              }}
-            />
-          ))}
+                  const price = parseFloat(priceData.price);
+                  return priceList.priceList.currency === "USD"
+                    ? renderPriceWithTRY(price, "USD")
+                    : price.toFixed(2);
+                }}
+              />
+            ))}
         </Column>
 
         <Column dataField="productType" caption="Product Type" />
@@ -627,6 +626,15 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         />
 
         <Summary>
+          {stockData.length > 0 &&
+            stockData[0].stockCardWarehouse.map((warehouse) => (
+              <TotalItem
+                key={warehouse.warehouse.id}
+                column={warehouse.warehouse.warehouseName}
+                summaryType="sum"
+                valueFormat="#,##0"
+              />
+            ))}
           <TotalItem
             column="Total Stock"
             summaryType="sum"
