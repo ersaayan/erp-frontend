@@ -94,8 +94,21 @@ const initialState: StockFormState = {
     isUpdateMode: false,
 };
 
+const STORAGE_KEY = 'stockFormData';
+
 export const useStockForm = () => {
-    const [formState, setFormState] = useState<StockFormState>(initialState);
+    const [formState, setFormState] = useState<StockFormState>(() => {
+        if (typeof window === "undefined") return initialState;
+
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (!savedData) return initialState;
+
+        try {
+            return JSON.parse(savedData);
+        } catch {
+            return initialState;
+        }
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -196,6 +209,21 @@ export const useStockForm = () => {
             }
         }
     }, [formState]);
+    // Save form state to localStorage whenever it changes
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formState));
+        }
+    }, [formState]);
+
+    // Clear form data when component unmounts
+    useEffect(() => {
+        return () => {
+            if (typeof window !== "undefined") {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        };
+    }, []);
 
     const updateStockCard = useCallback(<K extends keyof StockFormState['stockCard']>(
         field: K,
