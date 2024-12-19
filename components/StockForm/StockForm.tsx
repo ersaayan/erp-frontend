@@ -453,7 +453,7 @@ const StockForm: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
             className={`grid w-full mb-4 ${
-              formState.isUpdateMode ? "grid-cols-7" : "grid-cols-6"
+              formState.isUpdateMode ? "grid-cols-6" : "grid-cols-5"
             }`}
           >
             <TabsTrigger value="genel">Genel</TabsTrigger>
@@ -461,7 +461,6 @@ const StockForm: React.FC = () => {
             <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
             <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
             <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
-            <TabsTrigger value="birimler">Birimler</TabsTrigger>
             {formState.isUpdateMode && (
               <TabsTrigger value="hareketler">Hareketler</TabsTrigger>
             )}
@@ -653,6 +652,14 @@ const StockForm: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  {/* Units and Price Lists Section */}
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold">
+                      Birim ve Fiyat Listesi
+                    </Label>
+                    <StockUnits units={unitList} setUnits={setUnitList} />
                   </div>
 
                   <div className="grid grid-cols-4 gap-4">
