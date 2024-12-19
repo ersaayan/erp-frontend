@@ -503,7 +503,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         rowAlternationEnabled={settings.alternateRowColoring}
         allowColumnReordering={true}
         allowColumnResizing={true}
-        columnAutoWidth={true}
+        width={"100%"}
         wordWrapEnabled={true}
         onExporting={onExporting}
         height="calc(100vh - 200px)"
@@ -582,7 +582,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         </Column>
 
         <Column caption="Prices">
-          {stockData[0]?.stockCardPriceLists.map((priceList) => (
+          {/* Debug line to check data */}
+          {console.log("All price lists:", stockData[0]?.stockCardPriceLists)}
+
+          {/* Instead of using stockData[0], use the current row data */}
+          {rowData?.stockCardPriceLists.map((priceList) => (
             <Column
               key={priceList.priceList.id}
               caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
@@ -597,7 +601,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   ? renderPriceWithTRY(price, "USD")
                   : price.toFixed(2);
               }}
-              width={150}
+              width={120}
             />
           ))}
         </Column>
