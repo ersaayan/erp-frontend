@@ -503,6 +503,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         rowAlternationEnabled={settings.alternateRowColoring}
         allowColumnReordering={true}
         allowColumnResizing={true}
+        columnAutoWidth={true}
         width={"100%"}
         wordWrapEnabled={true}
         onExporting={onExporting}
@@ -541,26 +542,16 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Export enabled={true} allowExportSelectedData={true} />
         <ColumnChooser enabled={true} mode="select" />
 
-        <Column
-          dataField="productCode"
-          caption="Stock Code"
-          width={200}
-          fixed={true}
-        />
-        <Column dataField="productName" caption="Stock Name" width={250} />
-        <Column dataField="brand.brandName" caption="Brand" width={120} />
-        <Column dataField="unit" caption="Unit" width={80} />
-        <Column
-          caption="Category"
-          calculateCellValue={getCategoryPath}
-          width={200}
-        />
+        <Column dataField="productCode" caption="Stock Code" fixed={true} />
+        <Column dataField="productName" caption="Stock Name" />
+        <Column dataField="brand.brandName" caption="Brand" />
+        <Column dataField="unit" caption="Unit" />
+        <Column caption="Category" calculateCellValue={getCategoryPath} />
         <Column
           caption="Total Stock"
           calculateCellValue={calculateTotalQuantity}
           dataType="number"
           format="#,##0"
-          width={100}
         />
 
         <Column caption="Warehouses">
@@ -576,7 +567,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
               }}
               dataType="number"
               format="#,##0"
-              width={100}
             />
           ))}
         </Column>
@@ -597,24 +587,17 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                   ? renderPriceWithTRY(price, "USD")
                   : price.toFixed(2);
               }}
-              width={120}
             />
           ))}
         </Column>
 
-        <Column dataField="productType" caption="Product Type" width={120} />
-        <Column
-          dataField="stockStatus"
-          caption="Status"
-          dataType="boolean"
-          width={80}
-        />
+        <Column dataField="productType" caption="Product Type" />
+        <Column dataField="stockStatus" caption="Status" dataType="boolean" />
         <Column
           dataField="createdAt"
           caption="Created Date"
           dataType="datetime"
           format="dd.MM.yyyy HH:mm"
-          width={140}
         />
 
         <Summary>
