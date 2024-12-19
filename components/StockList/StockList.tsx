@@ -30,6 +30,7 @@ import {
   AlertCircle,
   CheckSquare,
   Filter,
+  Download,
   Loader2,
   Printer,
   RefreshCw,
@@ -450,6 +451,21 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Button variant="outline" size="sm" onClick={fetchData}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Yenile
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const link = document.createElement("a");
+            link.href = "/stock_card_import.xlsx";
+            link.download = "stock_card_import.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Şablon İndir
         </Button>
         <Button
           variant="outline"
