@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { StockUnit } from "./types";
 import { ErrorBoundary } from "./ErrorBoundary";
 // Dynamic import for DataGrid component
-const StockUnitsGrid = dynamic(() => import("./components/StockUnitsGrid"), {
+const StockUnitsGrid = dynamic(() => import("./StockUnitsGrid"), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center p-8">

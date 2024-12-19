@@ -9,7 +9,7 @@ import DataGrid, {
   Selection,
 } from "devextreme-react/data-grid";
 import { StockUnit } from "../types";
-import { usePriceLists } from "../hooks/usePriceLists";
+import { usePriceLists } from "./hooks/usePriceLists";
 
 interface StockUnitsGridProps {
   units: StockUnit[];
