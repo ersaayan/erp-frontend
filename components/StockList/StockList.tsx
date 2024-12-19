@@ -89,6 +89,52 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     virtualScrolling: true,
   });
 
+  // Get all unique warehouses and price lists
+  const getAllWarehouses = useCallback(() => {
+    const warehousesSet = new Set<string>();
+    const warehousesList: Array<{ id: string; name: string }> = [];
+
+    stockData.forEach((stock) => {
+      stock.stockCardWarehouse?.forEach((warehouse) => {
+        const warehouseId = warehouse?.warehouse?.id;
+        if (warehouseId && !warehousesSet.has(warehouseId)) {
+          warehousesSet.add(warehouseId);
+          warehousesList.push({
+            id: warehouseId,
+            name: warehouse.warehouse.warehouseName,
+          });
+        }
+      });
+    });
+
+    return warehousesList;
+  }, [stockData]);
+
+  const getAllPriceLists = useCallback(() => {
+    const priceListsSet = new Set<string>();
+    const priceListsList: Array<{
+      id: string;
+      name: string;
+      currency: string;
+    }> = [];
+
+    stockData.forEach((stock) => {
+      stock.stockCardPriceLists?.forEach((priceList) => {
+        const priceListId = priceList?.priceList?.id;
+        if (priceListId && !priceListsSet.has(priceListId)) {
+          priceListsSet.add(priceListId);
+          priceListsList.push({
+            id: priceListId,
+            name: priceList.priceList.priceListName,
+            currency: priceList.priceList.currency,
+          });
+        }
+      });
+    });
+
+    return priceListsList;
+  }, [stockData]);
+
   const onSelectionChanged = useCallback((e: any) => {
     setSelectedRowKeys(e.selectedRowKeys);
     const selectedItems = e.selectedRowsData || [];
@@ -575,48 +621,42 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         <Column dataField="unit" caption="Unit" />
         <Column caption="Category" calculateCellValue={getCategoryPath} />
 
-        {stockData.length > 0 && (
-          <Column caption="Warehouses">
-            {stockData[0].stockCardWarehouse?.map((warehouse) => (
-              <Column
-                key={warehouse.warehouse.id}
-                caption={warehouse.warehouse.warehouseName}
-                calculateCellValue={(rowData: StockCard) => {
-                  const warehouseData = rowData.stockCardWarehouse.find(
-                    (w) => w?.warehouse?.id === warehouse?.warehouse?.id
-                  );
-                  return warehouseData
-                    ? parseInt(warehouseData.quantity, 10)
-                    : 0;
-                }}
-                dataType="number"
-                format="#,##0"
-              />
-            ))}
-          </Column>
-        )}
+        <Column caption="Warehouses">
+          {getAllWarehouses().map((warehouse) => (
+            <Column
+              key={warehouse.id}
+              caption={warehouse.name}
+              calculateCellValue={(rowData: StockCard) => {
+                const warehouseData = rowData.stockCardWarehouse.find(
+                  (w) => w?.warehouse?.id === warehouse.id
+                );
+                return warehouseData ? parseInt(warehouseData.quantity, 10) : 0;
+              }}
+              dataType="number"
+              format="#,##0"
+            />
+          ))}
+        </Column>
 
-        {stockData.length > 0 && (
-          <Column caption="Prices">
-            {stockData[0].stockCardPriceLists?.map((priceList) => (
-              <Column
-                key={priceList.priceList.id}
-                caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
-                calculateCellValue={(rowData: StockCard) => {
-                  const priceData = rowData.stockCardPriceLists.find(
-                    (p) => p?.priceList?.id === priceList?.priceList?.id
-                  );
-                  if (!priceData) return 0;
+        <Column caption="Prices">
+          {getAllPriceLists().map((priceList) => (
+            <Column
+              key={priceList.id}
+              caption={`${priceList.name} (${priceList.currency})`}
+              calculateCellValue={(rowData: StockCard) => {
+                const priceData = rowData.stockCardPriceLists.find(
+                  (p) => p?.priceList?.id === priceList.id
+                );
+                if (!priceData) return 0;
 
-                  const price = parseFloat(priceData.price);
-                  return priceList?.priceList?.currency === "USD"
-                    ? renderPriceWithTRY(price, "USD")
-                    : price.toFixed(2);
-                }}
-              />
-            ))}
-          </Column>
-        )}
+                const price = parseFloat(priceData.price);
+                return priceList.currency === "USD"
+                  ? renderPriceWithTRY(price, "USD")
+                  : price.toFixed(2);
+              }}
+            />
+          ))}
+        </Column>
 
         <Column dataField="productType" caption="Product Type" />
         <Column dataField="stockStatus" caption="Status" dataType="boolean" />
@@ -628,15 +668,14 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         />
 
         <Summary>
-          {stockData.length > 0 &&
-            stockData[0].stockCardWarehouse?.map((warehouse) => (
-              <TotalItem
-                key={warehouse.warehouse.id}
-                column={warehouse.warehouse.warehouseName}
-                summaryType="sum"
-                valueFormat="#,##0"
-              />
-            ))}
+          {getAllWarehouses().map((warehouse) => (
+            <TotalItem
+              key={warehouse.id}
+              column={warehouse.name}
+              summaryType="sum"
+              valueFormat="#,##0"
+            />
+          ))}
           <TotalItem
             column="Total Stock"
             summaryType="sum"
