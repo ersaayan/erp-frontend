@@ -23,7 +23,7 @@ interface StockFormState {
         stockStatus: boolean;
         hasExpirationDate: boolean;
         allowNegativeStock: boolean;
-        maliyetFiyat: number;
+        maliyet: number;
         maliyetDoviz: string;
         brandId: string;
     };
@@ -78,7 +78,7 @@ const initialState: StockFormState = {
         stockStatus: true,
         hasExpirationDate: false,
         allowNegativeStock: false,
-        maliyetFiyat: 0,
+        maliyet: 0,
         maliyetDoviz: 'USD',
         brandId: '',
     },
@@ -127,7 +127,7 @@ export const useStockForm = () => {
                         stockStatus: stockData.stockStatus,
                         hasExpirationDate: stockData.hasExpirationDate,
                         allowNegativeStock: stockData.allowNegativeStock,
-                        maliyetFiyat: Number(stockData.maliyet),
+                        maliyet: Number(stockData.maliyet),
                         maliyetDoviz: stockData.maliyetDoviz || 'TRY',
                         brandId: stockData.brandId,
                     },
@@ -260,7 +260,7 @@ export const useStockForm = () => {
                             stockStatus: stockData.stockStatus,
                             hasExpirationDate: stockData.hasExpirationDate,
                             allowNegativeStock: stockData.allowNegativeStock,
-                            maliyetFiyat: Number(stockData.maliyet),
+                            maliyet: Number(stockData.maliyet),
                             maliyetDoviz: stockData.maliyetDoviz || 'TRY',
                             brandId: stockData.brandId,
                         },

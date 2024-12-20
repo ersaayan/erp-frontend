@@ -72,7 +72,7 @@ interface FormErrors {
   productCode?: string;
   unit?: string;
   brandId?: string;
-  maliyetFiyat?: string;
+  maliyet?: string;
   categories?: string;
 }
 
@@ -241,8 +241,8 @@ const StockForm: React.FC = () => {
       errors.brandId = "Marka seçimi zorunludur";
     }
 
-    if (formState.stockCard.maliyetFiyat < 0) {
-      errors.maliyetFiyat = "Maliyet fiyatı 0'dan küçük olamaz";
+    if (formState.stockCard.maliyet < 0) {
+      errors.maliyet = "Maliyet fiyatı 0'dan küçük olamaz";
     }
 
     if (selectedCategories.length === 0) {
@@ -656,26 +656,23 @@ const StockForm: React.FC = () => {
 
                   <div className="grid grid-cols-4 gap-4">
                     <div>
-                      <Label htmlFor="maliyetFiyat">Maliyet</Label>
+                      <Label htmlFor="maliyet">Maliyet</Label>
                       <Input
-                        id="maliyetFiyat"
+                        id="maliyet"
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formState.stockCard.maliyetFiyat}
+                        value={formState.stockCard.maliyet}
                         onChange={(e) =>
-                          updateStockCard(
-                            "maliyetFiyat",
-                            parseFloat(e.target.value)
-                          )
+                          updateStockCard("maliyet", parseFloat(e.target.value))
                         }
                         className={`text-right ${
-                          formErrors.maliyetFiyat ? "border-destructive" : ""
+                          formErrors.maliyet ? "border-destructive" : ""
                         }`}
                       />
-                      {formErrors.maliyetFiyat && (
+                      {formErrors.maliyet && (
                         <p className="text-sm text-destructive mt-1">
-                          {formErrors.maliyetFiyat}
+                          {formErrors.maliyet}
                         </p>
                       )}
                     </div>
