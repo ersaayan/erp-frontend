@@ -302,6 +302,7 @@ export const useStockForm = () => {
     const clearFormData = useCallback(() => {
         if (typeof window !== "undefined") {
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('currentStockData');
             setFormState(initialState);
         }
     }, []);
