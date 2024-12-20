@@ -104,6 +104,7 @@ export const useStockForm = () => {
         if (currentStockData) {
             try {
                 const stockData = JSON.parse(currentStockData);
+                localStorage.removeItem('currentStockData');
                 return {
                     ...initialState,
                     isUpdateMode: true,
@@ -170,7 +171,6 @@ export const useStockForm = () => {
                         marketName: item.marketName,
                     })),
                 };
-                localStorage.removeItem('currentStockData');
             } catch (error) {
                 console.error('Form verisi parse edilemedi:', error);
                 return initialState;
