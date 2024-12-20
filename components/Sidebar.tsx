@@ -52,7 +52,6 @@ const menuItems = [
       // { name: "Bundle/Set Stoklar", disabled: false },
       // { name: "Bundle/Set Stok Formu", disabled: false },
       { name: "Hızlı Stok", disabled: false },
-      { name: "Barkod", disabled: false },
       //  { name: 'Kampanyalar', disabled: false },
     ],
   },
