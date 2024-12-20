@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { PriceList } from './usePriceLists';
-import { StockCard } from '@/components/StockList/types';
 
 interface StockFormState {
     stockCard: {
@@ -100,66 +99,15 @@ export const useStockForm = () => {
     const [formState, setFormState] = useState<StockFormState>(() => {
         if (typeof window === "undefined") return initialState;
 
-        // Check for existing form data first
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (!savedData) return initialState;
-
-        try {
-            return JSON.parse(savedData);
-        } catch {
-            return initialState;
-        }
-    });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const savedData = localStorage.getItem('currentStockData');
-        console.log(savedData);
-        if (savedData) {
+        // Önce currentStockData'yı kontrol et
+        const currentStockData = localStorage.getItem('currentStockData');
+        if (currentStockData) {
             try {
-                const stockData: StockCard = JSON.parse(savedData);
-                // Manufacturers verilerini id değerleriyle dahil edin
-                const manufacturers = stockData.stockCardManufacturer.map((item) => ({
-                    id: item.id,
-                    productCode: item.productCode,
-                    productName: item.productName,
-                    barcode: item.barcode,
-                    brandId: item.brandId,
-                    currentId: item.currentId,
-                }));
-
-                // PriceListItems verilerini id değerleriyle ve hesaplamalarla dahil edin
-                const priceListItems = stockData.stockCardPriceLists.map((item) => {
-                    // priceWithVat değerini hesaplayın
-                    const priceWithVat = parseFloat(item.price) * (1 + (parseFloat(item.vatRate) ?? 0) / 100);
-
-                    return {
-                        id: item.id,
-                        priceListId: item.priceListId,
-                        price: parseFloat(item.price),
-                        vatRate: parseFloat(item.vatRate) || 0,
-                        priceWithVat: parseFloat(priceWithVat.toFixed(2)), // Hesaplanan değeri kullanın
-                        barcode: item.barcode,
-                    };
-                });
-                // stockCardWarehouse içindeki id değerini dahil edin
-                const stockCardWarehouse = stockData.stockCardWarehouse.map((warehouse) => ({
-                    id: warehouse.id,
-                    warehouseId: warehouse.warehouseId,
-                    quantity: Number(warehouse.quantity),
-                }));
-                // eFatura içindeki id değerini dahil edin
-                const eFatura = stockData.stockCardEFatura.map((item) => ({
-                    id: item.id,
-                    productCode: item.productCode,
-                    productName: item.productName,
-                }));
-                setFormState(prev => ({
-                    ...prev,
+                const stockData = JSON.parse(currentStockData);
+                return {
+                    ...initialState,
                     isUpdateMode: true,
                     stockCard: {
-                        ...prev.stockCard,
                         id: stockData.id,
                         productCode: stockData.productCode,
                         productName: stockData.productName,
@@ -192,24 +140,157 @@ export const useStockForm = () => {
                     categoryItem: stockData.stockCardCategoryItem.map(item => ({
                         categoryId: item.categoryId,
                     })),
-                    stockCardWarehouse,
-                    eFatura,
-                    manufacturers: manufacturers,
-                    priceListItems: priceListItems,
+                    priceListItems: stockData.stockCardPriceLists.map(item => ({
+                        id: item.id,
+                        priceListId: item.priceListId,
+                        price: parseFloat(item.price),
+                        vatRate: parseFloat(item.vatRate) || 0,
+                        priceWithVat: parseFloat((parseFloat(item.price) * (1 + (parseFloat(item.vatRate) ?? 0) / 100)).toFixed(2)),
+                        barcode: item.barcode,
+                    })),
+                    stockCardWarehouse: stockData.stockCardWarehouse.map(warehouse => ({
+                        id: warehouse.id,
+                        warehouseId: warehouse.warehouseId,
+                        quantity: Number(warehouse.quantity),
+                    })),
+                    eFatura: stockData.stockCardEFatura.map(item => ({
+                        id: item.id,
+                        productCode: item.productCode,
+                        productName: item.productName,
+                    })),
+                    manufacturers: stockData.stockCardManufacturer.map(item => ({
+                        id: item.id,
+                        productCode: item.productCode,
+                        productName: item.productName,
+                        barcode: item.barcode,
+                        brandId: item.brandId,
+                        currentId: item.currentId,
+                    })),
                     marketNames: stockData.stockCardMarketNames.map(item => ({
                         marketName: item.marketName,
                     })),
-                }));
-                console.log(formState);
-                console.log('Stock data loaded successfully');
-                console.log(stockData);
-                localStorage.removeItem('currentStockData');
-            } catch (err) {
-                setError('Error loading stock data');
-                console.error('Error parsing stock data:', err);
+                };
+            } catch (error) {
+                console.error('Form verisi parse edilemedi:', error);
+                return initialState;
             }
         }
-    }, [formState]);
+
+        // Kayıtlı form verilerini kontrol et
+        const savedFormData = localStorage.getItem(STORAGE_KEY);
+        if (savedFormData) {
+            try {
+                return JSON.parse(savedFormData);
+            } catch {
+                return initialState;
+            }
+        }
+
+        return initialState;
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+
+
+
+    /*     useEffect(() => {
+            const savedData = localStorage.getItem('currentStockData');
+            console.log(savedData);
+            if (savedData) {
+                try {
+                    const stockData: StockCard = JSON.parse(savedData);
+                    // Manufacturers verilerini id değerleriyle dahil edin
+                    const manufacturers = stockData.stockCardManufacturer.map((item) => ({
+                        id: item.id,
+                        productCode: item.productCode,
+                        productName: item.productName,
+                        barcode: item.barcode,
+                        brandId: item.brandId,
+                        currentId: item.currentId,
+                    }));
+    
+                    // PriceListItems verilerini id değerleriyle ve hesaplamalarla dahil edin
+                    const priceListItems = stockData.stockCardPriceLists.map((item) => {
+                        // priceWithVat değerini hesaplayın
+                        const priceWithVat = parseFloat(item.price) * (1 + (parseFloat(item.vatRate) ?? 0) / 100);
+    
+                        return {
+                            id: item.id,
+                            priceListId: item.priceListId,
+                            price: parseFloat(item.price),
+                            vatRate: parseFloat(item.vatRate) || 0,
+                            priceWithVat: parseFloat(priceWithVat.toFixed(2)), // Hesaplanan değeri kullanın
+                            barcode: item.barcode,
+                        };
+                    });
+                    // stockCardWarehouse içindeki id değerini dahil edin
+                    const stockCardWarehouse = stockData.stockCardWarehouse.map((warehouse) => ({
+                        id: warehouse.id,
+                        warehouseId: warehouse.warehouseId,
+                        quantity: Number(warehouse.quantity),
+                    }));
+                    // eFatura içindeki id değerini dahil edin
+                    const eFatura = stockData.stockCardEFatura.map((item) => ({
+                        id: item.id,
+                        productCode: item.productCode,
+                        productName: item.productName,
+                    }));
+                    setFormState(prev => ({
+                        ...prev,
+                        isUpdateMode: true,
+                        stockCard: {
+                            ...prev.stockCard,
+                            id: stockData.id,
+                            productCode: stockData.productCode,
+                            productName: stockData.productName,
+                            unit: stockData.unit,
+                            shortDescription: stockData.shortDescription,
+                            description: stockData.description,
+                            productType: stockData.productType,
+                            gtip: stockData.gtip,
+                            pluCode: stockData.pluCode,
+                            desi: Number(stockData.desi),
+                            adetBoleni: Number(stockData.adetBoleni),
+                            siraNo: stockData.siraNo || '',
+                            raf: stockData.raf || '',
+                            karMarji: Number(stockData.karMarji),
+                            riskQuantities: Number(stockData.riskQuantities),
+                            stockStatus: stockData.stockStatus,
+                            hasExpirationDate: stockData.hasExpirationDate,
+                            allowNegativeStock: stockData.allowNegativeStock,
+                            maliyetFiyat: Number(stockData.maliyet),
+                            maliyetDoviz: stockData.maliyetDoviz || 'TRY',
+                            brandId: stockData.brandId,
+                        },
+                        attributes: stockData.stockCardAttributeItems.map(item => ({
+                            attributeId: item.attributeId,
+                            value: item.attribute.value,
+                        })),
+                        barcodes: stockData.barcodes.map(item => ({
+                            barcode: item.barcode,
+                        })),
+                        categoryItem: stockData.stockCardCategoryItem.map(item => ({
+                            categoryId: item.categoryId,
+                        })),
+                        stockCardWarehouse,
+                        eFatura,
+                        manufacturers: manufacturers,
+                        priceListItems: priceListItems,
+                        marketNames: stockData.stockCardMarketNames.map(item => ({
+                            marketName: item.marketName,
+                        })),
+                    }));
+                    console.log(formState);
+                    console.log('Stock data loaded successfully');
+                    console.log(stockData);
+                    localStorage.removeItem('currentStockData');
+                } catch (err) {
+                    setError('Error loading stock data');
+                    console.error('Error parsing stock data:', err);
+                }
+            }
+        }, [formState]); */
     // Save form state to localStorage whenever it changes
     useEffect(() => {
         if (typeof window !== "undefined") {
