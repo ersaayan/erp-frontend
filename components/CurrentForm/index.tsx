@@ -11,7 +11,8 @@ import { useCurrentForm } from "./hooks/useCurrentForm";
 
 const CurrentForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const { formData, loading, updateFormData, handleSubmit } = useCurrentForm();
+  const { formData, loading, updateFormData, handleSubmit, isEditMode } =
+    useCurrentForm();
 
   return (
     <div className="flex flex-col h-auto">
@@ -25,7 +26,7 @@ const CurrentForm: React.FC = () => {
             disabled={loading}
           >
             <Save className="mr-2 h-4 w-4" />
-            KAYDET
+            {isEditMode ? "GÜNCELLE" : "KAYDET"}
           </Button>
         </div>
       </div>

@@ -61,6 +61,44 @@ export const useCurrentForm = () => {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
 
+    // Load saved form data on mount
+    useEffect(() => {
+        const savedFormData = localStorage.getItem('currentFormData');
+        if (savedFormData) {
+            try {
+                const parsedData = JSON.parse(savedFormData);
+                setFormData({
+                    ...initialFormData,
+                    ...parsedData,
+                    birthOfDate: parsedData.birthOfDate ? new Date(parsedData.birthOfDate) : null,
+                    categories: Array.isArray(parsedData.categories) ? parsedData.categories : [],
+                    addresses: Array.isArray(parsedData.currentAddress) ? parsedData.currentAddress.map(addr => ({
+                        addressName: addr.addressName || '',
+                        addressType: addr.addressType || '',
+                        address: addr.address || '',
+                        province: addr.city || '',
+                        district: addr.district || '',
+                        countryCode: addr.countryCode || '',
+                        postalCode: addr.postalCode || '',
+                        phone: addr.phone || '',
+                        phone2: addr.phone2 || '',
+                        email: addr.email || '',
+                        email2: addr.email2 || ''
+                    })) : [],
+                });
+                setIsEditMode(true);
+            } catch (error) {
+                console.error('Error parsing form data:', error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to load current data"
+                });
+            }
+            localStorage.removeItem('currentFormData');
+        }
+    }, [toast]);
+
     // Form verilerini güncelleme
     const updateFormData = useCallback((updates: Partial<CurrentFormData>) => {
         setFormData(prev => {
@@ -156,6 +194,7 @@ export const useCurrentForm = () => {
             });
 
             clearFormData();
+            window.dispatchEvent(new CustomEvent("refreshCurrents"));
         } catch (error) {
             toast({
                 variant: 'destructive',
