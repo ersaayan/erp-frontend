@@ -85,6 +85,9 @@ const UsersPage = dynamic(() => import("@/components/users"), { ssr: false });
 const ProfileForm = dynamic(() => import("@/components/Profile/ProfileForm"), {
   ssr: false,
 });
+const CompanyForm = dynamic(() => import("@/components/Company/CompanyForm"), {
+  ssr: false,
+});
 
 interface MainTabsProps {
   activeTab: string | null;
@@ -151,6 +154,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <UsersPage />;
       case "Profil":
         return <ProfileForm />;
+      case "Firma":
+        return <CompanyForm />;
       default:
         return null;
     }
