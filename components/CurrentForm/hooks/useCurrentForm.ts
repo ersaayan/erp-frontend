@@ -134,7 +134,7 @@ export const useCurrentForm = () => {
 
             const url = isEditMode
                 ? `${process.env.BASE_URL}/currents/${formData.id}`
-                : `${process.env.BASE_URL}/currents`;
+                : `${process.env.BASE_URL}/currents/create`;
 
             const response = await fetch(url, {
                 method: isEditMode ? 'PUT' : 'POST',
