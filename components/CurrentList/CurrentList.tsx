@@ -81,6 +81,27 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
     virtualScrolling: true,
   });
 
+  const handleRowDblClick = useCallback(
+    async (e: any) => {
+      try {
+        localStorage.setItem("currentFormData", JSON.stringify(e.data));
+        onMenuItemClick("Cari Formu");
+        toast({
+          title: "Success",
+          description: "Opening current form...",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to open current form. Please try again.",
+        });
+        console.error(error);
+      }
+    },
+    [onMenuItemClick, toast]
+  );
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -514,6 +535,7 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
       <DataGrid
         ref={dataGridRef}
         dataSource={currentData}
+        onRowDblClick={handleRowDblClick}
         showBorders={true}
         showRowLines={true}
         showColumnLines={true}
