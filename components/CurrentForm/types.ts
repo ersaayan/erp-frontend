@@ -62,7 +62,7 @@ export const INSTITUTION_TYPES = [
 ];
 
 export const ADDRESS_TYPES = [
-    { value: 'Invoice', label: 'Fatura' },
-    { value: 'Shipping', label: 'Sevkiyat' },
-    { value: 'Delivery', label: 'Teslimat' },
+    { value: 'Fatura', label: 'Fatura' },
+    { value: 'Sevkiyat', label: 'Sevkiyat' },
+    { value: 'Teslimat', label: 'Teslimat' },
 ];

@@ -37,7 +37,7 @@ const AddressInfo: React.FC<{
   const addNewAddress = () => {
     const newAddress: AddressInfoType = {
       addressName: "",
-      addressType: "Invoice",
+      addressType: "Fatura",
       address: "",
       province: "",
       district: "",
