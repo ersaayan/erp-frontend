@@ -85,7 +85,7 @@ const UsersPage = dynamic(() => import("@/components/users"), { ssr: false });
 const ProfileForm = dynamic(() => import("@/components/Profile/ProfileForm"), {
   ssr: false,
 });
-const CompanyForm = dynamic(() => import("@/components/Company/CompanyForm"), {
+const CompanyForm = dynamic(() => import("@/components/CompanyForm"), {
   ssr: false,
 });
 
