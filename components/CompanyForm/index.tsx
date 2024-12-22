@@ -46,6 +46,7 @@ const CompanyForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [hasExistingCompany, setHasExistingCompany] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const { toast } = useToast();
   const { getAuthToken } = useAuthService();
 
@@ -79,7 +80,7 @@ const CompanyForm = () => {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        if (!mounted) return;
+        if (!mounted || !initialLoad) return;
 
         setLoading(true);
         const response = await fetch(`${process.env.BASE_URL}/companies/`, {
@@ -123,11 +124,12 @@ const CompanyForm = () => {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
+        setInitialLoad(false);
       }
     };
 
     fetchCompany();
-  }, [form, mounted, getAuthToken]);
+  }, [form, mounted, getAuthToken, initialLoad]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
