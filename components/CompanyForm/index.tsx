@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useAuthService } from "@/lib/services/auth";
 
 const formSchema = z.object({
   companyCode: z.string().min(1, "Firma kodu zorunludur"),
@@ -43,7 +44,13 @@ const formSchema = z.object({
 const CompanyForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
+  const { getAuthToken } = useAuthService();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,10 +78,12 @@ const CompanyForm = () => {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
+        if (!mounted) return;
+
         setLoading(true);
         const response = await fetch(`${process.env.BASE_URL}/companies/`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",
         });
@@ -116,7 +125,7 @@ const CompanyForm = () => {
     };
 
     fetchCompany();
-  }, [form]);
+  }, [form, mounted, getAuthToken]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -127,7 +136,7 @@ const CompanyForm = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           credentials: "include",
           body: JSON.stringify(values),
@@ -153,6 +162,10 @@ const CompanyForm = () => {
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   if (loading) {
     return (

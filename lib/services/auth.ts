@@ -60,7 +60,14 @@ export const handleAuthError = (error: any) => {
 };
 
 export const useAuthService = () => {
-    const { setToken, clearToken } = useAuthStore();
+    const { token, setToken, clearToken } = useAuthStore();
+
+    const getAuthToken = () => {
+        if (typeof window !== "undefined") {
+            return localStorage.getItem("auth_token") || token;
+        }
+        return token;
+    };
 
     const login = async (email: string, password: string): Promise<LoginResponse> => {
         try {
@@ -100,6 +107,7 @@ export const useAuthService = () => {
     return {
         login,
         logout,
+        getAuthToken,
         isAuthenticated,
     };
 };
