@@ -45,7 +45,7 @@ const CompanyForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [hasExistingCompany, setHasExistingCompany] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const { toast } = useToast();
   const { getAuthToken } = useAuthService();
@@ -97,8 +97,8 @@ const CompanyForm = () => {
         const data = await response.json();
 
         if (data && data.length > 0) {
-          setHasExistingCompany(true);
           const company = data[0]; // Get first company
+          setCompanyId(company.id);
           form.reset({
             companyCode: company.companyCode,
             companyName: company.companyName,
@@ -134,8 +134,12 @@ const CompanyForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/companies/`, {
-        method: hasExistingCompany ? "PUT" : "POST",
+      const url = companyId
+        ? `${process.env.BASE_URL}/companies/${companyId}`
+        : `${process.env.BASE_URL}/companies`;
+
+      const response = await fetch(url, {
+        method: companyId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getAuthToken()}`,
@@ -150,7 +154,7 @@ const CompanyForm = () => {
 
       toast({
         title: "Success",
-        description: hasExistingCompany
+        description: companyId
           ? "Company updated successfully"
           : "Company created successfully",
       });
@@ -164,7 +168,7 @@ const CompanyForm = () => {
         description:
           err instanceof Error
             ? err.message
-            : `Failed to ${hasExistingCompany ? "update" : "create"} company`,
+            : `Failed to ${companyId ? "update" : "create"} company`,
       });
     } finally {
       setLoading(false);
@@ -208,7 +212,7 @@ const CompanyForm = () => {
                     <FormItem>
                       <FormLabel>Firma Kodu*</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled={hasExistingCompany} />
+                        <Input {...field} disabled={!!companyId} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
