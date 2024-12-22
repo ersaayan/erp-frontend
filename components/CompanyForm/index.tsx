@@ -240,7 +240,7 @@ const CompanyForm = () => {
                                         <FormItem>
                                             <FormLabel>Firma Kodu*</FormLabel>
                                             <FormControl>
-                                                <Input {...field} disabled={!!companyCode} />
+                                                <Input {...field} disabled={!!companyId} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
