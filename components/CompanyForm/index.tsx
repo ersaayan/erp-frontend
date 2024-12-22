@@ -45,6 +45,7 @@ const CompanyForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [hasExistingCompany, setHasExistingCompany] = useState(false);
   const { toast } = useToast();
   const { getAuthToken } = useAuthService();
 
@@ -95,6 +96,7 @@ const CompanyForm = () => {
         const data = await response.json();
 
         if (data && data.length > 0) {
+          setHasExistingCompany(true);
           const company = data[0]; // Get first company
           form.reset({
             companyCode: company.companyCode,
@@ -200,7 +202,7 @@ const CompanyForm = () => {
                     <FormItem>
                       <FormLabel>Firma Kodu*</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled />
+                        <Input {...field} disabled={hasExistingCompany} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
