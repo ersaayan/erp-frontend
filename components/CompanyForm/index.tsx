@@ -79,69 +79,66 @@ const CompanyForm = () => {
         },
     });
 
-    const fetchCompany = useCallback(async () => {
-        if (!mounted) return;
-
-        try {
-            setLoading(true);
-            const response = await fetch(`${process.env.BASE_URL}/companies/`, {
-                headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                },
-                credentials: "include",
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch company data");
-            }
-
-            const data = await response.json();
-
-            if (data && data.length > 0) {
-                const company = data[0];
-                setIsUpdateMode(true);
-                setCompanyId(company.id);
-                setData(data);
-                form.reset({
-                    companyCode: company.companyCode,
-                    companyName: company.companyName,
-                    name: company.name,
-                    surname: company.surname,
-                    taxNumber: company.taxNumber,
-                    taxOffice: company.taxOffice,
-                    kepAddress: company.kepAddress,
-                    mersisNo: company.mersisNo,
-                    sicilNo: company.sicilNo,
-                    address: company.address,
-                    countryCode: company.countryCode,
-                    city: company.city,
-                    district: company.district,
-                    postalCode: company.postalCode,
-                    phone: company.phone,
-                    email: company.email,
-                    website: company.website,
-                });
-            } else {
-                setIsUpdateMode(false);
-                form.reset();
-            }
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "An error occurred");
-        } finally {
-            setLoading(false);
-        }
-    }, [mounted, getAuthToken, form]);
-
     useEffect(() => {
         const fetchCompany = async () => {
-            if (mounted) {
-                await fetchCompany();
+            try {
+                if (!mounted) return;
+
+                setLoading(true);
+                const response = await fetch(`${process.env.BASE_URL}/companies/`, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch company data");
+                }
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const company = data[0];
+                    setIsUpdateMode(true);
+                    setCompanyId(company.id);
+                    setData(data);
+                    form.reset({
+                        companyCode: company.companyCode,
+                        companyName: company.companyName,
+                        name: company.name,
+                        surname: company.surname,
+                        taxNumber: company.taxNumber,
+                        taxOffice: company.taxOffice,
+                        kepAddress: company.kepAddress,
+                        mersisNo: company.mersisNo,
+                        sicilNo: company.sicilNo,
+                        address: company.address,
+                        countryCode: company.countryCode,
+                        city: company.city,
+                        district: company.district,
+                        postalCode: company.postalCode,
+                        phone: company.phone,
+                        email: company.email,
+                        website: company.website,
+                    });
+                } else {
+                    setIsUpdateMode(false);
+                    form.reset();
+                }
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "An error occurred");
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchCompany();
-    }, [mounted, fetchCompany]);
+        // Component mount olduğunda sadece bir kez çalışacak
+        if (mounted) {
+            fetchCompany();
+        }
+    }, [mounted, form, getAuthToken]); // Dependencies required for the effect
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
