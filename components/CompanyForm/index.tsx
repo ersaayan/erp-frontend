@@ -54,6 +54,9 @@ const CompanyForm = () => {
 
     useEffect(() => {
         setMounted(true);
+        return () => {
+            setMounted(false);
+        };
     }, []);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -80,6 +83,7 @@ const CompanyForm = () => {
     });
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchCompany = async () => {
             try {
                 if (!mounted) return;
@@ -90,6 +94,7 @@ const CompanyForm = () => {
                         Authorization: `Bearer ${getAuthToken()}`,
                     },
                     credentials: "include",
+                    signal: controller.signal
                 });
 
                 if (!response.ok) {
@@ -128,9 +133,13 @@ const CompanyForm = () => {
                 }
                 setError(null);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "An error occurred");
+                if (!controller.signal.aborted) {
+                    setError(err instanceof Error ? err.message : "An error occurred");
+                }
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -138,7 +147,11 @@ const CompanyForm = () => {
         if (mounted) {
             fetchCompany();
         }
-    }, [mounted, form, getAuthToken]); // Dependencies required for the effect
+
+        return () => {
+            controller.abort();
+        };
+    }, [mounted]); // Dependencies required for the effect
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
