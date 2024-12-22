@@ -50,6 +50,7 @@ const CompanyForm = () => {
     const [isUpdateMode, setIsUpdateMode] = useState(false);
     const { toast } = useToast();
     const { getAuthToken } = useAuthService();
+    const [companyId, setCompanyId] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -100,6 +101,8 @@ const CompanyForm = () => {
                 if (data && data.length > 0) {
                     const company = data[0]; // Get first company
                     setIsUpdateMode(true);
+                    setCompanyId(company.id);
+                    setData(data);
                     form.reset({
                         companyCode: company.companyCode,
                         companyName: company.companyName,
@@ -138,7 +141,7 @@ const CompanyForm = () => {
         try {
             setLoading(true);
             const url = isUpdateMode
-                ? `${process.env.BASE_URL}/companies/${data?.[0]?.id || ''}`
+                ? `${process.env.BASE_URL}/companies/${companyId}`
                 : `${process.env.BASE_URL}/companies`;
 
             const method = isUpdateMode ? "PUT" : "POST";
@@ -166,7 +169,26 @@ const CompanyForm = () => {
             });
 
             // Refresh company data
-            fetchCompany();
+            const fetchCompanyResponse = await fetch(`${process.env.BASE_URL}/companies/`, {
+                headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                },
+                credentials: "include",
+            });
+
+            if (fetchCompanyResponse.ok) {
+                const refreshedData = await fetchCompanyResponse.json();
+                if (refreshedData && refreshedData.length > 0) {
+                    setData(refreshedData);
+                    const company = refreshedData[0];
+                    setCompanyId(company.id);
+                    form.reset({
+                        companyCode: company.companyCode,
+                        companyName: company.companyName,
+                        // ... diğer form alanları
+                    });
+                }
+            }
         } catch (err) {
             toast({
                 variant: "destructive",
