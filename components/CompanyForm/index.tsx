@@ -218,7 +218,7 @@ const CompanyForm = () => {
                                         <FormItem>
                                             <FormLabel>Firma Kodu*</FormLabel>
                                             <FormControl>
-                                                <Input {...field} disabled={!!companyId} />
+                                                <Input {...field} disabled={!!companyCode} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
