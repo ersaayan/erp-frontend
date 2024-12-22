@@ -134,18 +134,15 @@ const CompanyForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${process.env.BASE_URL}/companies/${values.companyCode}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          credentials: "include",
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await fetch(`${process.env.BASE_URL}/companies/`, {
+        method: hasExistingCompany ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(values),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update company");
@@ -153,14 +150,21 @@ const CompanyForm = () => {
 
       toast({
         title: "Success",
-        description: "Company updated successfully",
+        description: hasExistingCompany
+          ? "Company updated successfully"
+          : "Company created successfully",
       });
+
+      // Refresh company data after successful save
+      setInitialLoad(true);
     } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
         description:
-          err instanceof Error ? err.message : "Failed to update company",
+          err instanceof Error
+            ? err.message
+            : `Failed to ${hasExistingCompany ? "update" : "create"} company`,
       });
     } finally {
       setLoading(false);
