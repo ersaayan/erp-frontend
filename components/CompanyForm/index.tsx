@@ -45,6 +45,8 @@ const CompanyForm = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [data, setData] = useState<any[]>([]);
     const [isUpdateMode, setIsUpdateMode] = useState(false);
     const { toast } = useToast();
     const { getAuthToken } = useAuthService();
@@ -130,13 +132,13 @@ const CompanyForm = () => {
         };
 
         fetchCompany();
-    }, [form, mounted, getAuthToken, initialLoad]);
+    }, [form, mounted, getAuthToken]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             setLoading(true);
             const url = isUpdateMode
-                ? `${process.env.BASE_URL}/companies/${data[0].id}`
+                ? `${process.env.BASE_URL}/companies/${data?.[0]?.id || ''}`
                 : `${process.env.BASE_URL}/companies`;
 
             const method = isUpdateMode ? "PUT" : "POST";
