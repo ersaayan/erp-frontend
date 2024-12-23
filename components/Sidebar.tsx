@@ -135,6 +135,7 @@ const menuItems = [
       { name: "Roller ve İzinler", disabled: false },
       { name: "Tanımlar", disabled: false },
       { name: "Firma", disabled: false },
+      { name: "Şubeler", disabled: false },
       // { name: "Günlükler", disabled: false },
       // { name: "Servis Şablonları", disabled: false },
       // { name: "Yedekleme", disabled: false },
