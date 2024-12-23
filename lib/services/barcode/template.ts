@@ -2,7 +2,7 @@ import { BarcodeTemplate } from './types';
 
 export const DEFAULT_TEMPLATE: BarcodeTemplate = {
     width: '80mm',
-    height: '45mm',
+    height: '40mm',
     qrCodeSize: '20mm',
     qrCodePosition: {
         left: '30mm',
