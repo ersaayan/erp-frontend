@@ -21,6 +21,9 @@ const RolesToolbar: React.FC = () => {
 
     return (
         <div className="flex justify-end items-center gap-2 mb-4">
+            {/* Sol tarada Roller ve İzinler yazısı ekle */}
+            <h1 className="text-2xl font-semibold">Roller ve İzinler</h1>
+            {/* Refresh button */}
             <Button variant="outline" size="sm" onClick={handleRefresh}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Yenile
