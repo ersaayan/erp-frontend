@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import RolesGrid from "./RolesGrid";
 import RoleDialog from "./RoleDialog";
 import RolesToolbar from "./RolesToolbar";
-import { useRoleDialog } from "./useRoleDialog";
+import { useRoleDialog } from "./RoleDialog/useRoleDialog";
 import { Role } from "./types";
 
 const Roles: React.FC = () => {

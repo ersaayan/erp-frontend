@@ -13,7 +13,7 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import { Loader2 } from "lucide-react";
 import { Role } from "./types";
-import { useRoleDialog } from "./useRoleDialog";
+import { useRoleDialog } from "./RoleDialog/useRoleDialog";
 
 interface RolesGridProps {
     roles: Role[];

@@ -4,7 +4,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
-import { useRoleDialog } from "./useRoleDialog";
+import { useRoleDialog } from "./RoleDialog/useRoleDialog";
 import { useToast } from "@/hooks/use-toast";
 
 const RolesToolbar: React.FC = () => {
