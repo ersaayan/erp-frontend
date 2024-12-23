@@ -126,6 +126,7 @@ const BranchesGrid: React.FC = () => {
             <Column dataField="email" caption="E-posta" />
             <Column dataField="website" caption="Website" />
             <Column dataField="companyCode" caption="Firma Kodu" />
+            <Column dataField="warehouse[0].warehouse.warehouseName" caption="Firma Adı" />
             <Column
                 dataField="createdAt"
                 caption="Oluşturma Tarihi"
