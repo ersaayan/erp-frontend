@@ -80,13 +80,13 @@ const RoleDialog: React.FC = () => {
         }
     }, [editingRole]);
 
-    // Filter permissions based on search term
-    const filteredPermissions = (permissions || []).filter(
+    // Filtreleme mantığını güvenli hale getirme
+    const filteredPermissions = permissions ? permissions.filter(
         (permission) =>
-            permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            permission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            permission.route.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+            permission?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            permission?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            permission?.route?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : [];
 
     // Group permissions by their group
     const groupedPermissions = filteredPermissions.reduce((acc, permission) => {
@@ -159,7 +159,10 @@ const RoleDialog: React.FC = () => {
 
     return (
         <Dialog open={isOpen} onOpenChange={closeDialog}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+            <DialogContent
+                className="max-w-3xl max-h-[90vh] flex flex-col"
+                description={editingRole ? "Rol bilgilerini düzenleyin" : "Yeni bir rol oluşturun"}
+            >
                 <DialogHeader>
                     <DialogTitle>
                         {editingRole ? "Rol Düzenle" : "Yeni Rol"}
