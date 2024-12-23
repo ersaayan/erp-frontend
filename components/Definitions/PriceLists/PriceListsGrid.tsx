@@ -12,8 +12,7 @@ import DataGrid, {
   Selection,
   Sorting,
 } from "devextreme-react/data-grid";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { PriceList } from "./types";
 import { usePriceListDialog } from "./usePriceListDialog";
 

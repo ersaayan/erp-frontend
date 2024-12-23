@@ -10,6 +10,7 @@ import { Brand } from "./types";
 const Brands: React.FC = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isOpen } = useBrandDialog();
 
   const fetchBrands = async () => {

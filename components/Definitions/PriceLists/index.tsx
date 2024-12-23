@@ -10,6 +10,7 @@ import { PriceList } from "./types";
 const PriceLists: React.FC = () => {
   const [priceLists, setPriceLists] = useState<PriceList[]>([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isOpen } = usePriceListDialog();
 
   const fetchPriceLists = async () => {

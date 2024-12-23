@@ -114,6 +114,7 @@ const PriceListDialog: React.FC = () => {
         title: "Error",
         description: "Failed to save price list",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -153,6 +154,7 @@ const PriceListDialog: React.FC = () => {
         title: "Error",
         description: "Failed to delete price list",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }

@@ -94,6 +94,7 @@ const BrandDialog: React.FC = () => {
         title: "Error",
         description: "Failed to save brand",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -133,6 +134,7 @@ const BrandDialog: React.FC = () => {
         title: "Error",
         description: "Failed to delete brand",
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -211,7 +213,7 @@ const BrandDialog: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel> <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600"
