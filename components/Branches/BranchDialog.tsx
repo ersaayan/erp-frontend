@@ -59,6 +59,9 @@ const BranchDialog: React.FC = () => {
 
     useEffect(() => {
         if (editingBranch) {
+            // Get the warehouse ID from the first warehouse in the array if it exists
+            const warehouseId = editingBranch.warehouse?.[0]?.id || "";
+
             setFormData({
                 branchName: editingBranch.branchName,
                 branchCode: editingBranch.branchCode,
@@ -70,7 +73,7 @@ const BranchDialog: React.FC = () => {
                 email: editingBranch.email,
                 website: editingBranch.website,
                 companyCode: editingBranch.companyCode,
-                warehouseId: editingBranch.warehouse?.[0]?.id || "",
+                warehouseId: warehouseId,
             });
         } else {
             setFormData({
@@ -145,11 +148,11 @@ const BranchDialog: React.FC = () => {
 
     const handleSubmit = async () => {
         try {
-            if (!formData.branchName || !formData.branchCode || !formData.companyCode) {
+            if (!formData.branchName || !formData.branchCode || !formData.companyCode || !formData.warehouseId) {
                 toast({
                     variant: "destructive",
                     title: "Error",
-                    description: "Please fill in all required fields",
+                    description: "Lütfen tüm zorunlu alanları doldurun (Şube Adı, Şube Kodu, Firma ve Depo)",
                 });
                 return;
             }
@@ -253,7 +256,7 @@ const BranchDialog: React.FC = () => {
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
-                <DialogContent className="sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] w-[90vw]">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
                             {editingBranch ? "Şube Düzenle" : "Yeni Şube"}
@@ -286,14 +289,13 @@ const BranchDialog: React.FC = () => {
                         <div>
                             <Label>Depo</Label>
                             <Select
-                                name="warehouseId"
                                 value={formData.warehouseId}
                                 onValueChange={(value) =>
                                     setFormData((prev) => ({ ...prev, warehouseId: value }))
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Depo seçin" />
+                                    <SelectValue placeholder={editingBranch?.warehouse?.[0]?.warehouseName || "Depo seçin"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {warehouses.map((warehouse) => (
