@@ -36,7 +36,6 @@ import { Company, Warehouse } from "./types";
 const BranchDialog: React.FC = () => {
     const { isOpen, closeDialog, editingBranch } = useBranchDialog();
     const [companies, setCompanies] = useState<Company[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -55,6 +54,7 @@ const BranchDialog: React.FC = () => {
         email: "",
         website: "",
         companyCode: "",
+        warehouseId: "",
     });
 
     useEffect(() => {
@@ -70,6 +70,7 @@ const BranchDialog: React.FC = () => {
                 email: editingBranch.email,
                 website: editingBranch.website,
                 companyCode: editingBranch.companyCode,
+                warehouseId: editingBranch.warehouse?.[0]?.id || "",
             });
         } else {
             setFormData({
@@ -83,6 +84,7 @@ const BranchDialog: React.FC = () => {
                 email: "",
                 website: "",
                 companyCode: "",
+                warehouseId: "",
             });
         }
     }, [editingBranch]);
@@ -251,7 +253,7 @@ const BranchDialog: React.FC = () => {
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] w-[90vw]">
                     <DialogHeader>
                         <DialogTitle>
                             {editingBranch ? "Şube Düzenle" : "Yeni Şube"}
@@ -281,6 +283,27 @@ const BranchDialog: React.FC = () => {
                             </Select>
                         </div>
 
+                        <div>
+                            <Label>Depo</Label>
+                            <Select
+                                name="warehouseId"
+                                value={formData.warehouseId}
+                                onValueChange={(value) =>
+                                    setFormData((prev) => ({ ...prev, warehouseId: value }))
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Depo seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {warehouses.map((warehouse) => (
+                                        <SelectItem key={warehouse.id} value={warehouse.id}>
+                                            {warehouse.warehouseName} ({warehouse.warehouseCode})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Şube Adı</Label>
