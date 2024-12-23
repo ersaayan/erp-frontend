@@ -91,6 +91,7 @@ const CompanyForm = dynamic(() => import("@/components/CompanyForm"), {
 const Definitions = dynamic(() => import("@/components/Definitions"), {
   ssr: false,
 });
+const Roles = dynamic(() => import("@/components/Roles"), { ssr: false });
 interface MainTabsProps {
   activeTab: string | null;
   onMenuItemClick: (itemName: string) => void;
@@ -160,6 +161,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <CompanyForm />;
       case "Tanımlar":
         return <Definitions />;
+      case "Roller ve İzinler":
+        return <Roles />;
       default:
         return null;
     }

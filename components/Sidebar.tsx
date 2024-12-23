@@ -132,7 +132,7 @@ const menuItems = [
     icon: <Settings className="h-5 w-5" />,
     subItems: [
       { name: "Kullanıcılar", disabled: false },
-      { name: "Rol Grupları", disabled: false },
+      { name: "Roller ve İzinler", disabled: false },
       { name: "Tanımlar", disabled: false },
       { name: "Firma", disabled: false },
       // { name: "Günlükler", disabled: false },
@@ -186,9 +186,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
 
   return (
     <aside
-      className={`bg-sidebar-bg text-sidebar-text transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}
+      className={`bg-sidebar-bg text-sidebar-text transition-all duration-300 ease-in-out ${isCollapsed ? "w-16" : "w-64"
+        }`}
     >
       <div className="p-4 flex justify-center items-center">
         <Image
@@ -204,9 +203,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
             <div key={item.name} className="mb-1">
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-sm text-sidebar-text hover:bg-sidebar-hover ${
-                  isCollapsed ? "px-2" : "px-3"
-                }`}
+                className={`w-full justify-start text-sm text-sidebar-text hover:bg-sidebar-hover ${isCollapsed ? "px-2" : "px-3"
+                  }`}
                 onClick={() => {
                   if (item.subItems && !isCollapsed) {
                     toggleExpand(item.name);
