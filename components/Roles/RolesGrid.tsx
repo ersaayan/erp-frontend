@@ -1,30 +1,76 @@
-// components/Roles/RolesGrid.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataGrid, {
     Column,
+    ColumnChooser,
     FilterRow,
     HeaderFilter,
     Paging,
     Scrolling,
     SearchPanel,
     Selection,
+    LoadPanel,
+    StateStoring,
 } from "devextreme-react/data-grid";
-import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Role } from "./types";
 import { useRoleDialog } from "./RoleDialog/useRoleDialog";
 
-interface RolesGridProps {
-    roles: Role[];
-    loading: boolean;
-}
-
-const RolesGrid: React.FC<RolesGridProps> = ({ roles, loading }) => {
+const RolesGrid: React.FC = () => {
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const { openDialog } = useRoleDialog();
 
+    const fetchRoles = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${process.env.BASE_URL}/roles`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                },
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch roles");
+            }
+
+            const data = await response.json();
+            setRoles(data);
+            setError(null);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "An error occurred while fetching roles"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRoles();
+
+        // Listen for refresh events
+        const handleRefresh = () => {
+            fetchRoles();
+        };
+
+        window.addEventListener("refreshRoles", handleRefresh);
+
+        return () => {
+            window.removeEventListener("refreshRoles", handleRefresh);
+        };
+    }, []);
+
     const handleRowDblClick = (e: any) => {
-        openDialog(e.data);
+        if (e.data) {
+            openDialog(e.data);
+        }
     };
 
     if (loading) {
@@ -36,6 +82,15 @@ const RolesGrid: React.FC<RolesGridProps> = ({ roles, loading }) => {
         );
     }
 
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
+
     return (
         <DataGrid
             dataSource={roles}
@@ -43,21 +98,38 @@ const RolesGrid: React.FC<RolesGridProps> = ({ roles, loading }) => {
             showRowLines={true}
             showColumnLines={true}
             rowAlternationEnabled={true}
+            allowColumnReordering={true}
+            allowColumnResizing={true}
+            columnAutoWidth={true}
+            wordWrapEnabled={true}
+            height="calc(100vh - 250px)"
             onRowDblClick={handleRowDblClick}
-            height="calc(100vh - 350px)"
         >
-            <Selection mode="single" />
+            <StateStoring
+                enabled={true}
+                type="localStorage"
+                storageKey="rolesGrid"
+            />
+            <LoadPanel enabled={true} />
+            <Selection mode="multiple" />
             <FilterRow visible={true} />
             <HeaderFilter visible={true} />
             <SearchPanel visible={true} width={240} placeholder="Ara..." />
+            <ColumnChooser enabled={true} mode="select" />
             <Scrolling mode="virtual" />
-            <Paging enabled={true} defaultPageSize={20} />
+            <Paging enabled={false} />
 
             <Column dataField="roleName" caption="Rol Adı" />
             <Column dataField="description" caption="Açıklama" />
             <Column
                 dataField="createdAt"
                 caption="Oluşturma Tarihi"
+                dataType="datetime"
+                format="dd.MM.yyyy HH:mm"
+            />
+            <Column
+                dataField="updatedAt"
+                caption="Güncelleme Tarihi"
                 dataType="datetime"
                 format="dd.MM.yyyy HH:mm"
             />

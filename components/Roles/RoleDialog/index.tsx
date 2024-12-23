@@ -70,7 +70,7 @@ const RoleDialog: React.FC = () => {
                 roleName: editingRole.roleName,
                 description: editingRole.description,
             });
-            setSelectedPermissions(editingRole.permissions);
+            setSelectedPermissions(editingRole.permissions || []);
         } else {
             setFormData({
                 roleName: "",
@@ -257,20 +257,20 @@ const RoleDialog: React.FC = () => {
                             {selectedPermissions.length} izin seçildi
                         </div>
                     </div>
-                </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                    <Button variant="outline" onClick={closeDialog}>
-                        İptal
-                    </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="bg-[#84CC16] hover:bg-[#65A30D]"
-                    >
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {editingRole ? "Güncelle" : "Kaydet"}
-                    </Button>
+                    <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={closeDialog}>
+                            İptal
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="bg-[#84CC16] hover:bg-[#65A30D]"
+                        >
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {editingRole ? "Güncelle" : "Kaydet"}
+                        </Button>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
