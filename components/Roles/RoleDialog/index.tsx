@@ -21,7 +21,7 @@ import { Search, Loader2 } from "lucide-react";
 const RoleDialog: React.FC = () => {
     const { isOpen, closeDialog, editingRole } = useRoleDialog();
     const [loading, setLoading] = useState(false);
-    const [permissions, setPermissions] = useState<Permission[]>([]);
+    const [permissions, setPermissions] = useState<Permission[] | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
     const { toast } = useToast();
@@ -81,7 +81,7 @@ const RoleDialog: React.FC = () => {
     }, [editingRole]);
 
     // Filter permissions based on search term
-    const filteredPermissions = permissions.filter(
+    const filteredPermissions = (permissions || []).filter(
         (permission) =>
             permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             permission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -204,9 +204,10 @@ const RoleDialog: React.FC = () => {
                         </div>
 
                         <ScrollArea className="h-[300px] border rounded-md p-4">
-                            {loading ? (
+                            {loading || !permissions ? (
                                 <div className="flex items-center justify-center h-full">
                                     <Loader2 className="h-6 w-6 animate-spin" />
+                                    <span className="ml-2">Loading permissions...</span>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
