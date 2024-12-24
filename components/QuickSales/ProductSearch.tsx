@@ -112,7 +112,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
   const handleProductSelect = (product: any) => {
     // Find price list item matching customer's price list
     const priceListItem = product.stockCardPriceLists.find(
-      (pl: any) => pl.id === customer?.priceList?.id
+      (pl: any) => pl.priceList.id === customer?.priceList?.id
     );
 
     if (!priceListItem) {
