@@ -71,7 +71,7 @@ export const useCurrentForm = () => {
                     ...initialFormData,
                     ...parsedData,
                     birthOfDate: parsedData.birthOfDate ? new Date(parsedData.birthOfDate) : null,
-                    categories: Array.isArray(parsedData.categories) ? parsedData.categories : [],
+                    categories: Array.isArray(parsedData.currentCategoryItem) ? parsedData.currentCategoryItem : [],
                     addresses: Array.isArray(parsedData.currentAddress) ? parsedData.currentAddress.map(addr => ({
                         addressName: addr.addressName || '',
                         addressType: addr.addressType || '',
