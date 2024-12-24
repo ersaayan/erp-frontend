@@ -67,6 +67,13 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
           address: item.address,
           phone: item.phone,
           email: item.email,
+          priceListId: item.priceListId,
+          priceList: {
+            id: item.priceList.id,
+            priceListName: item.priceList.priceListName,
+            currency: item.priceList.currency,
+            isVatIncluded: item.priceList.isVatIncluded,
+          },
         }))
       );
     } catch (error) {
