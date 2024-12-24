@@ -81,43 +81,43 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
     virtualScrolling: true,
   });
 
-  const handleRowDblClick = useCallback(async (e: any) => {
-    try {
-      localStorage.setItem("currentFormData", JSON.stringify(e.data));
-      onMenuItemClick("Cari Formu");
-      toast({
-        title: "Success",
-        description: "Opening current form...",
-      });
-      // Fetch current details
-      const response = await fetch(`${process.env.BASE_URL}/currents/${e.data.id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch current details");
+  const handleRowDblClick = useCallback(
+    async (e: any) => {
+      try {
+        // Fetch current details
+        const response = await fetch(`${process.env.BASE_URL}/currents/${e.data.id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch current details");
+        }
+
+        const currentData = await response.json();
+
+        // Store current data in localStorage
+        localStorage.setItem("currentFormData", JSON.stringify(currentData));
+
+        // Navigate to Current Form
+        onMenuItemClick("Cari Formu");
+
+        toast({
+          title: "Success",
+          description: "Cari formu açılıyor...",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Cari detayları yüklenirken bir hata oluştu.",
+        });
+        console.error(error);
       }
-      const currentData = await response.json();
-      // Store current data in localStorage
-      localStorage.setItem("currentFormData", JSON.stringify(currentData));
-      // Navigate to Current Form
-      onMenuItemClick("Cari Formu");
-      toast({
-        title: "Success",
-        description: "Cari formu açılıyor...",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive", title: "Error",
-        description: "Failed to open current form. Please try again.",
-        description: "Cari detayları yüklenirken bir hata oluştu.",
-      });
-      console.error(error);
-    }
-  },
+    },
     [onMenuItemClick, toast]
   );
 
