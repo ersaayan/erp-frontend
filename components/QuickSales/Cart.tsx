@@ -27,6 +27,16 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
     onUpdateItem(itemId, { quantity });
   };
 
+  const handleUnitPriceChange = (itemId: string, unitPrice: number) => {
+    if (unitPrice < 0) return;
+    onUpdateItem(itemId, { unitPrice });
+  };
+
+  const handleVatRateChange = (itemId: string, vatRate: number) => {
+    if (vatRate < 0 || vatRate > 100) return;
+    onUpdateItem(itemId, { vatRate });
+  };
+
   const handleDiscountChange = (itemId: string, discountRate: number) => {
     if (discountRate < 0 || discountRate > 100) return;
     onUpdateItem(itemId, { discountRate });
@@ -39,9 +49,13 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
           <TableRow>
             <TableHead>Ürün</TableHead>
             <TableHead className="w-[100px] text-right">Miktar</TableHead>
-            <TableHead className="w-[120px] text-right">Birim Fiyat</TableHead>
+            <TableHead className="w-[120px] text-right">
+              <div className="text-right">Birim Fiyat</div>
+            </TableHead>
             <TableHead className="w-[100px] text-right">İndirim %</TableHead>
-            <TableHead className="w-[100px] text-right">KDV %</TableHead>
+            <TableHead className="w-[100px] text-right">
+              <div className="text-right">KDV %</div>
+            </TableHead>
             <TableHead className="w-[120px] text-right">Toplam</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
@@ -69,7 +83,26 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
                 />
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(item.unitPrice)}
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={item.unitPrice}
+                  onChange={(e) =>
+                    handleUnitPriceChange(item.id, parseFloat(e.target.value))
+                  }
+                  className="w-28 text-right"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={item.vatRate}
+                  onChange={(e) =>
+                    handleVatRateChange(item.id, parseFloat(e.target.value))
+                  }
+                  className="w-20 text-right"
+                />
               </TableCell>
               <TableCell className="text-right">
                 <Input

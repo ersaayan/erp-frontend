@@ -9,6 +9,8 @@ import PaymentSection from "./PaymentSection";
 import { useQuickSales } from "./hooks/useQuickSales";
 import { motion } from "framer-motion";
 import { ShoppingCart, User, CreditCard } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import WarehouseSelect from "./WarehouseSection/WarehouseSelect";
 
 const QuickSales: React.FC = () => {
@@ -46,6 +48,14 @@ const QuickSales: React.FC = () => {
         </div>
       </div>
 
+      {!customer && (
+        <Alert variant="destructive" className="mx-4 mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Lütfen işleme başlamadan önce bir müşteri seçin!
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="grid grid-cols-12 gap-4 p-4 overflow-hidden h-[calc(100%-4rem)]">
         <motion.div
           className="col-span-8 space-y-4 h-full overflow-hidden flex flex-col"
