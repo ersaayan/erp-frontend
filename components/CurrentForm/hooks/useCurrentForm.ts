@@ -67,12 +67,28 @@ export const useCurrentForm = () => {
         if (savedFormData) {
             try {
                 const parsedData = JSON.parse(savedFormData);
+                // Tüm form verilerini doğru şekilde dönüştür
                 setFormData({
                     ...initialFormData,
-                    ...parsedData,
+                    id: parsedData.id,
+                    currentCode: parsedData.currentCode,
+                    currentName: parsedData.currentName,
+                    firstName: parsedData.firstName || '',
+                    lastName: parsedData.lastName || '',
+                    priceListId: parsedData.priceListId,
+                    currentType: parsedData.currentType,
+                    institution: parsedData.institution,
+                    identityNo: parsedData.identityNo,
+                    taxNumber: parsedData.taxNumber,
+                    taxOffice: parsedData.taxOffice,
+                    kepAddress: parsedData.kepAddress || '',
+                    mersisNo: parsedData.mersisNo || '',
+                    sicilNo: parsedData.sicilNo || '',
+                    title: parsedData.title || '',
+                    webSite: parsedData.webSite || '',
                     birthOfDate: parsedData.birthOfDate ? new Date(parsedData.birthOfDate) : null,
-                    categories: Array.isArray(parsedData.currentCategoryItem) ? parsedData.currentCategoryItem : [],
-                    addresses: Array.isArray(parsedData.currentAddress) ? parsedData.currentAddress.map(addr => ({
+                    categories: parsedData.currentCategoryItem || [],
+                    addresses: parsedData.currentAddress ? parsedData.currentAddress.map(addr => ({
                         addressName: addr.addressName || '',
                         addressType: addr.addressType || '',
                         address: addr.address || '',
@@ -84,7 +100,7 @@ export const useCurrentForm = () => {
                         phone2: addr.phone2 || '',
                         email: addr.email || '',
                         email2: addr.email2 || ''
-                    })) : [],
+                    })) : []
                 });
                 setIsEditMode(true);
             } catch (error) {
@@ -95,6 +111,7 @@ export const useCurrentForm = () => {
                     description: "Failed to load current data"
                 });
             }
+            localStorage.removeItem('currentFormData');
         }
     }, [toast]);
 
