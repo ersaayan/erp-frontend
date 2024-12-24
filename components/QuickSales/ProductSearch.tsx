@@ -19,7 +19,18 @@ interface ProductSearchProps {
   onProductSelect: (product: CartItem) => void;
   warehouseId: string;
   disabled?: boolean;
-  customer: Customer | null;
+  customer: {
+    id: string;
+    name: string;
+    code: string;
+    priceListId: string;
+    priceList?: {
+      id: string;
+      priceListName: string;
+      currency: string;
+      isVatIncluded: boolean;
+    }
+  } | null;
 }
 interface PriceList {
   id: string;
@@ -131,19 +142,31 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     console.log("Customer PriceListId:", customer?.priceListId); // Debug
     console.log("Available PriceLists:", product.stockCardPriceLists.map((pl: PriceListItem) => pl.priceListId)); // Debug
     console.log("Selected Product:", product); // Debug
-    // Find price list item matching customer's price list
-    const priceListItem = product.stockCardPriceLists.find(
-      (pl: PriceListItem) => pl.priceListId === customer?.priceListId // Changed from pl.priceList.id
-    );
 
-    if (!priceListItem) {
+    if (!customer) {
       toast({
         variant: "destructive",
-        title: "Fiyat Bulunamadı",
-        description: "Bu ürün için müşterinin fiyat listesinde fiyat tanımlanmamış.",
+        title: "Hata",
+        description: "Lütfen önce müşteri seçimi yapınız.",
       });
       return;
     }
+
+    // Use customer.priceList?.id if priceListId is not directly available
+    const customerPriceListId = customer.priceListId || customer.priceList?.id;
+
+    if (!customerPriceListId) {
+      toast({
+        variant: "destructive",
+        title: "Fiyat Listesi Bulunamadı",
+        description: "Müşteriye tanımlı fiyat listesi bulunamadı.",
+      });
+      return;
+    }
+
+    const priceListItem = product.stockCardPriceLists.find(
+      (pl: PriceListItem) => pl.priceListId === customerPriceListId
+    );
 
     // Calculate initial prices
     const unitPrice = parseFloat(priceListItem.price);
