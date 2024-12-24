@@ -117,6 +117,7 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
           priceListId: currentData.priceListId,
           categories: currentData.currentCategoryItem?.map(item => item.categoryId) || [],
           addresses: currentData.currentAddress?.map(addr => ({
+            id: addr.id,
             addressName: addr.addressName || '',
             addressType: addr.addressType || '',
             address: addr.address || '',
