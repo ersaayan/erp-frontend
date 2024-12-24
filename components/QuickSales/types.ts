@@ -24,6 +24,13 @@ export interface Customer {
     address?: string;
     phone?: string;
     email?: string;
+    priceListId: string;
+    priceList?: {
+        id: string;
+        priceListName: string;
+        currency: string;
+        isVatIncluded: boolean;
+    }
 }
 
 export interface Payment {
