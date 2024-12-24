@@ -9,8 +9,6 @@ const EDIT_MODE_KEY = 'current_form_edit_mode';
 const initialFormData: CurrentFormData = {
     currentCode: '',
     currentName: '',
-    firstName: '',
-    lastName: '',
     priceListId: '',
     currentType: '',
     institution: '',
