@@ -67,51 +67,26 @@ export const useCurrentForm = () => {
         if (savedFormData) {
             try {
                 const parsedData = JSON.parse(savedFormData);
-                // Tüm form verilerini doğru şekilde dönüştür
+                // Form verilerini doğru şekilde dönüştür
                 setFormData({
                     ...initialFormData,
-                    id: parsedData.id,
-                    currentCode: parsedData.currentCode,
-                    currentName: parsedData.currentName,
-                    firstName: parsedData.firstName || '',
-                    lastName: parsedData.lastName || '',
-                    priceListId: parsedData.priceListId,
-                    currentType: parsedData.currentType,
-                    institution: parsedData.institution,
-                    identityNo: parsedData.identityNo,
-                    taxNumber: parsedData.taxNumber,
-                    taxOffice: parsedData.taxOffice,
-                    kepAddress: parsedData.kepAddress || '',
-                    mersisNo: parsedData.mersisNo || '',
-                    sicilNo: parsedData.sicilNo || '',
-                    title: parsedData.title || '',
-                    webSite: parsedData.webSite || '',
+                    ...parsedData,
                     birthOfDate: parsedData.birthOfDate ? new Date(parsedData.birthOfDate) : null,
-                    categories: parsedData.currentCategoryItem || [],
-                    addresses: parsedData.currentAddress ? parsedData.currentAddress.map(addr => ({
-                        addressName: addr.addressName || '',
-                        addressType: addr.addressType || '',
-                        address: addr.address || '',
-                        province: addr.city || '',
-                        district: addr.district || '',
-                        countryCode: addr.countryCode || '',
-                        postalCode: addr.postalCode || '',
-                        phone: addr.phone || '',
-                        phone2: addr.phone2 || '',
-                        email: addr.email || '',
-                        email2: addr.email2 || ''
-                    })) : []
+                    categories: Array.isArray(parsedData.categories) ? parsedData.categories : [],
+                    addresses: Array.isArray(parsedData.addresses) ? parsedData.addresses : []
                 });
                 setIsEditMode(true);
+
+                // Form verisi kullanıldıktan sonra localStorage'dan temizle
+                localStorage.removeItem('currentFormData');
             } catch (error) {
-                console.error('Error parsing form data:', error);
+                console.error('Form verilerini ayrıştırma hatası:', error);
                 toast({
                     variant: "destructive",
-                    title: "Error",
-                    description: "Failed to load current data"
+                    title: "Hata",
+                    description: "Form verileri yüklenirken bir hata oluştu"
                 });
             }
-            localStorage.removeItem('currentFormData');
         }
     }, [toast]);
 

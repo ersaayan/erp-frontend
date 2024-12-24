@@ -84,7 +84,6 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
   const handleRowDblClick = useCallback(
     async (e: any) => {
       try {
-        // Fetch current details
         const response = await fetch(`${process.env.BASE_URL}/currents/${e.data.id}`, {
           headers: {
             "Content-Type": "application/json",
@@ -99,10 +98,46 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
 
         const currentData = await response.json();
 
-        // Store current data in localStorage
-        localStorage.setItem("currentFormData", JSON.stringify(currentData));
+        // Veriyi form yapısına uygun şekilde dönüştür
+        const formattedData = {
+          id: currentData.id,
+          currentCode: currentData.currentCode,
+          currentName: currentData.currentName,
+          firstName: currentData.name || '',
+          lastName: currentData.surname || '',
+          currentType: currentData.currentType,
+          institution: currentData.institution,
+          identityNo: currentData.identityNo,
+          taxNumber: currentData.taxNumber,
+          taxOffice: currentData.taxOffice,
+          kepAddress: currentData.kepAddress || '',
+          mersisNo: currentData.mersisNo || '',
+          sicilNo: currentData.sicilNo || '',
+          title: currentData.title || '',
+          webSite: currentData.webSite || '',
+          birthOfDate: currentData.birthOfDate ? new Date(currentData.birthOfDate) : null,
+          priceListId: currentData.priceListId,
+          categories: currentData.currentCategoryItem?.map(item => item.categoryId) || [],
+          addresses: currentData.currentAddress?.map(addr => ({
+            addressName: addr.addressName || '',
+            addressType: addr.addressType || '',
+            address: addr.address || '',
+            province: addr.city || '',
+            district: addr.district || '',
+            countryCode: addr.countryCode || '',
+            postalCode: addr.postalCode || '',
+            phone: addr.phone || '',
+            phone2: addr.phone2 || '',
+            email: addr.email || '',
+            email2: addr.email2 || ''
+          })) || []
+        };
 
-        // Navigate to Current Form
+        // LocalStorage'a kaydet
+        localStorage.setItem("currentFormData", JSON.stringify(formattedData));
+        localStorage.setItem("current_form_edit_mode", "true");
+
+        // Cari Formu sayfasına yönlendir
         onMenuItemClick("Cari Formu");
 
         toast({
