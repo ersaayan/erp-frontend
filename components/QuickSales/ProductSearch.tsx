@@ -242,7 +242,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
                       <Button
                         variant="outline"
                         className="w-full justify-start text-left p-4 h-auto"
-                        onClick={() => handleProductSelect(product)}
+                        onClick={() => handleProductSelect(product), console.log(product)}
                       >
                         <div className="flex justify-between w-full">
                           <div className="space-y-1">
