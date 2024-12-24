@@ -103,8 +103,6 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
           id: currentData.id,
           currentCode: currentData.currentCode,
           currentName: currentData.currentName,
-          firstName: currentData.name || '',
-          lastName: currentData.surname || '',
           currentType: currentData.currentType,
           institution: currentData.institution,
           identityNo: currentData.identityNo,

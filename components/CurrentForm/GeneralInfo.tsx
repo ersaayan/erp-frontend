@@ -76,25 +76,6 @@ const GeneralInfo: React.FC<{
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Ad</Label>
-              <Input
-                value={formData.firstName}
-                onChange={(e) => updateFormData({ firstName: e.target.value })}
-                placeholder="Ad giriniz"
-              />
-            </div>
-            <div>
-              <Label>Soyad</Label>
-              <Input
-                value={formData.lastName}
-                onChange={(e) => updateFormData({ lastName: e.target.value })}
-                placeholder="Soyad giriniz"
-              />
-            </div>
-          </div>
-
           <div>
             <Label>Fiyat Listesi</Label>
             <Select
