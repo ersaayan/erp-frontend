@@ -141,6 +141,7 @@ const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
             setSelectedBranch(value);
             setSelectedWarehouse(""); // Reset warehouse when branch changes
           }}
+          disabled={isDisabled}
         >
           <SelectTrigger>
             <SelectValue placeholder="Şube seçin" />
@@ -163,7 +164,7 @@ const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
             setSelectedWarehouse(value);
             onWarehouseSelect(value, selectedBranch);
           }}
-          disabled={!selectedBranch}
+          disabled={!selectedBranch || isDisabled}
         >
           <SelectTrigger>
             <SelectValue placeholder={placeholderText} />

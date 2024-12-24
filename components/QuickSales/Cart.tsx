@@ -93,6 +93,8 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
                   }
                   className="w-28 text-right"
                 />
+              </TableCell>
+              <TableCell className="text-right">
                 <Input
                   type="number"
                   min="0"
