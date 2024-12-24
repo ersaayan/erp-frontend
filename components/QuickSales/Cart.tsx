@@ -22,24 +22,75 @@ interface CartProps {
 }
 
 const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
+  const calculateTotals = (
+    quantity: number,
+    unitPrice: number,
+    vatRate: number,
+    discountRate: number
+  ) => {
+    const subtotal = quantity * unitPrice;
+    const discountAmount = (subtotal * discountRate) / 100;
+    const afterDiscount = subtotal - discountAmount;
+    const vatAmount = (afterDiscount * vatRate) / 100;
+    const totalAmount = afterDiscount + vatAmount;
+
+    return { discountAmount, vatAmount, totalAmount };
+  };
+
   const handleQuantityChange = (itemId: string, quantity: number) => {
     if (quantity < 1) return;
-    onUpdateItem(itemId, { quantity });
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const totals = calculateTotals(
+      quantity,
+      item.unitPrice,
+      item.vatRate,
+      item.discountRate
+    );
+    onUpdateItem(itemId, { quantity, ...totals });
   };
 
   const handleUnitPriceChange = (itemId: string, unitPrice: number) => {
     if (unitPrice < 0) return;
-    onUpdateItem(itemId, { unitPrice });
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const totals = calculateTotals(
+      item.quantity,
+      unitPrice,
+      item.vatRate,
+      item.discountRate
+    );
+    onUpdateItem(itemId, { unitPrice, ...totals });
   };
 
   const handleVatRateChange = (itemId: string, vatRate: number) => {
     if (vatRate < 0 || vatRate > 100) return;
-    onUpdateItem(itemId, { vatRate });
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const totals = calculateTotals(
+      item.quantity,
+      item.unitPrice,
+      vatRate,
+      item.discountRate
+    );
+    onUpdateItem(itemId, { vatRate, ...totals });
   };
 
   const handleDiscountChange = (itemId: string, discountRate: number) => {
     if (discountRate < 0 || discountRate > 100) return;
-    onUpdateItem(itemId, { discountRate });
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const totals = calculateTotals(
+      item.quantity,
+      item.unitPrice,
+      item.vatRate,
+      discountRate
+    );
+    onUpdateItem(itemId, { discountRate, ...totals });
   };
 
   return (

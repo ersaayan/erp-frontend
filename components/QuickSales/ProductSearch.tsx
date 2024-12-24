@@ -110,6 +110,27 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
   }, [debouncedSearchTerm, handleSearch]);
 
   const handleProductSelect = (product: any) => {
+    // Find price list item matching customer's price list
+    const priceListItem = product.stockCardPriceLists.find(
+      (pl: any) => pl.priceListId === customer?.priceList?.id
+    );
+
+    if (!priceListItem) {
+      toast({
+        variant: "destructive",
+        title: "Fiyat Bulunamadı",
+        description: "Bu ürün için müşterinin fiyat listesinde fiyat tanımlanmamış.",
+      });
+      return;
+    }
+
+    // Calculate initial prices
+    const unitPrice = parseFloat(priceListItem.price);
+    const vatRate = parseFloat(priceListItem.vatRate);
+    const subtotal = unitPrice;
+    const vatAmount = (subtotal * vatRate) / 100;
+    const totalAmount = subtotal + vatAmount;
+
     const cartItem: CartItem = {
       id: crypto.randomUUID(),
       productId: product.id,
@@ -117,14 +138,14 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
       code: product.productCode,
       barcode: product.barcodes[0]?.barcode || "",
       quantity: 1,
-      unitPrice: parseFloat(product.price || "0"),
+      unitPrice: unitPrice,
       discountRate: 0,
       discountAmount: 0,
-      vatRate: parseFloat(product.vatRate || "0"),
-      vatAmount: 0,
-      totalAmount: parseFloat(product.price || "0"),
+      vatRate: vatRate,
+      vatAmount: vatAmount,
+      totalAmount: totalAmount,
       unit: product.unit,
-      currency: product.stockCardPriceLists[0]?.priceList.currency || "TRY",
+      currency: priceListItem.priceList.currency,
     };
 
     onProductSelect(cartItem);
