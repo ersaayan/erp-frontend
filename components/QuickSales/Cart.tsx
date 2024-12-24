@@ -169,7 +169,6 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
                   className="w-20 text-right"
                 />
               </TableCell>
-              <TableCell className="text-right">{item.vatRate}</TableCell>
               <TableCell className="text-right">
                 {formatCurrency(item.totalAmount)}
               </TableCell>
