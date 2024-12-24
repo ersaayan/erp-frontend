@@ -95,7 +95,6 @@ export const useCurrentForm = () => {
                     description: "Failed to load current data"
                 });
             }
-            localStorage.removeItem('currentFormData');
         }
     }, [toast]);
 
