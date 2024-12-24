@@ -21,6 +21,24 @@ interface ProductSearchProps {
   disabled?: boolean;
   customer: Customer | null;
 }
+interface PriceList {
+  id: string;
+  priceListName: string;
+  currency: string;
+  isVatIncluded: boolean;
+  isActive: boolean;
+}
+
+interface PriceListItem {
+  id: string;
+  priceListId: string;
+  stockCardId: string;
+  price: string;
+  vatRate: string;
+  barcode: string | null;
+  priceList: PriceList;
+}
+
 
 type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
 
@@ -82,7 +100,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
       // Filter products based on customer's price list
       const filteredData = rawData.map(product => {
         const priceListItem = product.stockCardPriceLists.find(
-          pl => pl.priceListId === customer?.priceList?.id
+          pl => pl.priceListId === customer?.priceListId
         );
         return {
           ...product,
@@ -103,16 +121,19 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchTerm, selectedOption, warehouseId, customer?.priceList?.id, toast]);
+  }, [debouncedSearchTerm, selectedOption, warehouseId, customer?.priceListId, toast]);
 
   React.useEffect(() => {
     handleSearch();
   }, [debouncedSearchTerm, handleSearch]);
 
   const handleProductSelect = (product: any) => {
+    console.log("Customer PriceListId:", customer?.priceListId); // Debug
+    console.log("Available PriceLists:", product.stockCardPriceLists.map((pl: PriceListItem) => pl.priceListId)); // Debug
+    console.log("Selected Product:", product); // Debug
     // Find price list item matching customer's price list
     const priceListItem = product.stockCardPriceLists.find(
-      (pl: any) => pl.priceListId === customer?.priceListId // Changed from pl.priceList.id
+      (pl: PriceListItem) => pl.priceListId === customer?.priceListId // Changed from pl.priceList.id
     );
 
     if (!priceListItem) {
@@ -242,7 +263,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
                       <Button
                         variant="outline"
                         className="w-full justify-start text-left p-4 h-auto"
-                        onClick={() => handleProductSelect(product), console.log(product)}
+                        onClick={() => handleProductSelect(product)}
                       >
                         <div className="flex justify-between w-full">
                           <div className="space-y-1">
@@ -255,13 +276,6 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-medium text-primary">
-                              {formatCurrency(
-                                parseFloat(
-                                  product.price || "0"
-                                )
-                              )}
-                            </div>
                             <div className="text-sm text-muted-foreground">
                               Stok: {warehouseStock?.quantity || 0}{" "}
                               {product.unit}
