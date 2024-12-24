@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -7,6 +8,7 @@ import { Loader2, Search, Barcode, Hash, Type } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Customer } from "./types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CartItem } from "./types";
@@ -17,6 +19,7 @@ interface ProductSearchProps {
   onProductSelect: (product: CartItem) => void;
   warehouseId: string;
   disabled?: boolean;
+  customer: Customer | null;
 }
 
 type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
@@ -24,14 +27,22 @@ type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
 const ProductSearch: React.FC<ProductSearchProps> = ({
   onProductSelect,
   warehouseId,
-  disabled = false,
+  _disabled = false, // Prefix with underscore since we use isDisabled instead
+  customer
 }) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<SearchOption>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const isDisabled = !customer || !warehouseId;
+  const placeholderText = !customer
+    ? "Önce müşteri seçimi yapmalısınız"
+    : !warehouseId
+      ? "Önce depo seçin"
+      : "Ürün ara...";
 
   const handleSearch = useCallback(async () => {
     try {
@@ -66,8 +77,21 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
         throw new Error("Product search failed");
       }
 
-      const data = await response.json();
-      setResults(data);
+      const rawData = await response.json();
+
+      // Filter products based on customer's price list
+      const filteredData = rawData.map(product => {
+        const priceListItem = product.stockCardPriceLists.find(
+          pl => pl.priceListId === customer?.priceList?.id
+        );
+        return {
+          ...product,
+          price: priceListItem?.price || '0',
+          vatRate: priceListItem?.vatRate || '0'
+        };
+      });
+
+      setResults(filteredData);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -79,7 +103,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchTerm, selectedOption, warehouseId, toast]);
+  }, [debouncedSearchTerm, selectedOption, warehouseId, customer?.priceList?.id, toast]);
 
   React.useEffect(() => {
     handleSearch();
@@ -93,12 +117,12 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
       code: product.productCode,
       barcode: product.barcodes[0]?.barcode || "",
       quantity: 1,
-      unitPrice: parseFloat(product.stockCardPriceLists[0]?.price || "0"),
+      unitPrice: parseFloat(product.price || "0"),
       discountRate: 0,
       discountAmount: 0,
-      vatRate: parseFloat(product.stockCardPriceLists[0]?.vatRate || "0"),
+      vatRate: parseFloat(product.vatRate || "0"),
       vatAmount: 0,
-      totalAmount: parseFloat(product.stockCardPriceLists[0]?.price || "0"),
+      totalAmount: parseFloat(product.price || "0"),
       unit: product.unit,
       currency: product.stockCardPriceLists[0]?.priceList.currency || "TRY",
     };
@@ -132,11 +156,11 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
           )}
         </div>
         <Input
-          placeholder={disabled ? "Önce depo seçin..." : "Ürün Ara..."}
+          placeholder={placeholderText}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
-          disabled={disabled}
+          disabled={isDisabled}
         />
       </div>
 
@@ -213,7 +237,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
                             <div className="font-medium text-primary">
                               {formatCurrency(
                                 parseFloat(
-                                  product.stockCardPriceLists[0]?.price || "0"
+                                  product.price || "0"
                                 )
                               )}
                             </div>

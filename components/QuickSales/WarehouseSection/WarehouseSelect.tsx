@@ -11,6 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
+import { Customer } from "../types";
 
 interface Branch {
   id: string;
@@ -27,10 +28,12 @@ interface Warehouse {
 
 interface WarehouseSelectProps {
   onWarehouseSelect: (warehouseId: string, branchCode: string) => void;
+  customer: Customer | null;
 }
 
 const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
   onWarehouseSelect,
+  customer,
 }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -38,6 +41,11 @@ const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isDisabled = !customer;
+  const placeholderText = !customer
+    ? "Önce müşteri seçimi yapmalısınız"
+    : "Depo seçin";
 
   // Fetch branches
   useEffect(() => {
@@ -158,12 +166,12 @@ const WarehouseSelect: React.FC<WarehouseSelectProps> = ({
           disabled={!selectedBranch}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Depo seçin" />
+            <SelectValue placeholder={placeholderText} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent disabled={isDisabled}>
             {warehouses.map((warehouse) => (
               <SelectItem key={warehouse.id} value={warehouse.id}>
-                {warehouse.warehouseName}
+                {warehouse.warehouseName} ({warehouse.warehouseCode})
               </SelectItem>
             ))}
           </SelectContent>

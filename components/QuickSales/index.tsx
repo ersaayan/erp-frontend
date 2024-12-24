@@ -69,11 +69,13 @@ const QuickSales: React.FC = () => {
                 setSelectedWarehouseId(warehouseId);
                 setSelectedBranchCode(branchCode);
               }}
+              customer={customer}
             />
             <ProductSearch
               onProductSelect={addToCart}
               warehouseId={selectedWarehouseId}
-              disabled={!selectedWarehouseId}
+              disabled={!selectedWarehouseId || !customer}
+              customer={customer}
             />
           </Card>
 
