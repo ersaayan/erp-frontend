@@ -56,8 +56,7 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${
-          process.env.BASE_URL
+        `${process.env.BASE_URL
         }/stockcards/byWarehouse/search/${warehouseId}?query=${encodeURIComponent(
           debouncedSearchTerm
         )}`,
@@ -114,23 +113,6 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     });
   }, []);
 
-  const calculatePrice = useCallback(
-    (price: string, vatRate: string, isVatIncluded: boolean) => {
-      const priceValue = parseFloat(price);
-      const vatRateValue = parseFloat(vatRate);
-
-      if (isVatIncluded) {
-        // If price includes VAT, calculate the price without VAT
-        const vatMultiplier = 1 + vatRateValue / 100;
-        return priceValue / vatMultiplier;
-      }
-
-      // If price doesn't include VAT, return as is
-      return priceValue;
-    },
-    []
-  );
-
   const handleAddProducts = useCallback(() => {
     const selectedItems: StockItem[] = products
       .filter((product) => selectedProductIds.has(product.id))
@@ -146,12 +128,9 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
           throw new Error(`No price found for product ${product.productName}`);
         }
 
-        const unitPrice = calculatePrice(
-          priceListItem.price,
-          priceListItem.vatRate,
-          priceListItem.priceList.isVatIncluded
-        );
-        const vatRate = parseFloat(priceListItem.vatRate);
+        // Fiyat listesi KDV dahil/hariç durumuna göre ayarlamalar
+        const unitPrice = parseFloat(priceListItem.price);
+        const vatRate = current?.priceList?.isVatIncluded ? 20 : 0;
         const quantity = 1;
         const subtotal = unitPrice * quantity;
         const vatAmount = subtotal * (vatRate / 100);
@@ -187,7 +166,6 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     selectedProductIds,
     current,
     warehouseId,
-    calculatePrice,
     onProductsSelect,
     toast,
     onOpenChange,
