@@ -142,7 +142,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
         // Extract components from the last invoice number
         const unitCode = lastInvoiceNo.substring(0, 3);
         const currentYear = new Date().getFullYear().toString();
-        const sequentialNumber = parseInt(lastInvoiceNo.slice(-9)) + 1;
+        const sequentialNumber = lastInvoiceNo.slice(-9) ? parseInt(lastInvoiceNo.slice(-9)) + 1 : parseInt("000000001");
 
         // Generate new invoice number
         const newInvoiceNo = `${unitCode}${currentYear}${sequentialNumber
@@ -184,7 +184,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
         // Extract components and replace PUR with GPR
         const currentYear = new Date().getFullYear().toString();
-        const sequentialNumber = parseInt(lastInvoiceNo.slice(-9)) + 1;
+        const sequentialNumber = lastInvoiceNo.slice(-9) ? parseInt(lastInvoiceNo.slice(-9)) + 1 : parseInt("000000001");
 
         // Generate new invoice number with GPR prefix
         const newInvoiceNo = `GPR${currentYear}${sequentialNumber
@@ -228,9 +228,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
       description="Fatura detaylarını ve ödeme koşullarını girin"
       isValid={Boolean(
         data.invoiceNo &&
-          data.gibInvoiceNo &&
-          data.branchCode &&
-          data.warehouseId
+        data.gibInvoiceNo &&
+        data.branchCode &&
+        data.warehouseId
       )}
     >
       <div className="grid grid-cols-3 gap-4">
@@ -266,7 +266,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                 id="gpr-serial-mode"
               />
               <Label htmlFor="gpr-serial-mode" className="text-sm">
-                GPR
+                Seri
               </Label>
             </div>
           </div>
