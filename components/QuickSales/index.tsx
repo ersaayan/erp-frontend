@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import ProductSearch from "./ProductSearch";
 import Cart from "./Cart";
@@ -31,7 +31,7 @@ const QuickSales: React.FC = () => {
   const [selectedBranchCode, setSelectedBranchCode] = useState<string>("");
 
   // Add new function to fetch default customer
-  const fetchDefaultCustomer = async () => {
+  const fetchDefaultCustomer = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.BASE_URL}/currents/search?query=Muhtelif`,
@@ -72,14 +72,14 @@ const QuickSales: React.FC = () => {
     } catch (error) {
       console.error("Error fetching default customer:", error);
     }
-  };
+  }, [setCustomer]);
 
   // Add useEffect to check for default customer on mount
   useEffect(() => {
     if (!customer) {
       fetchDefaultCustomer();
     }
-  }, [customer]);
+  }, [customer, fetchDefaultCustomer]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)]">
