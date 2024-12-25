@@ -30,7 +30,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
 
   const handleNewCurrentForm = () => {
     // Navigate to New Current page
-    onMenuItemClick?.("Yeni Cari");
+    onMenuItemClick?.("Cari Formu");
   };
 
   const searchCustomers = useCallback(async () => {
@@ -128,10 +128,10 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
               <Label className="text-muted-foreground">Müşteri Kodu</Label>
               <div className="font-medium">{customer.code}</div>
             </div>
-            {customer.taxNumber && (
+            {customer.priceList && (
               <div>
-                <Label className="text-muted-foreground">Vergi No</Label>
-                <div className="font-medium">{customer.taxNumber}</div>
+                <Label className="text-muted-foreground">Fiyat Listesi</Label>
+                <div className="font-medium">{customer.priceList.priceListName}</div>
               </div>
             )}
           </div>
