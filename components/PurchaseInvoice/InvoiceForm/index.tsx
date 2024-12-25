@@ -262,7 +262,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               disabled={isEditMode}
             />
             <Label htmlFor="gpr-serial-mode" className="text-sm">
-              GSL
+              Seri
             </Label>
           </div>
         </div>

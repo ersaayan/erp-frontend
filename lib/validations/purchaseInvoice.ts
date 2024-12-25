@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const purchaseInvoiceSchema = z.object({
     invoiceNo: z.string().min(1, "Fatura numarası zorunludur"),
-    gibInvoiceNo: z.string().min(1, "GİB numarası zorunludur"),
+    gibInvoiceNo: z.string().optional(),
     invoiceDate: z.date({
         required_error: "Fatura tarihi zorunludur",
     }),
