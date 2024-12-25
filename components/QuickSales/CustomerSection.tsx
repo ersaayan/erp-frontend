@@ -119,21 +119,34 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
           >
             <X className="h-4 w-4" />
           </Button>
-          <div className="space-y-2">
-            <div>
-              <Label className="text-muted-foreground">Müşteri Adı</Label>
-              <div className="font-medium">{customer.name}</div>
-            </div>
-            <div>
-              <Label className="text-muted-foreground">Müşteri Kodu</Label>
-              <div className="font-medium">{customer.code}</div>
-            </div>
-            {customer.priceList && (
+          <div className="flex gap-4">
+            {/* First Column - Customer Info */}
+            <div className="space-y-2 flex-1">
               <div>
-                <Label className="text-muted-foreground">Fiyat Listesi</Label>
-                <div className="font-medium">{customer.priceList.priceListName}</div>
+                <Label className="text-muted-foreground">Müşteri Adı</Label>
+                <div className="font-medium">{customer.name}</div>
               </div>
-            )}
+              <div>
+                <Label className="text-muted-foreground">Müşteri Kodu</Label>
+                <div className="font-medium">{customer.code}</div>
+              </div>
+            </div>
+
+            {/* Second Column - Price List Info */}
+            <div className="space-y-2 flex-1">
+              {customer.priceList && (
+                <div>
+                  <Label className="text-muted-foreground">Fiyat Listesi</Label>
+                  <div className="font-medium">{customer.priceList.priceListName}</div>
+                </div>
+              )}
+              {customer.priceList && (
+                <div>
+                  <Label className="text-muted-foreground">Fiyat Listesi Kuru</Label>
+                  <div className="font-medium">{customer.priceList.currency}</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ) : (
