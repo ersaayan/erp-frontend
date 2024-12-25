@@ -10,7 +10,7 @@ html {
 /* Belirli ekran boyutları için responsive ayarlar */
 @media screen and (min-width: 1536px) {
   html {
-    font-size: 100%; /* Büyük ekranlarda normal boyut */
+    font-size: 80%; /* Büyük ekranlarda normal boyut */
   }
 }
 
