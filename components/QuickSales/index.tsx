@@ -30,6 +30,57 @@ const QuickSales: React.FC = () => {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
   const [selectedBranchCode, setSelectedBranchCode] = useState<string>("");
 
+  // Add new function to fetch default customer
+  const fetchDefaultCustomer = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.BASE_URL}/currents/search?query=Muhtelif`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch default customer");
+
+      const data = await response.json();
+
+      // If Muhtelif customer exists, set it as current customer
+      if (data && data.length > 0) {
+        const muhtelifCustomer = data[0];
+        setCustomer({
+          id: muhtelifCustomer.id,
+          name: muhtelifCustomer.currentName,
+          code: muhtelifCustomer.currentCode,
+          taxNumber: muhtelifCustomer.taxNumber,
+          taxOffice: muhtelifCustomer.taxOffice,
+          address: muhtelifCustomer.address,
+          phone: muhtelifCustomer.phone,
+          email: muhtelifCustomer.email,
+          priceListId: muhtelifCustomer.priceListId,
+          priceList: muhtelifCustomer.priceList ? {
+            id: muhtelifCustomer.priceList.id,
+            priceListName: muhtelifCustomer.priceList.priceListName,
+            currency: muhtelifCustomer.priceList.currency,
+            isVatIncluded: muhtelifCustomer.priceList.isVatIncluded,
+          } : null,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching default customer:", error);
+    }
+  };
+
+  // Add useEffect to check for default customer on mount
+  useEffect(() => {
+    if (!customer) {
+      fetchDefaultCustomer();
+    }
+  }, [customer]);
+
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)]">
       <div className="flex justify-between items-center mb-4 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
