@@ -133,7 +133,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
             </div>
 
             {/* Second Column - Price List Info */}
-            <div className="space-y-3 flex-1">
+            <div className="space-y-2 flex-1">
               {customer.priceList && (
                 <div>
                   <Label className="text-muted-foreground">Fiyat Listesi</Label>
@@ -146,6 +146,10 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
                   <div className="font-medium">{customer.priceList.currency}</div>
                 </div>
               )}
+            </div>
+
+            {/* Third Column - Contact Info */}
+            <div className="space-y-1 flex-1">
               {customer.priceList && (
                 <div>
                   <Label className="text-muted-foreground">KDV Dahil mi?</Label>
