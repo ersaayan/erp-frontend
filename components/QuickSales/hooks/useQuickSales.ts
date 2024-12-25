@@ -86,7 +86,7 @@ export const useQuickSales = () => {
                 customer: customer,
                 items: cart,
                 payments: payments.map(payment => ({
-                    method: payment.method === 'openAccount' ? 'transfer' : payment.method,
+                    method: payment.method,
                     amount: payment.amount,
                     accountId: payment.accountId,
                     currency: payment.currency,

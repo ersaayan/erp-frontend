@@ -34,7 +34,7 @@ export interface Customer {
 }
 
 export interface Payment {
-    method: 'cash' | 'card' | 'transfer';
+    method: 'cash' | 'card' | 'bank' | 'openAccount';
     amount: number;
     accountId: string;
     currency: string;

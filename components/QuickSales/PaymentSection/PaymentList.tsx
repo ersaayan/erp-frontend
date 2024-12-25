@@ -44,10 +44,10 @@ const PaymentList: React.FC<PaymentListProps> = ({ payments, onDelete }) => {
                 {payment.method === "cash"
                   ? "Nakit"
                   : payment.method === "card"
-                  ? "Kredi Kartı"
-                  : payment.method === "bank"
-                  ? "Havale/EFT"
-                  : "Açık Hesap"}
+                    ? "Kredi Kartı"
+                    : payment.method === "bank"
+                      ? "Havale/EFT"
+                      : "Açık Hesap"}
               </TableCell>
               <TableCell className="text-right">
                 {payment.amount.toFixed(2)} {payment.currency}
