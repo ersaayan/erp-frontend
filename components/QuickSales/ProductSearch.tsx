@@ -4,13 +4,11 @@
 import React, { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, Barcode, Hash, Type } from "lucide-react";
+import { Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Customer } from "./types";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { CartItem } from "./types";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
@@ -19,39 +17,9 @@ interface ProductSearchProps {
   onProductSelect: (product: CartItem) => void;
   warehouseId: string;
   disabled?: boolean;
-  customer: {
-    id: string;
-    name: string;
-    code: string;
-    priceListId: string;
-    priceList?: {
-      id: string;
-      priceListName: string;
-      currency: string;
-      isVatIncluded: boolean;
-    }
-  } | null;
-}
-interface PriceList {
-  id: string;
-  priceListName: string;
-  currency: string;
-  isVatIncluded: boolean;
-  isActive: boolean;
+  customer: Customer | null;
 }
 
-interface PriceListItem {
-  id: string;
-  priceListId: string;
-  stockCardId: string;
-  price: string;
-  vatRate: string;
-  barcode: string | null;
-  priceList: PriceList;
-}
-
-
-type SearchOption = "barcodeOnly" | "stockCodeOnly" | "stockNameOnly" | null;
 
 const ProductSearch: React.FC<ProductSearchProps> = ({
   onProductSelect,
@@ -63,7 +31,6 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<SearchOption>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const isDisabled = !customer || !warehouseId;
@@ -71,7 +38,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     ? "Önce müşteri seçimi yapmalısınız"
     : !warehouseId
       ? "Önce depo seçin"
-      : "Ürün ara...";
+      : "Ürün kodu, adı veya barkod ile arama yapın...";
 
   const handleSearch = useCallback(async () => {
     try {
@@ -82,17 +49,8 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 
       setLoading(true);
 
-      const searchParams = new URLSearchParams();
-      if (selectedOption === "barcodeOnly")
-        searchParams.append("barcodes", debouncedSearchTerm);
-      else if (selectedOption === "stockCodeOnly")
-        searchParams.append("productCode", debouncedSearchTerm);
-      else if (selectedOption === "stockNameOnly")
-        searchParams.append("productName", debouncedSearchTerm);
-      else searchParams.append("query", debouncedSearchTerm);
-
       const response = await fetch(
-        `${process.env.BASE_URL}/stockcards/byWarehouse/search/${warehouseId}?${searchParams}`,
+        `${process.env.BASE_URL}/stockcards/byWarehouse/search/${warehouseId}?query=${encodeURIComponent(debouncedSearchTerm)}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -111,7 +69,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
       // Filter products based on customer's price list
       const filteredData = rawData.map(product => {
         const priceListItem = product.stockCardPriceLists.find(
-          pl => pl.priceListId === customer?.priceListId
+          pl => pl.priceListId === customer?.priceList?.id
         );
         return {
           ...product,
@@ -132,41 +90,26 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchTerm, selectedOption, warehouseId, customer?.priceListId, toast]);
+  }, [debouncedSearchTerm, warehouseId, customer?.priceList?.id, toast]);
 
   React.useEffect(() => {
     handleSearch();
   }, [debouncedSearchTerm, handleSearch]);
 
   const handleProductSelect = (product: any) => {
-    console.log("Customer PriceListId:", customer?.priceListId); // Debug
-    console.log("Available PriceLists:", product.stockCardPriceLists.map((pl: PriceListItem) => pl.priceListId)); // Debug
-    console.log("Selected Product:", product); // Debug
-
-    if (!customer) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Lütfen önce müşteri seçimi yapınız.",
-      });
-      return;
-    }
-
-    // Use customer.priceList?.id if priceListId is not directly available
-    const customerPriceListId = customer.priceListId || customer.priceList?.id;
-
-    if (!customerPriceListId) {
-      toast({
-        variant: "destructive",
-        title: "Fiyat Listesi Bulunamadı",
-        description: "Müşteriye tanımlı fiyat listesi bulunamadı.",
-      });
-      return;
-    }
-
+    // Find price list item matching customer's price list
     const priceListItem = product.stockCardPriceLists.find(
-      (pl: PriceListItem) => pl.priceListId === customerPriceListId
+      (pl: any) => pl.priceListId === customer?.priceList?.id
     );
+
+    if (!priceListItem) {
+      toast({
+        variant: "destructive",
+        title: "Fiyat Bulunamadı",
+        description: "Bu ürün için müşterinin fiyat listesinde fiyat tanımlanmamış.",
+      });
+      return;
+    }
 
     // Calculate initial prices
     const unitPrice = parseFloat(priceListItem.price);
@@ -197,68 +140,20 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
     setResults([]);
   };
 
-  const getSearchIcon = () => {
-    switch (selectedOption) {
-      case "barcodeOnly":
-        return <Barcode className="h-4 w-4" />;
-      case "stockCodeOnly":
-        return <Hash className="h-4 w-4" />;
-      case "stockNameOnly":
-        return <Type className="h-4 w-4" />;
-      default:
-        return <Search className="h-4 w-4" />;
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="relative">
-        <div className="absolute left-3 top-3 text-muted-foreground">
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            getSearchIcon()
-          )}
+        <div className="relative">
+          <Input
+            placeholder={placeholderText}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={isDisabled}
+            className="pl-10"
+          />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         </div>
-        <Input
-          placeholder={placeholderText}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-          disabled={isDisabled}
-        />
       </div>
-
-      <RadioGroup
-        value={selectedOption || ""}
-        onValueChange={(value) => setSelectedOption(value as SearchOption)}
-        className="grid grid-cols-2 gap-2"
-      >
-        <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent transition-colors">
-          <RadioGroupItem value="" id="general" />
-          <Label htmlFor="general" className="flex-1 cursor-pointer">
-            Genel Arama
-          </Label>
-        </div>
-        <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent transition-colors">
-          <RadioGroupItem value="barcodeOnly" id="barcode" />
-          <Label htmlFor="barcode" className="flex-1 cursor-pointer">
-            Barkod ile Ara
-          </Label>
-        </div>
-        <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent transition-colors">
-          <RadioGroupItem value="stockCodeOnly" id="stockCode" />
-          <Label htmlFor="stockCode" className="flex-1 cursor-pointer">
-            Stok Kodu ile Ara
-          </Label>
-        </div>
-        <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-accent transition-colors">
-          <RadioGroupItem value="stockNameOnly" id="stockName" />
-          <Label htmlFor="stockName" className="flex-1 cursor-pointer">
-            Stok Adı ile Ara
-          </Label>
-        </div>
-      </RadioGroup>
 
       <AnimatePresence>
         {results.length > 0 && (
@@ -299,6 +194,13 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
                             </div>
                           </div>
                           <div className="text-right">
+                            <div className="font-medium text-primary">
+                              {formatCurrency(
+                                parseFloat(
+                                  product.price || "0"
+                                )
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground">
                               Stok: {warehouseStock?.quantity || 0}{" "}
                               {product.unit}
