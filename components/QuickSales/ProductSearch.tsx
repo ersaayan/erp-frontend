@@ -111,9 +111,22 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
       return;
     }
 
-    // Calculate initial prices
-    const unitPrice = parseFloat(priceListItem.price);
-    const vatRate = parseFloat(priceListItem.vatRate);
+    const isVatIncluded = customer?.priceList?.isVatIncluded;
+    const price = parseFloat(priceListItem.price);
+
+    let unitPrice: number;
+    let vatRate: number;
+
+    if (isVatIncluded) {
+      // If VAT is included, use the original price and VAT rate
+      unitPrice = price;
+      vatRate = parseFloat(priceListItem.vatRate);
+    } else {
+      // If VAT is not included, set VAT rate to 0
+      unitPrice = price;
+      vatRate = 0;
+    }
+
     const subtotal = unitPrice;
     const vatAmount = (subtotal * vatRate) / 100;
     const totalAmount = subtotal + vatAmount;
