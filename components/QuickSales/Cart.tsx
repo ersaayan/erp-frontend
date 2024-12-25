@@ -103,9 +103,9 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateItem, onRemoveItem }) => {
             <TableHead className="w-[120px] text-right">
               <div className="text-right">Birim Fiyat</div>
             </TableHead>
-            <TableHead className="w-[100px] text-right">İndirim %</TableHead>
+            <TableHead className="w-[100px] text-right">KDV %</TableHead>
             <TableHead className="w-[100px] text-right">
-              <div className="text-right">KDV %</div>
+              <div className="text-right">İndirim %</div>
             </TableHead>
             <TableHead className="w-[120px] text-right">Toplam</TableHead>
             <TableHead className="w-[50px]"></TableHead>
