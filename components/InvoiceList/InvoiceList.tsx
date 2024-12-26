@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
 import { Card } from "../ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface InvoiceListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -70,6 +71,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Invoice");
 
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -330,6 +332,155 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
     ]
   );
 
+  const getFilteredInvoices = (documentType: string) => {
+    return invoices.filter((invoice) => invoice.documentType === documentType);
+  };
+
+  const renderDataGrid = (documentType: string) => (
+    <DataGrid
+      ref={dataGridRef}
+      dataSource={getFilteredInvoices(documentType)}
+      showBorders={true}
+      showRowLines={true}
+      showColumnLines={true}
+      rowAlternationEnabled={settings.alternateRowColoring}
+      allowColumnReordering={true}
+      allowColumnResizing={true}
+      columnAutoWidth={true}
+      wordWrapEnabled={true}
+      onExporting={onExporting}
+      height="calc(100vh - 300px)"
+      selectedRowKeys={selectedRowKeys}
+      onSelectionChanged={(e) =>
+        setSelectedRowKeys(e.selectedRowKeys as string[])
+      }
+      onRowDblClick={handleRowDblClick}
+      onRowPrepared={onRowPrepared}
+      loadPanel={{
+        enabled: loading,
+        showIndicator: true,
+        showPane: true,
+        text: "Loading...",
+      }}
+    >
+      <StateStoring
+        enabled={true}
+        type="localStorage"
+        storageKey={`invoiceListGrid_${documentType}`}
+      />
+      <Selection mode="multiple" showCheckBoxesMode="always" />
+      <FilterRow visible={settings.showFilterRow} />
+      <HeaderFilter visible={settings.showHeaderFilter} />
+      <FilterPanel visible={true} />
+      <FilterBuilderPopup position={{ my: "top", at: "top", of: window }} />
+      <GroupPanel visible={settings.showGroupPanel} />
+      <Grouping autoExpandAll={false} />
+      <Scrolling
+        mode={settings.virtualScrolling ? "virtual" : "standard"}
+        rowRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
+        columnRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
+      />
+      <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
+      <Export enabled={true} allowExportSelectedData={true} />
+      <ColumnChooser enabled={true} mode="select" />
+
+      <Column dataField="invoiceNo" caption="Fatura No" width={120} />
+      <Column dataField="gibInvoiceNo" caption="GİB No" width={120} />
+      <Column
+        dataField="invoiceDate"
+        caption="Fatura Tarihi"
+        dataType="datetime"
+        format="dd.MM.yyyy HH:mm"
+        width={150}
+      />
+      <Column dataField="invoiceType" caption="Fatura Tipi" width={100} />
+      <Column dataField="documentType" caption="Belge Tipi" width={100} />
+      <Column dataField="currentCode" caption="Cari Kodu" width={100} />
+      <Column dataField="description" caption="Açıklama" />
+      <Column
+        dataField="totalAmount"
+        caption="Toplam Tutar"
+        dataType="number"
+        format="#,##0.00"
+        width={120}
+      />
+      <Column
+        dataField="totalVat"
+        caption="KDV"
+        dataType="number"
+        format="#,##0.00"
+        width={100}
+      />
+      <Column
+        dataField="totalDiscount"
+        caption="İndirim"
+        dataType="number"
+        format="#,##0.00"
+        width={100}
+      />
+      <Column
+        dataField="totalNet"
+        caption="Net Tutar"
+        dataType="number"
+        format="#,##0.00"
+        width={120}
+      />
+      <Column
+        dataField="totalPaid"
+        caption="Ödenen"
+        dataType="number"
+        format="#,##0.00"
+        width={120}
+      />
+      <Column
+        dataField="totalDebt"
+        caption="Borç"
+        dataType="number"
+        format="#,##0.00"
+        width={120}
+      />
+      <Column
+        dataField="paymentDate"
+        caption="Ödeme Tarihi"
+        dataType="datetime"
+        format="dd.MM.yyyy HH:mm"
+        width={150}
+      />
+      <Column dataField="paymentDay" caption="Vade (Gün)" width={100} />
+
+      <Summary>
+        <TotalItem
+          column="totalAmount"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+        />
+        <TotalItem column="totalVat" summaryType="sum" valueFormat="#,##0.00" />
+        <TotalItem
+          column="totalDiscount"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+        />
+        <TotalItem column="totalNet" summaryType="sum" valueFormat="#,##0.00" />
+        <TotalItem
+          column="totalPaid"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+        />
+        <TotalItem
+          column="totalDebt"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+        />
+      </Summary>
+
+      <Toolbar>
+        <Item name="groupPanel" />
+        <Item name="exportButton" />
+        <Item name="columnChooserButton" />
+      </Toolbar>
+    </DataGrid>
+  );
+
   if (error) {
     return (
       <Alert variant="destructive" className="m-4">
@@ -349,158 +500,26 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
         </Card>
       )}
 
-      <DataGrid
-        ref={dataGridRef}
-        dataSource={invoices}
-        showBorders={true}
-        showRowLines={true}
-        showColumnLines={true}
-        rowAlternationEnabled={settings.alternateRowColoring}
-        allowColumnReordering={true}
-        allowColumnResizing={true}
-        columnAutoWidth={true}
-        wordWrapEnabled={true}
-        onExporting={onExporting}
-        height="calc(100vh - 200px)"
-        selectedRowKeys={selectedRowKeys}
-        onSelectionChanged={(e) =>
-          setSelectedRowKeys(e.selectedRowKeys as string[])
-        }
-        onRowDblClick={handleRowDblClick}
-        onRowPrepared={onRowPrepared}
-        loadPanel={{
-          enabled: loading,
-          showIndicator: true,
-          showPane: true,
-          text: "Loading...",
-        }}
-      >
-        <StateStoring
-          enabled={true}
-          type="localStorage"
-          storageKey="invoiceListGrid"
-        />
-        <Selection mode="multiple" showCheckBoxesMode="always" />
-        <FilterRow visible={settings.showFilterRow} />
-        <HeaderFilter visible={settings.showHeaderFilter} />
-        <FilterPanel visible={true} />
-        <FilterBuilderPopup position={{ my: "top", at: "top", of: window }} />
-        <GroupPanel visible={settings.showGroupPanel} />
-        <Grouping autoExpandAll={false} />
-        <Scrolling
-          mode={settings.virtualScrolling ? "virtual" : "standard"}
-          rowRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
-          columnRenderingMode={
-            settings.virtualScrolling ? "virtual" : "standard"
-          }
-        />
-        <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
-        <Export enabled={true} allowExportSelectedData={true} />
-        <ColumnChooser enabled={true} mode="select" />
-
-        <Column dataField="invoiceNo" caption="Fatura No" width={120} />
-        <Column dataField="gibInvoiceNo" caption="GİB No" width={120} />
-        <Column
-          dataField="invoiceDate"
-          caption="Fatura Tarihi"
-          dataType="datetime"
-          format="dd.MM.yyyy HH:mm"
-          width={150}
-        />
-        <Column dataField="invoiceType" caption="Fatura Tipi" width={100} />
-        <Column dataField="documentType" caption="Belge Tipi" width={100} />
-        <Column dataField="currentCode" caption="Cari Kodu" width={100} />
-        <Column dataField="description" caption="Açıklama" />
-        <Column
-          dataField="totalAmount"
-          caption="Toplam Tutar"
-          dataType="number"
-          format="#,##0.00"
-          width={120}
-        />
-        <Column
-          dataField="totalVat"
-          caption="KDV"
-          dataType="number"
-          format="#,##0.00"
-          width={100}
-        />
-        <Column
-          dataField="totalDiscount"
-          caption="İndirim"
-          dataType="number"
-          format="#,##0.00"
-          width={100}
-        />
-        <Column
-          dataField="totalNet"
-          caption="Net Tutar"
-          dataType="number"
-          format="#,##0.00"
-          width={120}
-        />
-        <Column
-          dataField="totalPaid"
-          caption="Ödenen"
-          dataType="number"
-          format="#,##0.00"
-          width={120}
-        />
-        <Column
-          dataField="totalDebt"
-          caption="Borç"
-          dataType="number"
-          format="#,##0.00"
-          width={120}
-        />
-        <Column
-          dataField="paymentDate"
-          caption="Ödeme Tarihi"
-          dataType="datetime"
-          format="dd.MM.yyyy HH:mm"
-          width={150}
-        />
-        <Column dataField="paymentDay" caption="Vade (Gün)" width={100} />
-
-        <Summary>
-          <TotalItem
-            column="totalAmount"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="totalVat"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="totalDiscount"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="totalNet"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="totalPaid"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-          <TotalItem
-            column="totalDebt"
-            summaryType="sum"
-            valueFormat="#,##0.00"
-          />
-        </Summary>
-
-        <Toolbar>
-          <Item name="groupPanel" />
-          <Item name="exportButton" />
-          <Item name="columnChooserButton" />
-        </Toolbar>
-      </DataGrid>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="Invoice">Faturalar</TabsTrigger>
+          <TabsTrigger value="Order">Siparişler</TabsTrigger>
+          <TabsTrigger value="Waybill">İrsaliyeler</TabsTrigger>
+          <TabsTrigger value="Other">Diğer</TabsTrigger>
+        </TabsList>
+        <TabsContent value="Invoice" className="mt-4">
+          {renderDataGrid("Invoice")}
+        </TabsContent>
+        <TabsContent value="Order" className="mt-4">
+          {renderDataGrid("Order")}
+        </TabsContent>
+        <TabsContent value="Waybill" className="mt-4">
+          {renderDataGrid("Waybill")}
+        </TabsContent>
+        <TabsContent value="Other" className="mt-4">
+          {renderDataGrid("Other")}
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent>
