@@ -167,6 +167,7 @@ const SalesInvoice: React.FC = () => {
               onCustomerChange={(customer) =>
                 setInvoiceData((prev) => ({ ...prev, current: customer }))
               }
+              isEditMode={isEditMode}
             />
           </Card>
 

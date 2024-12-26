@@ -5,15 +5,21 @@ import { Current } from "@/components/CurrentList/types";
 interface CustomerInfoProps {
   customer: Current;
   onClear: () => void;
+  isEditMode: boolean;
 }
 
-const CustomerInfo: React.FC<CustomerInfoProps> = ({ customer, onClear }) => {
+const CustomerInfo: React.FC<CustomerInfoProps> = ({
+  customer,
+  onClear,
+  isEditMode,
+}) => {
   return (
     <div className="rounded-lg border p-4 relative">
       <Button
         variant="ghost"
         className="absolute right-2 top-2 text-sm"
         onClick={onClear}
+        disabled={isEditMode}
       >
         Cariyi Sil
       </Button>

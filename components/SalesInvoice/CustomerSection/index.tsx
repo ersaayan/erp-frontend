@@ -8,11 +8,13 @@ import { Current } from "@/components/CurrentList/types";
 interface CustomerSectionProps {
   customer: Current | null;
   onCustomerChange: (customer: Current | null) => void;
+  isEditMode: boolean;
 }
 
 const CustomerSection: React.FC<CustomerSectionProps> = ({
   customer,
   onCustomerChange,
+  isEditMode,
 }) => {
   return (
     <div className="space-y-4">
@@ -24,6 +26,7 @@ const CustomerSection: React.FC<CustomerSectionProps> = ({
         <CustomerInfo
           customer={customer}
           onClear={() => onCustomerChange(null)}
+          isEditMode={isEditMode}
         />
       ) : (
         <CustomerSearch onCustomerSelect={onCustomerChange} />
