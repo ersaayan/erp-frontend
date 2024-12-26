@@ -2,8 +2,6 @@ export interface CurrentFormData {
     id?: string;
     currentCode: string;
     currentName: string;
-    firstName: string;
-    lastName: string;
     priceListId: string;
     currentType: string;
     institution: string;
