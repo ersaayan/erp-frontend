@@ -12,6 +12,7 @@ import { ShoppingCart, User, CreditCard } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import WarehouseSelect from "./WarehouseSection/WarehouseSelect";
+import { Badge } from "@/components/ui/badge";
 
 const QuickSales: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ const QuickSales: React.FC = () => {
     customer,
     payments,
     loading,
+    isEditMode,
     addToCart,
     updateCartItem,
     removeFromCart,
@@ -61,12 +63,14 @@ const QuickSales: React.FC = () => {
           phone: muhtelifCustomer.phone,
           email: muhtelifCustomer.email,
           priceListId: muhtelifCustomer.priceListId,
-          priceList: muhtelifCustomer.priceList ? {
-            id: muhtelifCustomer.priceList.id,
-            priceListName: muhtelifCustomer.priceList.priceListName,
-            currency: muhtelifCustomer.priceList.currency,
-            isVatIncluded: muhtelifCustomer.priceList.isVatIncluded,
-          } : null,
+          priceList: muhtelifCustomer.priceList
+            ? {
+                id: muhtelifCustomer.priceList.id,
+                priceListName: muhtelifCustomer.priceList.priceListName,
+                currency: muhtelifCustomer.priceList.currency,
+                isVatIncluded: muhtelifCustomer.priceList.isVatIncluded,
+              }
+            : null,
         });
       }
     } catch (error) {
@@ -84,7 +88,16 @@ const QuickSales: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)]">
       <div className="flex justify-between items-center mb-4 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-        <h2 className="text-2xl font-bold">Hızlı Satış</h2>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-2xl font-bold">
+            {isEditMode ? "Sipariş Düzenle" : "Hızlı Satış"}
+          </h2>
+          {isEditMode && (
+            <Badge variant="secondary" className="ml-2">
+              Düzenleme Modu
+            </Badge>
+          )}
+        </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <ShoppingCart className="h-5 w-5 text-muted-foreground" />
@@ -169,8 +182,7 @@ const QuickSales: React.FC = () => {
                 )
               }
               loading={loading}
-              branchCode={selectedBranchCode}
-              warehouseId={selectedWarehouseId}
+              isEditMode={isEditMode}
             />
           </Card>
         </motion.div>

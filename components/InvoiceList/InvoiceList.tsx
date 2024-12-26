@@ -123,11 +123,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
   const handleRowDblClick = useCallback(
     async (e: any) => {
       try {
-        if (e.data.documentType !== "Invoice") {
-          return;
-        }
-
-        // Fetch invoice details
+        // Fatura detaylarını getir
         const response = await fetch(
           `${process.env.BASE_URL}/invoices/getInvoiceInfoById/${e.data.id}`,
           {
@@ -144,28 +140,36 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
 
         const invoiceDetail: InvoiceDetailResponse = await response.json();
 
-        // Store the invoice data in localStorage
+        // Veriyi localStorage'a kaydet
         localStorage.setItem(
           "currentInvoiceData",
           JSON.stringify(invoiceDetail)
         );
 
-        // Navigate to the appropriate page based on invoice type
-        if (e.data.invoiceType === "Purchase") {
-          onMenuItemClick("Alış Faturası");
-        } else if (e.data.invoiceType === "Sales") {
-          onMenuItemClick("Satış Faturası");
+        // Belge tipine göre yönlendirme yap
+        if (e.data.documentType === "Invoice") {
+          if (e.data.invoiceType === "Purchase") {
+            onMenuItemClick("Alış Faturası");
+          } else if (e.data.invoiceType === "Sales") {
+            onMenuItemClick("Satış Faturası");
+          }
+        } else if (e.data.documentType === "Order") {
+          // Sipariş düzenleme sayfasına yönlendir
+          onMenuItemClick("Hızlı Satış");
         }
 
         toast({
           title: "Success",
-          description: "Opening invoice form...",
+          description:
+            e.data.documentType === "Order"
+              ? "Opening order for editing..."
+              : "Opening invoice form...",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to open invoice. Please try again.",
+          description: "Failed to open document. Please try again.",
         });
         console.error(error);
       }

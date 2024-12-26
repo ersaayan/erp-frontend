@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { CartItem, Customer, Sale } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import Decimal from "decimal.js";
@@ -11,7 +11,84 @@ export const useQuickSales = () => {
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [payments, setPayments] = useState<PaymentDetails[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
     const { toast } = useToast();
+
+    // Mevcut siparişi yükle
+    useEffect(() => {
+        const loadExistingOrder = async () => {
+            const orderData = localStorage.getItem("currentInvoiceData");
+            if (!orderData) return;
+
+            try {
+                const order = JSON.parse(orderData);
+                if (order.documentType === "Order") {
+                    setIsEditMode(true);
+                    setCurrentOrderId(order.id);
+                    setCart(order.items.map((item: any) => ({
+                        id: item.id,
+                        productId: item.stockId,
+                        name: item.stockName,
+                        code: item.stockCode,
+                        barcode: item.barcode || "",
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        discountRate: item.discountRate || 0,
+                        discountAmount: item.discountAmount || 0,
+                        vatRate: item.vatRate,
+                        vatAmount: item.vatAmount,
+                        totalAmount: item.totalAmount,
+                        unit: item.unit,
+                        currency: item.currency,
+                    })));
+
+                    if (order.customer) {
+                        setCustomer({
+                            id: order.customer.id,
+                            name: order.customer.currentName,
+                            code: order.customer.currentCode,
+                            taxNumber: order.customer.taxNumber,
+                            taxOffice: order.customer.taxOffice,
+                            address: order.customer.address,
+                            phone: order.customer.phone,
+                            email: order.customer.email,
+                            priceListId: order.customer.priceListId,
+                            priceList: order.customer.priceList ? {
+                                id: order.customer.priceList.id,
+                                priceListName: order.customer.priceList.priceListName,
+                                currency: order.customer.priceList.currency,
+                                isVatIncluded: order.customer.priceList.isVatIncluded,
+                            } : undefined,
+                        });
+                    }
+
+                    if (order.payments) {
+                        setPayments(order.payments.map((payment: any) => ({
+                            id: payment.id || crypto.randomUUID(),
+                            method: payment.method,
+                            amount: payment.amount,
+                            accountId: payment.accountId,
+                            currency: payment.currency,
+                            description: payment.description,
+                        })));
+                    }
+
+                    // Temizle
+                    localStorage.removeItem("currentInvoiceData");
+                }
+            } catch (error) {
+                console.error("Error loading existing order:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to load existing order",
+                });
+            }
+        };
+
+        loadExistingOrder();
+    }, [toast]);
 
     const calculateItemTotals = useCallback((item: CartItem): CartItem => {
         const quantity = new Decimal(item.quantity);
@@ -73,9 +150,8 @@ export const useQuickSales = () => {
             setLoading(true);
 
             const sale: Sale = {
-                id: crypto.randomUUID(),
+                id: currentOrderId || crypto.randomUUID(),
                 date: new Date(),
-
                 subtotal: cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
                 totalDiscount: cart.reduce((sum, item) => sum + item.discountAmount, 0),
                 totalVat: cart.reduce((sum, item) => sum + item.vatAmount, 0),
@@ -92,11 +168,14 @@ export const useQuickSales = () => {
                     currency: payment.currency,
                     description: payment.description
                 })),
-
             };
 
-            const response = await fetch(`${process.env.BASE_URL}/invoices/createQuickSaleInvoiceWithRelations`, {
-                method: "POST",
+            const endpoint = isEditMode
+                ? `${process.env.BASE_URL}/invoices/updateQuickSaleInvoice/${currentOrderId}`
+                : `${process.env.BASE_URL}/invoices/createQuickSaleInvoiceWithRelations`;
+
+            const response = await fetch(endpoint, {
+                method: isEditMode ? "PUT" : "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -106,18 +185,20 @@ export const useQuickSales = () => {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to process sale");
+                throw new Error(isEditMode ? "Failed to update sale" : "Failed to process sale");
             }
 
             toast({
                 title: "Success",
-                description: "Sale completed successfully",
+                description: isEditMode ? "Sale updated successfully" : "Sale completed successfully",
             });
 
-            // Reset the cart and customer after successful sale
+            // Reset the form
             setCart([]);
             setCustomer(null);
             setPayments([]);
+            setIsEditMode(false);
+            setCurrentOrderId(null);
         } catch (error) {
             toast({
                 variant: "destructive",
@@ -127,13 +208,14 @@ export const useQuickSales = () => {
         } finally {
             setLoading(false);
         }
-    }, [cart, customer, toast]);
+    }, [cart, customer, toast, isEditMode, currentOrderId]);
 
     return {
         cart,
         customer,
         payments,
         loading,
+        isEditMode,
         addToCart,
         updateCartItem,
         removeFromCart,
