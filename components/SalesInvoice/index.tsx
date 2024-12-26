@@ -97,16 +97,34 @@ const SalesInvoice: React.FC = () => {
         );
 
         // Set payments
-        setPayments(
-          invoiceDetail.payments.map((payment) => ({
-            id: crypto.randomUUID(),
-            method: payment.method,
-            amount: payment.amount,
-            accountId: payment.accountId,
-            currency: payment.currency,
-            description: payment.description,
-          }))
-        );
+        if (invoiceDetail.payments && invoiceDetail.payments.length > 0) {
+          setPayments(
+            invoiceDetail.payments.map((payment) => ({
+              id: crypto.randomUUID(),
+              method: payment.method,
+              amount: payment.amount,
+              accountId: payment.accountId,
+              currency: payment.currency,
+              description: payment.description,
+            }))
+          );
+        } else {
+          const totalAmount = invoiceDetail.items.reduce(
+            (sum: number, item: any) => sum + (item.totalAmount || 0),
+            0
+          );
+
+          setPayments([
+            {
+              id: crypto.randomUUID(),
+              method: "openAccount",
+              amount: totalAmount,
+              accountId: "open-account",
+              currency: "TRY",
+              description: `${invoiceDetail.invoiceNo} no'lu belge için açık hesap`,
+            },
+          ]);
+        }
 
         setIsEditMode(true);
         localStorage.removeItem("currentInvoiceData");
