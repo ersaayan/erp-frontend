@@ -23,9 +23,11 @@ export const useQuickSales = () => {
 
             try {
                 const order = JSON.parse(orderData);
-                if (order.documentType === "Order") {
+                if (order.documentType === "Invoice" || order.documentType === "Order") {
                     setIsEditMode(true);
                     setCurrentOrderId(order.id);
+
+                    // Sepet öğelerini ayarla
                     setCart(order.items.map((item: any) => ({
                         id: item.id,
                         productId: item.stockId,
@@ -40,38 +42,53 @@ export const useQuickSales = () => {
                         vatAmount: item.vatAmount,
                         totalAmount: item.totalAmount,
                         unit: item.unit,
-                        currency: item.currency,
+                        currency: item.currency || "TRY", // Varsayılan para birimi
                     })));
 
-                    if (order.customer) {
+                    // Müşteri bilgilerini ayarla
+                    if (order.current) {
                         setCustomer({
-                            id: order.customer.id,
-                            name: order.customer.currentName,
-                            code: order.customer.currentCode,
-                            taxNumber: order.customer.taxNumber,
-                            taxOffice: order.customer.taxOffice,
-                            address: order.customer.address,
-                            phone: order.customer.phone,
-                            email: order.customer.email,
-                            priceListId: order.customer.priceListId,
-                            priceList: order.customer.priceList ? {
-                                id: order.customer.priceList.id,
-                                priceListName: order.customer.priceList.priceListName,
-                                currency: order.customer.priceList.currency,
-                                isVatIncluded: order.customer.priceList.isVatIncluded,
+                            id: order.current.id,
+                            name: order.current.currentName,
+                            code: order.current.currentCode,
+                            taxNumber: order.current.taxNumber || "",
+                            taxOffice: order.current.taxOffice || "",
+                            address: order.current.address || "",
+                            phone: order.current.phone || "",
+                            email: order.current.email || "",
+                            priceListId: order.current.priceListId || "",
+                            priceList: order.current.priceList ? {
+                                id: order.current.priceList.id,
+                                priceListName: order.current.priceList.priceListName,
+                                currency: order.current.priceList.currency,
+                                isVatIncluded: order.current.priceList.isVatIncluded,
                             } : undefined,
                         });
                     }
 
-                    if (order.payments) {
+                    // Ödemeleri ayarla
+                    if (order.payments && order.payments.length > 0) {
                         setPayments(order.payments.map((payment: any) => ({
                             id: payment.id || crypto.randomUUID(),
                             method: payment.method,
                             amount: payment.amount,
                             accountId: payment.accountId,
-                            currency: payment.currency,
+                            currency: payment.currency || "TRY",
                             description: payment.description,
                         })));
+                    } else {
+                        // Eğer ödeme yoksa, toplam tutarı açık hesap olarak ekle
+                        const totalAmount = order.items.reduce((sum: number, item: any) =>
+                            sum + (item.totalAmount || 0), 0);
+
+                        setPayments([{
+                            id: crypto.randomUUID(),
+                            method: "openAccount",
+                            amount: totalAmount,
+                            accountId: "open-account",
+                            currency: "TRY",
+                            description: `${order.invoiceNo} no'lu belge için açık hesap`,
+                        }]);
                     }
 
                     // Temizle
