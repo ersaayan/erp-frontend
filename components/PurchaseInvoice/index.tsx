@@ -10,6 +10,7 @@ import { InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
 import { usePurchaseInvoice } from "@/hooks/usePurchaseInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
+import { Badge } from "@/components/ui/badge";
 
 const PurchaseInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -96,16 +97,34 @@ const PurchaseInvoice: React.FC = () => {
         );
 
         // Set payments
-        setPayments(
-          invoiceDetail.payments.map((payment) => ({
-            id: crypto.randomUUID(),
-            method: payment.method,
-            amount: payment.amount,
-            accountId: payment.accountId,
-            currency: payment.currency,
-            description: payment.description,
-          }))
-        );
+        if (invoiceDetail.payments && invoiceDetail.payments.length > 0) {
+          setPayments(
+            invoiceDetail.payments.map((payment) => ({
+              id: crypto.randomUUID(),
+              method: payment.method,
+              amount: payment.amount,
+              accountId: payment.accountId,
+              currency: payment.currency,
+              description: payment.description,
+            }))
+          );
+        } else {
+          const totalAmount = invoiceDetail.items.reduce(
+            (sum: number, item: any) => sum + (item.totalAmount || 0),
+            0
+          );
+
+          setPayments([
+            {
+              id: crypto.randomUUID(),
+              method: "openAccount",
+              amount: totalAmount,
+              accountId: "open-account",
+              currency: "TRY",
+              description: `${invoiceDetail.invoiceNo} no'lu belge için açık hesap`,
+            },
+          ]);
+        }
 
         setIsEditMode(true);
         localStorage.removeItem("currentInvoiceData");
@@ -130,8 +149,15 @@ const PurchaseInvoice: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Alış Faturası</h1>
+      <div className="flex items-center space-x-2">
+        <h2 className="text-2xl font-bold">
+          {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
+        </h2>
+        {isEditMode && (
+          <Badge variant="secondary" className="ml-2">
+            Düzenleme Modu
+          </Badge>
+        )}
       </div>
 
       <div className="flex flex-1 gap-4 min-h-0">

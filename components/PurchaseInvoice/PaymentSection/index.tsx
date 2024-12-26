@@ -37,27 +37,20 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   // Calculate totals
   const totals = useMemo(() => {
     const subtotal = products.reduce(
-      (sum, item) => sum + item.unitPrice * item.quantity,
+      (sum, product) => sum + product.quantity * product.unitPrice,
       0
     );
-
-    const totalDiscount = products.reduce(
-      (sum, item) => sum + (item.discountAmount || 0),
+    const vatTotal = products.reduce(
+      (sum, product) => sum + product.vatAmount,
       0
     );
-
-    const totalVat = products.reduce((sum, item) => sum + item.vatAmount, 0);
-
-    const total = products.reduce((sum, item) => sum + item.totalAmount, 0);
-
+    const total = subtotal + vatTotal;
     const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
-
     const remaining = total - paid;
 
     return {
       subtotal,
-      totalDiscount,
-      totalVat,
+      vatTotal,
       total,
       paid,
       remaining,
@@ -87,50 +80,48 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="space-y-4 mb-4">
-        <div className="flex justify-between text-sm">
-          <span>Ara Toplam</span>
-          <span>
-            {totals.subtotal.toFixed(2)} {currency}
-          </span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span>Toplam İndirim</span>
-          <span className="text-red-500">
-            -{totals.totalDiscount.toFixed(2)} {currency}
-          </span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span>Toplam KDV</span>
-          <span>
-            {totals.totalVat.toFixed(2)} {currency}
-          </span>
-        </div>
-        <Separator />
-        <div className="flex justify-between font-bold text-lg">
-          <span>Genel Toplam</span>
-          <span>
-            {totals.total.toFixed(2)} {currency}
-          </span>
-        </div>
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Ödenen</span>
-          <span>
-            {totals.paid.toFixed(2)} {currency}
-          </span>
-        </div>
-        <div className="flex justify-between font-bold text-lg">
-          <span>Kalan</span>
-          <span>
-            {totals.remaining.toFixed(2)} {currency}
-          </span>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Ödeme</h2>
+
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Ara Toplam</span>
+            <span>
+              {totals.subtotal.toFixed(2)} {currency}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>KDV</span>
+            <span>
+              {totals.vatTotal.toFixed(2)} {currency}
+            </span>
+          </div>
+          <Separator />
+          <div className="flex justify-between font-medium">
+            <span>Genel Toplam</span>
+            <span>
+              {totals.total.toFixed(2)} {currency}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Ödenen</span>
+            <span>
+              {totals.paid.toFixed(2)} {currency}
+            </span>
+          </div>
+          <div className="flex justify-between font-bold text-lg">
+            <span>Kalan</span>
+            <span>
+              {totals.remaining.toFixed(2)} {currency}
+            </span>
+          </div>
         </div>
       </div>
 
-      <Separator className="mb-4" />
+      <Separator />
 
-      <div className="flex-1 overflow-auto space-y-4">
+      <div className="space-y-4">
         <h3 className="font-medium">Ödeme Yöntemi</h3>
         <PaymentMethodSelect
           selectedMethod={selectedMethod}
@@ -147,7 +138,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           />
         )}
 
-        {payments && payments.length > 0 && (
+        {payments.length > 0 && (
           <>
             <Separator />
             <div className="space-y-2">
@@ -158,7 +149,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         )}
       </div>
 
-      <Separator className="my-4" />
+      <Separator />
 
       <Button
         className="w-full bg-[#84CC16] hover:bg-[#65A30D]"

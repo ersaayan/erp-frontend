@@ -17,6 +17,7 @@ interface PaymentSectionProps {
   onPaymentsChange: (payments: PaymentDetails[]) => void;
   onSave: () => void;
   loading: boolean;
+  isEditMode: boolean;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -25,6 +26,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onPaymentsChange,
   onSave,
   loading,
+  isEditMode,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
@@ -156,7 +158,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         disabled={loading || products.length === 0 || totals.remaining > 0}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Faturayı Kaydet
+        {isEditMode ? "Faturayı Güncelle" : "Faturayı Kaydet"}
       </Button>
     </div>
   );
