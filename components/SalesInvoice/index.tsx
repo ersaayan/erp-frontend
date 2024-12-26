@@ -10,6 +10,7 @@ import { InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
 import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
+import { Badge } from "@/components/ui/badge";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -129,8 +130,15 @@ const SalesInvoice: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Satış Faturası</h1>
+      <div className="flex items-center space-x-2">
+        <h2 className="text-2xl font-bold">
+          {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
+        </h2>
+        {isEditMode && (
+          <Badge variant="secondary" className="ml-2">
+            Düzenleme Modu
+          </Badge>
+        )}
       </div>
 
       <div className="flex flex-1 gap-4 overflow-hidden">
