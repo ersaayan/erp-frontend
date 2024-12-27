@@ -18,7 +18,7 @@ import DataGrid, {
   ColumnChooser,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, Pencil } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Bank, BankMovement } from "./types";
 import { Workbook } from "exceljs";
@@ -37,8 +37,6 @@ import {
   DOCUMENT_TYPE_TRANSLATIONS,
   MOVEMENT_TYPE_TRANSLATIONS,
 } from "@/lib/constants/movementEnums";
-import { Button } from "@/components/ui/button";
-import { BankMovementEditDialog } from "./BankDialog/BankMovementEditDialog";
 
 interface BankMovementsGridProps {
   selectedBank: Bank | null;
@@ -58,10 +56,6 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
     {}
   );
-  const [selectedMovementId, setSelectedMovementId] = useState<string | null>(
-    null
-  );
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const availableCurrencies = React.useMemo(() => {
     const currencies = new Set<string>();
@@ -244,13 +238,6 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
         </div>
       )}
 
-      <BankMovementEditDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        movementId={selectedMovementId}
-        onSuccess={fetchMovements}
-      />
-
       <DataGrid
         dataSource={movements}
         showBorders={true}
@@ -358,23 +345,6 @@ const BankMovementsGrid: React.FC<BankMovementsGridProps> = ({
           <Item name="exportButton" />
           <Item name="columnChooserButton" />
         </Toolbar>
-
-        <Column
-          caption="İşlemler"
-          width={100}
-          cellRender={(data) => (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setSelectedMovementId(data.data.id);
-                setIsEditDialogOpen(true);
-              }}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        />
       </DataGrid>
     </div>
   );
