@@ -58,7 +58,7 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
   useEffect(() => {
     if (movement) {
       form.reset({
-        dueDate: movement.dueDate,
+        dueDate: new Date(movement.dueDate).toISOString().split("T")[0],
         description: movement.description,
         amount: movement.debtAmount || movement.creditAmount || "",
       });
