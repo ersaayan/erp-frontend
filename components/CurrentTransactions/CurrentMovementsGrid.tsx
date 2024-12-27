@@ -18,12 +18,13 @@ import DataGrid, {
   ColumnChooser,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, PencilIcon } from "lucide-react";
 import { Current, CurrentMovement } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
+import { Button } from "@/components/ui/button";
 
 interface CurrentMovementsGridProps {
   selectedCurrent: Current | null;
@@ -121,6 +122,46 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     });
   }, []);
 
+  const handleEdit = useCallback(
+    async (movement: CurrentMovement) => {
+      const editableTypes = ["DebtTransfer", "ReceivableTransfer"];
+
+      if (!editableTypes.includes(movement.movementType)) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Bu hareket tipi düzenlenemez.",
+        });
+        return;
+      }
+
+      const event = new CustomEvent("openEditDialog", {
+        detail: {
+          movement,
+          currentId: selectedCurrent?.id,
+        },
+      });
+      window.dispatchEvent(event);
+    },
+    [selectedCurrent, toast]
+  );
+
+  const renderEditButton = useCallback(
+    (data: any) => {
+      const editableTypes = ["DebtTransfer", "ReceivableTransfer"];
+      if (!editableTypes.includes(data.data.movementType)) {
+        return null;
+      }
+
+      return (
+        <Button variant="ghost" size="sm" onClick={() => handleEdit(data.data)}>
+          <PencilIcon className="h-4 w-4" />
+        </Button>
+      );
+    },
+    [handleEdit]
+  );
+
   if (!selectedCurrent) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -217,6 +258,15 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
           valueFormat="#,##0.00"
         />
       </Summary>
+
+      <Column
+        caption="İşlemler"
+        width={100}
+        alignment="center"
+        cellRender={renderEditButton}
+        allowFiltering={false}
+        allowSorting={false}
+      />
 
       <Toolbar>
         <Item name="searchPanel" />

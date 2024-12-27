@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import CurrentTransactionsToolbar from "./CurrentTransactionsToolbar";
 import {
@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/resizable";
 import CurrentsGrid from "./CurrentsGrid";
 import CurrentMovementsGrid from "./CurrentMovementsGrid";
-import { Current } from "./types";
+import { Current, CurrentMovement } from "./types";
 import CashCollectionDialog from "./CashCollectionDialog";
 import CashPaymentDialog from "./CashPaymentDialog";
 import BankTransferDialog from "./BankTransferDialog";
 import BankPaymentDialog from "./BankPaymentDialog";
 import PosCollectionDialog from "./PosCollectionDialog";
 import PosPaymentDialog from "./PosPaymentDialog";
+import EditMovementDialog from "./EditMovementDialog";
 
 interface CurrentTransactionsProps {
   onMenuItemClick: (itemName: string) => void;
@@ -26,7 +27,6 @@ const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
   onMenuItemClick,
 }) => {
   const [selectedCurrent, setSelectedCurrent] = useState<Current | null>(() => {
-    // Sayfa yüklendiğinde localStorage'dan seçili cariyi al
     if (typeof window !== "undefined") {
       const savedCurrent = localStorage.getItem("selectedCurrent");
       return savedCurrent ? JSON.parse(savedCurrent) : null;
@@ -34,8 +34,25 @@ const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
     return null;
   });
 
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedMovement, setSelectedMovement] =
+    useState<CurrentMovement | null>(null);
+
+  useEffect(() => {
+    const handleOpenEditDialog = (
+      event: CustomEvent<{ movement: CurrentMovement }>
+    ) => {
+      setSelectedMovement(event.detail.movement);
+      setEditDialogOpen(true);
+    };
+
+    window.addEventListener("openEditDialog" as any, handleOpenEditDialog);
+    return () => {
+      window.removeEventListener("openEditDialog" as any, handleOpenEditDialog);
+    };
+  }, []);
+
   const handleCurrentSelect = (current: Current) => {
-    // Seçili cariyi localStorage'a kaydet
     localStorage.setItem("selectedCurrent", JSON.stringify(current));
     setSelectedCurrent(current);
   };
@@ -78,6 +95,12 @@ const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
       <BankPaymentDialog current={selectedCurrent} />
       <PosCollectionDialog current={selectedCurrent} />
       <PosPaymentDialog current={selectedCurrent} />
+      <EditMovementDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        movement={selectedMovement}
+        currentId={selectedCurrent?.id}
+      />
     </div>
   );
 };
