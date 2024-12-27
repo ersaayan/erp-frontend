@@ -148,8 +148,8 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
 
   const renderEditButton = useCallback(
     (data: any) => {
-      const editableTypes = ["DebtTransfer", "ReceivableTransfer"];
-      if (!editableTypes.includes(data.data.movementType)) {
+      const editableTypes = ["Devir"];
+      if (!editableTypes.includes(data.data.documentType)) {
         return null;
       }
 
