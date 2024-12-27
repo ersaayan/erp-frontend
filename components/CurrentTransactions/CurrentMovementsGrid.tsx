@@ -124,9 +124,9 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
 
   const handleEdit = useCallback(
     async (movement: CurrentMovement) => {
-      const editableTypes = ["DebtTransfer", "ReceivableTransfer"];
+      const editableTypes = ["Devir"];
 
-      if (!editableTypes.includes(movement.movementType)) {
+      if (!editableTypes.includes(movement.documentType)) {
         toast({
           variant: "destructive",
           title: "Hata",
