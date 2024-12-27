@@ -28,6 +28,7 @@ const formSchema = z.object({
   dueDate: z.string(),
   description: z.string().min(1, "Açıklama zorunludur"),
   amount: z.string().min(1, "Tutar zorunludur"),
+  isDebt: z.boolean(),
 });
 
 interface EditMovementDialogProps {
@@ -52,15 +53,18 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
       dueDate: "",
       description: "",
       amount: "",
+      isDebt: true,
     },
   });
 
   useEffect(() => {
     if (movement) {
+      const isDebt = !!movement.debtAmount;
       form.reset({
         dueDate: new Date(movement.dueDate).toISOString().split("T")[0],
         description: movement.description,
         amount: movement.debtAmount || movement.creditAmount || "",
+        isDebt,
       });
     }
   }, [movement, form]);
@@ -71,6 +75,15 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
     try {
       setLoading(true);
 
+      const payload = {
+        dueDate: values.dueDate,
+        description: values.description,
+        debtAmount: values.isDebt ? values.amount : "0",
+        creditAmount: values.isDebt ? "0" : values.amount,
+        currentId,
+        movementType: movement.movementType,
+      };
+
       // Cari hareketi güncelle
       const currentMovementResponse = await fetch(
         `${process.env.BASE_URL}/currentMovements/${movement.id}`,
@@ -80,11 +93,7 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
-          body: JSON.stringify({
-            ...values,
-            currentId,
-            movementType: movement.movementType,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -101,7 +110,7 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -172,7 +181,9 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tutar</FormLabel>
+                  <FormLabel>
+                    {form.getValues("isDebt") ? "Borç" : "Alacak"} Tutarı
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
