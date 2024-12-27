@@ -31,7 +31,7 @@ import {
   MOVEMENT_TYPE_TRANSLATIONS,
   DOCUMENT_TYPE_TRANSLATIONS,
 } from "@/lib/constants/movementEnums";
-import { VaultMovement } from "../types";
+import { PosMovement } from "../types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,24 +47,24 @@ const formSchema = z.object({
   description: z.string().min(1, "Açıklama zorunludur"),
   entering: z.string(),
   emerging: z.string(),
-  vaultDirection: z.string(),
-  vaultType: z.string(),
-  vaultDocumentType: z.string(),
+  posDirection: z.string(),
+  posType: z.string(),
+  posDocumentType: z.string(),
 });
 
-interface VaultMovementEditDialogProps {
+interface PosMovementEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   movementId: string | null;
   onSuccess: () => void;
 }
 
-export function VaultMovementEditDialog({
+export function PosMovementEditDialog({
   open,
   onOpenChange,
   movementId,
   onSuccess,
-}: VaultMovementEditDialogProps) {
+}: PosMovementEditDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -75,9 +75,9 @@ export function VaultMovementEditDialog({
       description: "",
       entering: "0",
       emerging: "0",
-      vaultDirection: "",
-      vaultType: "",
-      vaultDocumentType: "",
+      posDirection: "",
+      posType: "",
+      posDocumentType: "",
     },
   });
 
@@ -88,7 +88,7 @@ export function VaultMovementEditDialog({
       try {
         setLoading(true);
         const response = await fetch(
-          `${process.env.BASE_URL}/vaultMovements/${movementId}`,
+          `${process.env.BASE_URL}/posMovements/${movementId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -96,16 +96,16 @@ export function VaultMovementEditDialog({
           }
         );
 
-        if (!response.ok) throw new Error("Hareket detayları alınamadı");
+        if (!response.ok) throw new Error("Hareket detayları alınamad��");
 
-        const data: VaultMovement = await response.json();
+        const data: PosMovement = await response.json();
         form.reset({
           description: data.description,
           entering: data.entering,
           emerging: data.emerging,
-          vaultDirection: data.vaultDirection,
-          vaultType: data.vaultType,
-          vaultDocumentType: data.vaultDocumentType,
+          posDirection: data.posDirection,
+          posType: data.posType,
+          posDocumentType: data.posDocumentType,
         });
       } catch (error) {
         toast({
@@ -128,7 +128,7 @@ export function VaultMovementEditDialog({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/vaultMovements/${movementId}`,
+        `${process.env.BASE_URL}/posMovements/${movementId}`,
         {
           method: "PUT",
           headers: {
@@ -143,7 +143,7 @@ export function VaultMovementEditDialog({
 
       toast({
         title: "Başarılı",
-        description: "Kasa hareketi başarıyla güncellendi.",
+        description: "POS hareketi başarıyla güncellendi.",
       });
       onSuccess();
       onOpenChange(false);
@@ -165,7 +165,7 @@ export function VaultMovementEditDialog({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/vaultMovements/${movementId}`,
+        `${process.env.BASE_URL}/posMovements/${movementId}`,
         {
           method: "DELETE",
           headers: {
@@ -178,7 +178,7 @@ export function VaultMovementEditDialog({
 
       toast({
         title: "Başarılı",
-        description: "Kasa hareketi başarıyla silindi.",
+        description: "POS hareketi başarıyla silindi.",
       });
       onSuccess();
       onOpenChange(false);
@@ -200,7 +200,7 @@ export function VaultMovementEditDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Kasa Hareketi Düzenle</DialogTitle>
+            <DialogTitle>POS Hareketi Düzenle</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -248,7 +248,7 @@ export function VaultMovementEditDialog({
 
               <FormField
                 control={form.control}
-                name="vaultDirection"
+                name="posDirection"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Yön</FormLabel>
@@ -278,7 +278,7 @@ export function VaultMovementEditDialog({
 
               <FormField
                 control={form.control}
-                name="vaultType"
+                name="posType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Hareket Tipi</FormLabel>
@@ -308,7 +308,7 @@ export function VaultMovementEditDialog({
 
               <FormField
                 control={form.control}
-                name="vaultDocumentType"
+                name="posDocumentType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Belge Tipi</FormLabel>

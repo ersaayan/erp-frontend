@@ -18,7 +18,7 @@ import DataGrid, {
   ColumnChooser,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Pos, PosMovement } from "./types";
 import { Workbook } from "exceljs";
@@ -37,6 +37,8 @@ import {
   MOVEMENT_TYPE_TRANSLATIONS,
   DOCUMENT_TYPE_TRANSLATIONS,
 } from "@/lib/constants/movementEnums";
+import { Button } from "@/components/ui/button";
+import { PosMovementEditDialog } from "./PosDialog/PosMovementEditDialog";
 
 interface PosMovementsGridProps {
   selectedPos: Pos | null;
@@ -56,6 +58,10 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
     {}
   );
+  const [selectedMovementId, setSelectedMovementId] = useState<string | null>(
+    null
+  );
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const availableCurrencies = React.useMemo(() => {
     const currencies = new Set<string>();
@@ -235,6 +241,13 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
         </div>
       )}
 
+      <PosMovementEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        movementId={selectedMovementId}
+        onSuccess={fetchMovements}
+      />
+
       <DataGrid
         dataSource={movements}
         showBorders={true}
@@ -334,6 +347,23 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
           <Item name="exportButton" />
           <Item name="columnChooserButton" />
         </Toolbar>
+
+        <Column
+          caption="İşlemler"
+          width={100}
+          cellRender={(data) => (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setSelectedMovementId(data.data.id);
+                setIsEditDialogOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+        />
       </DataGrid>
     </div>
   );
