@@ -35,4 +35,8 @@ export const MOVEMENT_TYPE_TRANSLATIONS = {
     LoanWithdrawal: 'Kredi Çekimi',
     OutgoingVirement: 'Virman Çıkış',
     InGoingVirement: 'Virman Giriş',
+
+    // Invoice Types
+    SalesInvoicePayment: 'Satış Faturası Ödemesi',
+    PurchaseInvoicePayment: 'Alış Faturası Ödemesi',
 };

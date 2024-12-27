@@ -15,7 +15,7 @@ export interface VaultMovement {
     entering: string;
     emerging: string;
     vaultDirection: 'Introduction' | 'Exit' | "ReceivedVirement";
-    vaultType: 'DebtTransfer' | "ServiceChargeCollection" | "CompanyCreditCardWithdrawals" | "BuyingForeignCurrency" | "InputReceipt" | "BankWithdrawals" | "ReceivingValuableAssets" | "ReceivableTransfer" | "ServiceChargePayment" | "CompanyCreditCardDeposit" | "CurrencyExchange" | "LoanPayment" | "LoanWithdrawal" | "ExitReceipt" | "PaymentToBank" | "PreciousMetalExchange" | "OutgoingVirement" | "InGoingVirement" | "POSWithdrawals";
+    vaultType: 'DebtTransfer' | "ServiceChargeCollection" | "CompanyCreditCardWithdrawals" | "BuyingForeignCurrency" | "InputReceipt" | "BankWithdrawals" | "ReceivingValuableAssets" | "ReceivableTransfer" | "ServiceChargePayment" | "CompanyCreditCardDeposit" | "CurrencyExchange" | "LoanPayment" | "LoanWithdrawal" | "ExitReceipt" | "PaymentToBank" | "PreciousMetalExchange" | "OutgoingVirement" | "InGoingVirement" | "POSWithdrawals" | "SalesInvoicePayment" | "PurchaseInvoicePaymentx";
     vaultDocumentType: 'General' | "Accounting" | "Official";
     vault: {
         id: string;
