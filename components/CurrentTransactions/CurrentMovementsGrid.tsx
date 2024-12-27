@@ -18,13 +18,23 @@ import DataGrid, {
   ColumnChooser,
 } from "devextreme-react/data-grid";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, PencilIcon } from "lucide-react";
+import { AlertCircle, Loader2, PencilIcon, Trash2Icon } from "lucide-react";
 import { Current, CurrentMovement } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CurrentMovementsGridProps {
   selectedCurrent: Current | null;
@@ -38,6 +48,9 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [movementToDelete, setMovementToDelete] =
+    useState<CurrentMovement | null>(null);
 
   const fetchMovements = useCallback(async () => {
     if (!selectedCurrent) {
@@ -146,20 +159,112 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     [selectedCurrent, toast]
   );
 
-  const renderEditButton = useCallback(
+  const handleDelete = useCallback(
+    async (movement: CurrentMovement) => {
+      const deletableTypes = ["Devir"];
+
+      if (!deletableTypes.includes(movement.documentType)) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Bu hareket tipi silinemez.",
+        });
+        return;
+      }
+
+      setMovementToDelete(movement);
+      setDeleteDialogOpen(true);
+    },
+    [toast]
+  );
+
+  const confirmDelete = async () => {
+    if (!movementToDelete) return;
+
+    try {
+      setLoading(true);
+
+      // Cari hareketi sil
+      const currentMovementResponse = await fetch(
+        `${process.env.BASE_URL}/currentMovements/${movementToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+
+      if (!currentMovementResponse.ok) {
+        throw new Error("Cari hareket silinemedi");
+      }
+
+      // İlişkili hareketi sil
+      const relatedMovementResponse = await fetch(
+        `${process.env.BASE_URL}/currentMovements/${movementToDelete.id}/related`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+
+      if (!relatedMovementResponse.ok) {
+        throw new Error("İlişkili hareket silinemedi");
+      }
+
+      toast({
+        title: "Başarılı",
+        description: "Hareket başarıyla silindi",
+      });
+
+      fetchMovements();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Hareket silinirken bir hata oluştu",
+      });
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
+      setMovementToDelete(null);
+    }
+  };
+
+  const renderActionButtons = useCallback(
     (data: any) => {
       const editableTypes = ["Devir"];
-      if (!editableTypes.includes(data.data.documentType)) {
+      const movement = data.data;
+
+      if (!editableTypes.includes(movement.documentType)) {
         return null;
       }
 
       return (
-        <Button variant="ghost" size="sm" onClick={() => handleEdit(data.data)}>
-          <PencilIcon className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEdit(movement)}
+          >
+            <PencilIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(movement)}
+          >
+            <Trash2Icon className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
       );
     },
-    [handleEdit]
+    [handleEdit, handleDelete]
   );
 
   if (!selectedCurrent) {
@@ -189,91 +294,115 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
   }
 
   return (
-    <DataGrid
-      dataSource={movements}
-      showBorders={true}
-      showRowLines={true}
-      showColumnLines={true}
-      rowAlternationEnabled={true}
-      columnAutoWidth={true}
-      wordWrapEnabled={true}
-      height="calc(100vh - 250px)"
-      selectedRowKeys={selectedRowKeys}
-      onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
-      onExporting={onExporting}
-    >
-      <StateStoring
-        enabled={true}
-        type="localStorage"
-        storageKey="currentMovementsGrid"
-      />
-      <LoadPanel enabled={true} />
-      <Selection mode="multiple" showCheckBoxesMode="always" />
-      <FilterRow visible={true} />
-      <HeaderFilter visible={true} />
-      <SearchPanel visible={true} width={240} placeholder="Ara..." />
-      <ColumnChooser enabled={true} mode="select" />
-      <Scrolling mode="virtual" />
-      <Export enabled={true} allowExportSelectedData={true} />
-
-      <Column
-        dataField="dueDate"
-        caption="Vade Tarihi"
-        dataType="date"
-        format="dd.MM.yyyy"
-      />
-      <Column dataField="documentNo" caption="Belge No" />
-      <Column dataField="documentType" caption="Belge Tipi" />
-      <Column dataField="description" caption="Açıklama" />
-      <Column
-        dataField="debtAmount"
-        caption="Borç"
-        dataType="number"
-        format="#,##0.00"
-      />
-      <Column
-        dataField="creditAmount"
-        caption="Alacak"
-        dataType="number"
-        format="#,##0.00"
-      />
-      <Column
-        dataField="balanceAmount"
-        caption="Bakiye"
-        dataType="number"
-        format="#,##0.00"
-      />
-      <Column dataField="movementType" caption="Hareket Tipi" />
-      <Column dataField="branchCode" caption="Şube Kodu" />
-
-      <Summary>
-        <TotalItem
-          column="debtAmount"
-          summaryType="sum"
-          valueFormat="#,##0.00"
+    <>
+      <DataGrid
+        dataSource={movements}
+        showBorders={true}
+        showRowLines={true}
+        showColumnLines={true}
+        rowAlternationEnabled={true}
+        columnAutoWidth={true}
+        wordWrapEnabled={true}
+        height="calc(100vh - 250px)"
+        selectedRowKeys={selectedRowKeys}
+        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
+        onExporting={onExporting}
+      >
+        <StateStoring
+          enabled={true}
+          type="localStorage"
+          storageKey="currentMovementsGrid"
         />
-        <TotalItem
-          column="creditAmount"
-          summaryType="sum"
-          valueFormat="#,##0.00"
+        <LoadPanel enabled={true} />
+        <Selection mode="multiple" showCheckBoxesMode="always" />
+        <FilterRow visible={true} />
+        <HeaderFilter visible={true} />
+        <SearchPanel visible={true} width={240} placeholder="Ara..." />
+        <ColumnChooser enabled={true} mode="select" />
+        <Scrolling mode="virtual" />
+        <Export enabled={true} allowExportSelectedData={true} />
+
+        <Column
+          dataField="dueDate"
+          caption="Vade Tarihi"
+          dataType="date"
+          format="dd.MM.yyyy"
         />
-      </Summary>
+        <Column dataField="documentNo" caption="Belge No" />
+        <Column dataField="documentType" caption="Belge Tipi" />
+        <Column dataField="description" caption="Açıklama" />
+        <Column
+          dataField="debtAmount"
+          caption="Borç"
+          dataType="number"
+          format="#,##0.00"
+        />
+        <Column
+          dataField="creditAmount"
+          caption="Alacak"
+          dataType="number"
+          format="#,##0.00"
+        />
+        <Column
+          dataField="balanceAmount"
+          caption="Bakiye"
+          dataType="number"
+          format="#,##0.00"
+        />
+        <Column dataField="movementType" caption="Hareket Tipi" />
+        <Column dataField="branchCode" caption="Şube Kodu" />
 
-      <Column
-        caption="İşlemler"
-        width={100}
-        alignment="center"
-        cellRender={renderEditButton}
-        allowFiltering={false}
-        allowSorting={false}
-      />
+        <Summary>
+          <TotalItem
+            column="debtAmount"
+            summaryType="sum"
+            valueFormat="#,##0.00"
+          />
+          <TotalItem
+            column="creditAmount"
+            summaryType="sum"
+            valueFormat="#,##0.00"
+          />
+        </Summary>
 
-      <Toolbar>
-        <Item name="searchPanel" />
-        <Item name="exportButton" />
-        <Item name="columnChooserButton" />
-      </Toolbar>
-    </DataGrid>
+        <Column
+          caption="İşlemler"
+          width={120}
+          alignment="center"
+          cellRender={renderActionButtons}
+          allowFiltering={false}
+          allowSorting={false}
+        />
+
+        <Toolbar>
+          <Item name="searchPanel" />
+          <Item name="exportButton" />
+          <Item name="columnChooserButton" />
+        </Toolbar>
+      </DataGrid>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hareketi Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu hareketi silmek istediğinizden emin misiniz? Bu işlem geri
+              alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={loading}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {loading ? "Siliniyor..." : "Sil"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
