@@ -80,17 +80,21 @@ export const useSalesInvoice = () => {
                 body: JSON.stringify(invoicePayload),
             });
 
+            console.log('API Response Status:', response.status);
+            console.log('API Response Headers:', Object.fromEntries(response.headers.entries()));
+            const responseText = await response.text();
+            console.log('API Raw Response:', responseText);
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Hatası: ${response.status} - ${errorText || 'Bilinmeyen hata'}`);
+                throw new Error(`API Hatası: ${response.status} - ${responseText || 'Bilinmeyen hata'}`);
             }
 
             let result;
             try {
-                result = await response.json();
+                result = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('JSON parse hatası:', parseError);
-                throw new Error('API yanıtı geçerli bir JSON formatında değil');
+                throw new Error(`API yanıtı geçerli bir JSON formatında değil. Yanıt: ${responseText}`);
             }
 
             if (!result) {
