@@ -81,10 +81,21 @@ export const useSalesInvoice = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save invoice');
+                const errorText = await response.text();
+                throw new Error(`API Hatası: ${response.status} - ${errorText || 'Bilinmeyen hata'}`);
             }
 
-            const result = await response.json();
+            let result;
+            try {
+                result = await response.json();
+            } catch (parseError) {
+                console.error('JSON parse hatası:', parseError);
+                throw new Error('API yanıtı geçerli bir JSON formatında değil');
+            }
+
+            if (!result) {
+                throw new Error('API yanıtı boş');
+            }
 
             toast({
                 title: "Başarılı",
