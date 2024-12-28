@@ -105,6 +105,7 @@ export const usePosCollectionForm = (currentCode: string) => {
             posDirection: 'Introduction',
             posType: 'DebtTransfer',
             posDocumentType: 'General',
+            currentMovementId: response.body.id,
         };
 
         const posResponse = await fetch(`${process.env.BASE_URL}/posMovements`, {

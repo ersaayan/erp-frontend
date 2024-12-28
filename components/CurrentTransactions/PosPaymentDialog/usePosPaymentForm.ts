@@ -105,6 +105,7 @@ export const usePosPaymentForm = (currentCode: string) => {
             posDirection: 'Exit',
             posType: 'ReceivableTransfer',
             posDocumentType: 'General',
+            currentMovementId: response.body.id,
         };
 
         const posResponse = await fetch(`${process.env.BASE_URL}/posMovements`, {

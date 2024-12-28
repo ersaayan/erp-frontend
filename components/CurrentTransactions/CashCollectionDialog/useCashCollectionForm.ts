@@ -107,6 +107,7 @@ export const useCashCollectionForm = (currentCode: string) => {
             vaultDirection: 'Introduction',
             vaultType: 'DebtTransfer',
             vaultDocumentType: 'General',
+            currentMovementId: response.body.id,
         };
 
         const vaultResponse = await fetch(`${process.env.BASE_URL}/vaultMovements`, {

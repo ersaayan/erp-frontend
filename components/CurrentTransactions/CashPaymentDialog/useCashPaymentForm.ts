@@ -105,6 +105,7 @@ export const useCashPaymentForm = (currentCode: string) => {
             vaultDirection: 'Exit',
             vaultType: 'ReceivableTransfer',
             vaultDocumentType: 'General',
+            currentMovementId: response.body.id,
         };
 
         const vaultResponse = await fetch(`${process.env.BASE_URL}/vaultMovements`, {

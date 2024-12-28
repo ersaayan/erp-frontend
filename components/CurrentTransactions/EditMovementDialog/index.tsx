@@ -82,6 +82,7 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
         creditAmount: values.isDebt ? "0" : values.amount,
         currentId,
         movementType: movement.movementType,
+        currentMovementId: movement.id,
       };
 
       // Cari hareketi güncelle

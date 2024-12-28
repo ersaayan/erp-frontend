@@ -107,6 +107,7 @@ export const useBankPaymentForm = (currentCode: string) => {
             bankDirection: 'Exit',
             bankType: 'ReceivableTransfer',
             bankDocumentType: 'General',
+            currentMovementId: response.body.id,
         };
 
         const bankResponse = await fetch(`${process.env.BASE_URL}/bankMovements`, {
