@@ -97,7 +97,9 @@ export const useCashCollectionForm = (currentCode: string) => {
         if (!response.ok) {
             throw new Error('Failed to process cash collection');
         }
-        console.log(response);
+        // response.body is a ReadableStream, so we need to convert it to a JSON object
+        const responseBody = await response.json();
+        console.log(responseBody);
         // Create vault movement
         const vaultMovementPayload = {
             vaultId: values.vaultId,
