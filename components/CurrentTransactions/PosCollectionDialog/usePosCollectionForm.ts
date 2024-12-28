@@ -95,7 +95,8 @@ export const usePosCollectionForm = (currentCode: string) => {
         if (!response.ok) {
             throw new Error('Failed to process POS payment');
         }
-
+        // response.body is a ReadableStream, so we need to convert it to a JSON object
+        const responseBody = await response.json();
         // Create POS movement
         const posMovementPayload = {
             posId: values.posId,
@@ -105,7 +106,7 @@ export const usePosCollectionForm = (currentCode: string) => {
             posDirection: 'Introduction',
             posType: 'DebtTransfer',
             posDocumentType: 'General',
-            currentMovementId: response.body.id,
+            currentMovementId: responseBody.id,
         };
 
         const posResponse = await fetch(`${process.env.BASE_URL}/posMovements`, {

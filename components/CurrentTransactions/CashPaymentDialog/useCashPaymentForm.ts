@@ -97,7 +97,6 @@ export const useCashPaymentForm = (currentCode: string) => {
         }
         // response.body is a ReadableStream, so we need to convert it to a JSON object
         const responseBody = await response.json();
-        console.log(responseBody);
         // Create vault movement
         const vaultMovementPayload = {
             vaultId: values.vaultId,
@@ -107,7 +106,7 @@ export const useCashPaymentForm = (currentCode: string) => {
             vaultDirection: 'Exit',
             vaultType: 'ReceivableTransfer',
             vaultDocumentType: 'General',
-            currentMovementId: response.body.id,
+            currentMovementId: responseBody.id,
         };
 
         const vaultResponse = await fetch(`${process.env.BASE_URL}/vaultMovements`, {

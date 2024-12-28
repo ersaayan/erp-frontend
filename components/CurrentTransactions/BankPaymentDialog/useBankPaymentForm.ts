@@ -97,7 +97,8 @@ export const useBankPaymentForm = (currentCode: string) => {
         if (!response.ok) {
             throw new Error('Failed to process bank payment');
         }
-
+        // response.body is a ReadableStream, so we need to convert it to a JSON object
+        const responseBody = await response.json();
         // Create bank movement
         const bankMovementPayload = {
             bankId: values.bankId,
@@ -107,7 +108,7 @@ export const useBankPaymentForm = (currentCode: string) => {
             bankDirection: 'Exit',
             bankType: 'ReceivableTransfer',
             bankDocumentType: 'General',
-            currentMovementId: response.body.id,
+            currentMovementId: responseBody.id,
         };
 
         const bankResponse = await fetch(`${process.env.BASE_URL}/bankMovements`, {
