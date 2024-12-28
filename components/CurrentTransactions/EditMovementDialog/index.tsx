@@ -76,7 +76,7 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
       setLoading(true);
 
       const payload = {
-        dueDate: values.dueDate,
+        dueDate: new Date(values.dueDate).toISOString(),
         description: values.description,
         debtAmount: values.isDebt ? values.amount : "0",
         creditAmount: values.isDebt ? "0" : values.amount,
