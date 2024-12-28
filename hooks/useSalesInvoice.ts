@@ -63,7 +63,7 @@ export const useSalesInvoice = () => {
                 })),
             };
 
-            // Send request to API
+            // Send request to API and wait for response
             const url = isEditMode
                 ? `${process.env.BASE_URL}/invoices/sales/${invoiceData.id}`
                 : `${process.env.BASE_URL}/invoices/sales`;
@@ -84,13 +84,15 @@ export const useSalesInvoice = () => {
                 throw new Error('Failed to save invoice');
             }
 
+            const result = await response.json();
+
             toast({
                 title: "Başarılı",
                 description: isEditMode ? "Fatura başarıyla güncellendi" : "Fatura başarıyla kaydedildi",
                 variant: "success",
             });
 
-            return { success: true };
+            return { success: true, data: result };
         } catch (error) {
             console.error('Error saving invoice:', error);
             toast({
