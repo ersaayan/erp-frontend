@@ -102,23 +102,6 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
         throw new Error("Cari hareket güncellenemedi");
       }
 
-      // İlgili kasa/banka/pos hareketini güncelle
-      const relatedMovementResponse = await fetch(
-        `${process.env.BASE_URL}/currentMovements/${movement.id}/related`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!relatedMovementResponse.ok) {
-        throw new Error("İlişkili hareket güncellenemedi");
-      }
-
       toast({
         title: "Başarılı",
         description: "Hareket başarıyla güncellendi",
