@@ -343,12 +343,6 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
           dataType="number"
           format="#,##0.00"
         />
-        <Column
-          dataField="balanceAmount"
-          caption="Bakiye"
-          dataType="number"
-          format="#,##0.00"
-        />
         <Column dataField="movementType" caption="Hareket Tipi" />
         <Column dataField="branchCode" caption="Şube Kodu" />
 

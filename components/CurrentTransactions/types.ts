@@ -36,7 +36,6 @@ export interface CurrentMovement {
     description: string;
     debtAmount: string | null;
     creditAmount: string | null;
-    balanceAmount: string;
     priceListId: string;
     movementType: string;
     documentType: string;
