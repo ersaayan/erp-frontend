@@ -95,7 +95,7 @@ export const useCashPaymentForm = (currentCode: string) => {
         if (!response.ok) {
             throw new Error('Failed to process cash payment');
         }
-
+        console.log(response.body);
         // Create vault movement
         const vaultMovementPayload = {
             vaultId: values.vaultId,
