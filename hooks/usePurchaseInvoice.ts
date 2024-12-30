@@ -9,6 +9,43 @@ export const usePurchaseInvoice = () => {
     const { toast } = useToast();
     const { validateForm } = usePurchaseInvoiceValidation();
 
+    const handleDelete = useCallback(async (invoiceId: string, invoicePayload: any) => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${process.env.BASE_URL}/invoices/purchase/${invoiceId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                },
+                credentials: 'include',
+                body: JSON.stringify(invoicePayload),
+            });
+
+            if (!response.ok) {
+                throw new Error('Fatura silinirken bir hata oluştu');
+            }
+
+            toast({
+                title: "Başarılı",
+                description: "Fatura başarıyla silindi",
+                variant: "success",
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting invoice:', error);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: error instanceof Error ? error.message : "Fatura silinemedi",
+            });
+            return { success: false };
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
+
     const handleSubmit = useCallback(async (
         invoiceData: InvoiceFormData,
         products: StockItem[],
@@ -115,5 +152,6 @@ export const usePurchaseInvoice = () => {
     return {
         loading,
         handleSubmit,
+        handleDelete,
     };
 };

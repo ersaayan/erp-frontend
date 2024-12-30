@@ -28,7 +28,7 @@ const PurchaseInvoice: React.FC = () => {
 
   const [products, setProducts] = useState<StockItem[]>([]);
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
-  const { loading, handleSubmit } = usePurchaseInvoice();
+  const { loading, handleSubmit, handleDelete } = usePurchaseInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Load customer data from localStorage if available (from Current Operations)
@@ -147,6 +147,65 @@ const PurchaseInvoice: React.FC = () => {
     }
   };
 
+  const handleInvoiceDelete = async () => {
+    if (invoiceData.id) {
+      // Prepare invoice payload
+      const invoicePayload = {
+        invoiceNo: invoiceData.invoiceNo,
+        gibInvoiceNo: invoiceData.gibInvoiceNo,
+        invoiceDate: invoiceData.invoiceDate.toISOString(),
+        paymentDate: invoiceData.paymentDate.toISOString(),
+        paymentDay: invoiceData.paymentTerm,
+        branchCode: invoiceData.branchCode,
+        warehouseId: invoiceData.warehouseId,
+        description: invoiceData.description,
+        currentCode: invoiceData.current?.currentCode,
+        priceListId: invoiceData.current?.priceList?.id,
+        items: products.map((product) => ({
+          stockCardId: product.stockId,
+          quantity: product.quantity,
+          unitPrice: product.unitPrice,
+          vatRate: product.vatRate,
+          vatAmount: product.vatAmount,
+          totalAmount: product.totalAmount,
+          priceListId: product.priceListId,
+          currency: product.currency,
+        })),
+        payments: payments.map((payment) => ({
+          method: payment.method,
+          accountId: payment.accountId,
+          amount: payment.amount,
+          currency: payment.currency,
+          description: payment.description,
+        })),
+      };
+
+      const result = await handleDelete(invoiceData.id, invoicePayload);
+      if (result.success) {
+        // Reset form data
+        setInvoiceData({
+          id: "",
+          invoiceNo: "",
+          gibInvoiceNo: "",
+          invoiceDate: new Date(),
+          paymentDate: new Date(),
+          paymentTerm: 0,
+          branchCode: "",
+          warehouseId: "",
+          description: "",
+          current: null,
+        });
+
+        // Reset products and payments
+        setProducts([]);
+        setPayments([]);
+
+        // Reset edit mode
+        setIsEditMode(false);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4">
       <div className="flex items-center space-x-2">
@@ -196,6 +255,7 @@ const PurchaseInvoice: React.FC = () => {
             payments={payments}
             onPaymentsChange={setPayments}
             onSave={handleSave}
+            onDelete={isEditMode ? handleInvoiceDelete : undefined}
             loading={loading}
             isEditMode={isEditMode}
           />

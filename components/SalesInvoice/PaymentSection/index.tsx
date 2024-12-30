@@ -16,6 +16,7 @@ interface PaymentSectionProps {
   payments: PaymentDetails[];
   onPaymentsChange: (payments: PaymentDetails[]) => void;
   onSave: () => void;
+  onDelete?: () => void;
   loading: boolean;
   isEditMode: boolean;
 }
@@ -25,6 +26,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   payments,
   onPaymentsChange,
   onSave,
+  onDelete,
   loading,
   isEditMode,
 }) => {
@@ -162,6 +164,18 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isEditMode ? "Faturayı Güncelle" : "Faturayı Kaydet"}
       </Button>
+
+      {isEditMode && onDelete && (
+        <Button
+          className="w-full mt-2 bg-red-500 hover:bg-red-600 text-white"
+          size="lg"
+          onClick={onDelete}
+          disabled={loading}
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Faturayı Sil
+        </Button>
+      )}
     </div>
   );
 };
