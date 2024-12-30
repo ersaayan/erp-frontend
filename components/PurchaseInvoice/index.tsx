@@ -151,7 +151,7 @@ const PurchaseInvoice: React.FC = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4">
       <div className="flex items-center space-x-2">
         <h2 className="text-2xl font-bold">
-          {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
+          {isEditMode ? "Fatura Düzenle" : "Alış Faturası"}
         </h2>
         {isEditMode && (
           <Badge variant="secondary" className="ml-2">
