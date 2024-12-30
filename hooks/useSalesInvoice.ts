@@ -12,7 +12,7 @@ export const useSalesInvoice = () => {
     const handleDelete = useCallback(async (invoiceId: string, invoicePayload: any) => {
         try {
             setLoading(true);
-            const response = await fetch(`${process.env.BASE_URL}/invoices/purchase/${invoiceId}`, {
+            const response = await fetch(`${process.env.BASE_URL}/invoices/sales/${invoiceId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
