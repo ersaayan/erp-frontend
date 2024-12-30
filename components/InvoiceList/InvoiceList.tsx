@@ -342,36 +342,29 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
+      console.log("Selected Row Keys:", selectedRowKeys);
+
       const selectedInvoices = invoices.filter((invoice) =>
         selectedRowKeys.includes(invoice.id)
       );
-      const invoicePayloads = selectedInvoices.map((invoice) => ({
-        id: invoice.id,
-        invoiceNo: invoice.invoiceNo,
-        gibInvoiceNo: invoice.gibInvoiceNo,
-        invoiceDate: invoice.invoiceDate,
-        paymentDate: invoice.paymentDate,
-        paymentDay: invoice.paymentDay,
-        branchCode: invoice.branchCode,
-        warehouseCode: invoice.warehouseCode,
-        description: invoice.description,
-        currentCode: invoice.currentCode,
-        companyCode: invoice.companyCode,
-        outBranchCode: invoice.outBranchCode,
-        priceListId: invoice.priceListId,
-        totalAmount: invoice.totalAmount,
-        totalVat: invoice.totalVat,
-        totalDiscount: invoice.totalDiscount,
-        totalNet: invoice.totalNet,
-        totalPaid: invoice.totalPaid,
-        totalDebt: invoice.totalDebt,
-        totalBalance: invoice.totalBalance,
-        genelIskontoTutar: invoice.genelIskontoTutar,
-        genelIskontoOran: invoice.genelIskontoOran,
-      }));
+      console.log("Selected Invoices:", selectedInvoices);
+
+      const invoicePayloads = selectedInvoices.map((invoice) => {
+        const payload = {
+          id: invoice.id,
+          invoiceNo: invoice.invoiceNo,
+        };
+        return payload;
+      });
+
+      console.log("Invoice Payloads:", invoicePayloads);
 
       const endpoint =
         activeInvoiceTab === "purchase" ? "/purchase/cancel" : "/sales/cancel";
+
+      const requestBody = invoicePayloads;
+      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(
         `${process.env.BASE_URL}/invoices${endpoint}`,
         {
@@ -381,7 +374,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
           credentials: "include",
-          body: JSON.stringify(invoicePayloads),
+          body: JSON.stringify(requestBody),
         }
       );
 
