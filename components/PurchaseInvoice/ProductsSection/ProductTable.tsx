@@ -45,7 +45,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-auto">
       <Table>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
@@ -57,10 +57,10 @@ const ProductTable: React.FC<ProductTableProps> = ({
             <TableHead className="w-[100px] text-right">KDV %</TableHead>
             <TableHead className="w-[120px] text-right">KDV Tutarı</TableHead>
             <TableHead className="w-[150px] text-right">Toplam</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[50px] sticky right-0 bg-background"></TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="relative">
           {products.map((product, index) => (
             <TableRow key={product.id}>
               <TableCell>{product.stockCode}</TableCell>
@@ -102,7 +102,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
               <TableCell className="text-right">
                 {product.totalAmount.toFixed(2)}
               </TableCell>
-              <TableCell>
+              <TableCell className="sticky right-0 bg-background">
                 <Button
                   variant="ghost"
                   size="icon"

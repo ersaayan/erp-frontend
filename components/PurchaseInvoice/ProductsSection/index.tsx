@@ -84,7 +84,7 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-auto border rounded-md">
+      <div className="flex-1 min-h-0 border rounded-md">
         <ProductTable
           products={products}
           onUpdate={handleProductUpdate}
