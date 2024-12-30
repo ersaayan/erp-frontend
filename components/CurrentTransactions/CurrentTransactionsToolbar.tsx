@@ -8,7 +8,6 @@ import {
   FileUp,
   Wallet,
   CreditCard,
-  ArrowLeftRight,
   RefreshCw,
 } from "lucide-react";
 import { Current } from "./types";
@@ -188,7 +187,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
@@ -203,7 +202,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
               <DropdownMenuItem>Alacak Devri</DropdownMenuItem>
               <DropdownMenuItem>Borç Devri</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
       )}
     </div>
