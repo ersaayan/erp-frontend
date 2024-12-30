@@ -348,6 +348,26 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
       const invoicePayloads = selectedInvoices.map((invoice) => ({
         id: invoice.id,
         invoiceNo: invoice.invoiceNo,
+        gibInvoiceNo: invoice.gibInvoiceNo,
+        invoiceDate: invoice.invoiceDate,
+        paymentDate: invoice.paymentDate,
+        paymentDay: invoice.paymentDay,
+        branchCode: invoice.branchCode,
+        warehouseCode: invoice.warehouseCode,
+        description: invoice.description,
+        currentCode: invoice.currentCode,
+        companyCode: invoice.companyCode,
+        outBranchCode: invoice.outBranchCode,
+        priceListId: invoice.priceListId,
+        totalAmount: invoice.totalAmount,
+        totalVat: invoice.totalVat,
+        totalDiscount: invoice.totalDiscount,
+        totalNet: invoice.totalNet,
+        totalPaid: invoice.totalPaid,
+        totalDebt: invoice.totalDebt,
+        totalBalance: invoice.totalBalance,
+        genelIskontoTutar: invoice.genelIskontoTutar,
+        genelIskontoOran: invoice.genelIskontoOran,
       }));
 
       const endpoint =
