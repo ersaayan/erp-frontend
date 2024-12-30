@@ -155,7 +155,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         className="w-full bg-[#84CC16] hover:bg-[#65A30D]"
         size="lg"
         onClick={onSave}
-        disabled={loading || products.length === 0 || totals.remaining !== 0}
+        disabled={
+          loading || products.length === 0 || Math.abs(totals.remaining) > 0.01
+        }
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isEditMode ? "Faturayı Güncelle" : "Faturayı Kaydet"}
