@@ -144,9 +144,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         const lastInvoiceNo = await response.text();
 
         // Extract components from the last invoice number
-        const unitCode = lastInvoiceNo.substring(0, 3);
+        const unitCode = lastInvoiceNo ? lastInvoiceNo.substring(0, 3) : "PUR";
         const currentYear = new Date().getFullYear().toString();
-        const sequentialNumber = lastInvoiceNo.slice(-9) ? parseInt(lastInvoiceNo.slice(-9)) + 1 : parseInt("000000001");
+        const sequentialNumber = lastInvoiceNo.slice(-9)
+          ? parseInt(lastInvoiceNo.slice(-9)) + 1
+          : parseInt("000000001");
 
         // Generate new invoice number
         const newInvoiceNo = `${unitCode}${currentYear}${sequentialNumber
@@ -188,7 +190,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
         // Extract components and replace SAL with GSL
         const currentYear = new Date().getFullYear().toString();
-        const sequentialNumber = lastInvoiceNo.slice(-9) ? parseInt(lastInvoiceNo.slice(-9)) + 1 : parseInt("000000001");
+        const sequentialNumber = lastInvoiceNo.slice(-9)
+          ? parseInt(lastInvoiceNo.slice(-9)) + 1
+          : parseInt("000000001");
 
         // Generate new invoice number with GSL prefix
         const newInvoiceNo = `GSL${currentYear}${sequentialNumber

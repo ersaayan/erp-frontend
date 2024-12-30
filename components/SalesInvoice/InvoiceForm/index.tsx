@@ -145,11 +145,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         const lastInvoiceNo = await response.text();
 
         // Extract components from the last invoice number
-        const unitCode = lastInvoiceNo.substring(0, 3);
-        const currentYear = new Date().getFullYear().toString();
+        const unitCode = lastInvoiceNo ? lastInvoiceNo.substring(0, 3) : "SLS";
+        const currentYear = new Date().getFullYear().toString(); // 2024
         const sequentialNumber = lastInvoiceNo.slice(-9)
           ? parseInt(lastInvoiceNo.slice(-9)) + 1
-          : parseInt("000000001");
+          : parseInt("000000001"); // 000000001
 
         // Generate new invoice number
         const newInvoiceNo = `${unitCode}${currentYear}${sequentialNumber
