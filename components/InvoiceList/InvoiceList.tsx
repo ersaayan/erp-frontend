@@ -344,25 +344,13 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
       setLoading(true);
       console.log("Selected Row Keys:", selectedRowKeys);
 
-      const selectedInvoices = invoices.filter((invoice) =>
-        selectedRowKeys.includes(invoice.id)
-      );
-      console.log("Selected Invoices:", selectedInvoices);
-
-      const invoicePayloads = selectedInvoices.map((invoice) => {
-        const payload = {
-          id: invoice.id,
-          invoiceNo: invoice.invoiceNo,
-        };
-        return payload;
-      });
-
-      console.log("Invoice Payloads:", invoicePayloads);
+      // Seçili faturaları doğrudan selectedRowKeys olarak kullan
+      const selectedInvoices = selectedRowKeys;
 
       const endpoint =
         activeInvoiceTab === "purchase" ? "/purchase/cancel" : "/sales/cancel";
 
-      const requestBody = invoicePayloads;
+      const requestBody = selectedInvoices;
       console.log("Request Body:", JSON.stringify(requestBody, null, 2));
 
       const response = await fetch(
@@ -448,9 +436,11 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
       onExporting={onExporting}
       height="calc(100vh - 300px)"
       selectedRowKeys={selectedRowKeys}
-      onSelectionChanged={(e) =>
-        setSelectedRowKeys(e.selectedRowKeys as string[])
-      }
+      onSelectionChanged={(e) => {
+        const selectedRows = e.selectedRowsData;
+        setSelectedRowKeys(selectedRows);
+        console.log("Selected Rows:", selectedRows);
+      }}
       onRowDblClick={handleRowDblClick}
       onRowPrepared={onRowPrepared}
       loadPanel={{
