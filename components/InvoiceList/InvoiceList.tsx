@@ -72,6 +72,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Invoice");
+  const [activeInvoiceTab, setActiveInvoiceTab] = useState("all");
 
   const [settings, setSettings] = useState({
     showGroupPanel: true,
@@ -336,9 +337,88 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
     ]
   );
 
-  const getFilteredInvoices = (documentType: string) => {
-    return invoices.filter((invoice) => invoice.documentType === documentType);
+  const handleCancelInvoices = async () => {
+    if (selectedRowKeys.length === 0) return;
+
+    try {
+      setLoading(true);
+      const selectedInvoices = invoices.filter((invoice) =>
+        selectedRowKeys.includes(invoice.id)
+      );
+      const invoicePayloads = selectedInvoices.map((invoice) => ({
+        id: invoice.id,
+        invoiceNo: invoice.invoiceNo,
+      }));
+
+      const endpoint =
+        activeInvoiceTab === "purchase" ? "/purchase/cancel" : "/sales/cancel";
+      const response = await fetch(
+        `${process.env.BASE_URL}/invoices${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(invoicePayloads),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Faturalar iptal edilirken bir hata oluştu");
+      }
+
+      toast({
+        title: "Başarılı",
+        description: "Seçili faturalar başarıyla iptal edildi",
+        variant: "success",
+      });
+
+      // Listeyi yenile
+      fetchData();
+      // Seçimleri temizle
+      setSelectedRowKeys([]);
+      setBulkActionsOpen(false);
+    } catch (error) {
+      console.error("Error canceling invoices:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description:
+          error instanceof Error ? error.message : "Faturalar iptal edilemedi",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getFilteredInvoices = useCallback(
+    (documentType: string) => {
+      let filtered = invoices.filter(
+        (invoice) => invoice.documentType === documentType
+      );
+
+      if (documentType === "Invoice") {
+        switch (activeInvoiceTab) {
+          case "purchase":
+            filtered = filtered.filter(
+              (invoice) => invoice.invoiceType === "Purchase"
+            );
+            break;
+          case "sales":
+            filtered = filtered.filter(
+              (invoice) => invoice.invoiceType === "Sales"
+            );
+            break;
+          // 'all' durumunda filtreleme yapma
+        }
+      }
+
+      return filtered;
+    },
+    [invoices, activeInvoiceTab]
+  );
 
   const renderDataGrid = (documentType: string) => (
     <DataGrid
@@ -498,9 +578,15 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
     <div className="p-4 space-y-4">
       {renderToolbarContent()}
 
-      {bulkActionsOpen && (
+      {bulkActionsOpen && activeInvoiceTab !== "all" && (
         <Card className="p-4 rounded-md flex items-center">
-          <Button variant="destructive">Seçili Olanları İptal Et</Button>
+          <Button
+            variant="destructive"
+            onClick={handleCancelInvoices}
+            disabled={selectedRowKeys.length === 0}
+          >
+            Seçili Olanları İptal Et ({selectedRowKeys.length})
+          </Button>
         </Card>
       )}
 
@@ -511,9 +597,26 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
           <TabsTrigger value="Waybill">İrsaliyeler</TabsTrigger>
           <TabsTrigger value="Other">Diğer</TabsTrigger>
         </TabsList>
+
         <TabsContent value="Invoice" className="mt-4">
-          {renderDataGrid("Invoice")}
+          <Tabs value={activeInvoiceTab} onValueChange={setActiveInvoiceTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">Tüm Faturalar</TabsTrigger>
+              <TabsTrigger value="purchase">Alış Faturaları</TabsTrigger>
+              <TabsTrigger value="sales">Satış Faturaları</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="mt-4">
+              {renderDataGrid("Invoice")}
+            </TabsContent>
+            <TabsContent value="purchase" className="mt-4">
+              {renderDataGrid("Invoice")}
+            </TabsContent>
+            <TabsContent value="sales" className="mt-4">
+              {renderDataGrid("Invoice")}
+            </TabsContent>
+          </Tabs>
         </TabsContent>
+
         <TabsContent value="Order" className="mt-4">
           {renderDataGrid("Order")}
         </TabsContent>
