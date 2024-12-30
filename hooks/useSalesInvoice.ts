@@ -26,7 +26,15 @@ export const useSalesInvoice = () => {
             // Calculate totals
             const totalAmount = products.reduce((sum, product) => sum + product.totalAmount, 0);
             const totalVat = products.reduce((sum, product) => sum + product.vatAmount, 0);
-            const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+
+            // Separate payments by method
+            const totalPaid = payments
+                .filter(payment => payment.method !== 'openAccount')
+                .reduce((sum, payment) => sum + payment.amount, 0);
+
+            const totalDebt = payments
+                .filter(payment => payment.method === 'openAccount')
+                .reduce((sum, payment) => sum + payment.amount, 0);
 
             // Prepare invoice data
             const invoicePayload = {
@@ -43,7 +51,7 @@ export const useSalesInvoice = () => {
                 totalAmount,
                 totalVat,
                 totalPaid,
-                totalDebt: totalAmount - totalPaid,
+                totalDebt,
                 items: products.map(product => ({
                     stockCardId: product.stockId,
                     quantity: product.quantity,
