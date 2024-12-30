@@ -45,7 +45,7 @@ export const useSalesInvoice = () => {
                 totalPaid,
                 totalDebt: totalAmount - totalPaid,
                 items: products.map(product => ({
-                    stockCardId: product.stockId,
+                    stockCardId: product.id,
                     quantity: product.quantity,
                     unitPrice: product.unitPrice,
                     vatRate: product.vatRate,
