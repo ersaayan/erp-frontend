@@ -22,6 +22,7 @@ interface PaymentSectionProps {
   payments: PaymentDetails[];
   onPaymentsChange: (payments: PaymentDetails[]) => void;
   onProcessPayment: (payments: PaymentDetails[]) => Promise<void>;
+  onDelete?: () => Promise<void>;
   loading: boolean;
   isEditMode?: boolean;
 }
@@ -31,6 +32,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   payments = [], // Provide default empty array
   onPaymentsChange,
   onProcessPayment,
+  onDelete,
   loading,
   isEditMode = false,
 }) => {
@@ -171,7 +173,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 
       <Separator />
 
-      <div className="flex justify-end mt-4">
+      <div className="flex flex-col gap-2 mt-4">
         <Button
           className="w-full"
           size="lg"
@@ -185,6 +187,23 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           )}
           {isEditMode ? "Siparişi Güncelle" : "Satışı Tamamla"}
         </Button>
+
+        {isEditMode && onDelete && (
+          <Button
+            variant="destructive"
+            className="w-full"
+            size="lg"
+            onClick={onDelete}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CreditCard className="mr-2 h-4 w-4" />
+            )}
+            Siparişi Sil
+          </Button>
+        )}
       </div>
     </div>
   );

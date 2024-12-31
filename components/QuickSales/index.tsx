@@ -27,6 +27,7 @@ const QuickSales: React.FC = () => {
     setCustomer,
     setPayments,
     processPayment,
+    deleteOrder,
   } = useQuickSales();
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
@@ -181,6 +182,7 @@ const QuickSales: React.FC = () => {
                   selectedWarehouseId
                 )
               }
+              onDelete={isEditMode ? deleteOrder : undefined}
               loading={loading}
               isEditMode={isEditMode}
             />

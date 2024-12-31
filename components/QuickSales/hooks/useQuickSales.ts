@@ -227,6 +227,45 @@ export const useQuickSales = () => {
         }
     }, [cart, customer, toast, isEditMode, currentOrderId]);
 
+    const deleteOrder = useCallback(async () => {
+        if (!currentOrderId) return;
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${process.env.BASE_URL}/invoices/deleteQuickSaleInvoice/${currentOrderId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                },
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                throw new Error("Sipariş silinirken bir hata oluştu");
+            }
+
+            toast({
+                title: "Başarılı",
+                description: "Sipariş başarıyla silindi",
+            });
+
+            // Reset the form
+            setCart([]);
+            setCustomer(null);
+            setPayments([]);
+            setIsEditMode(false);
+            setCurrentOrderId(null);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: error instanceof Error ? error.message : "Sipariş silinirken bir hata oluştu",
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [currentOrderId, toast]);
+
     return {
         cart,
         customer,
@@ -239,6 +278,7 @@ export const useQuickSales = () => {
         setCustomer,
         setPayments,
         processPayment,
+        deleteOrder,
     };
 };
 
