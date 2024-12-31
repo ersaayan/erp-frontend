@@ -162,9 +162,17 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
         toast({
           title: "Success",
           description:
-            e.data.documentType === "Order"
-              ? "Opening order for editing..."
-              : "Opening invoice form...",
+            e.data.documentType === "Invoice" || e.data.invoiceType !== "Cancel"
+              ? "Opening invoice form..."
+              : "Opening order for editing...",
+        });
+
+        toast({
+          title: "Destroy",
+          description:
+            e.data.invoiceType === "Cancel"
+              ? "İptal Faturaları Düzenlenemez"
+              : "Fatura Açılıyor...",
         });
       } catch (error) {
         toast({
