@@ -102,7 +102,9 @@ const QuickSales: React.FC = () => {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-            <span className="text-lg font-semibold">{cart.length} Ürün</span>
+            <span className="text-lg font-semibold">
+              {cart.length} Ürün Kalemi
+            </span>
           </div>
           {customer && (
             <div className="flex items-center space-x-2">
