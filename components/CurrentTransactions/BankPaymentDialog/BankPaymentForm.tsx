@@ -113,6 +113,8 @@ const BankPaymentForm: React.FC<BankPaymentFormProps> = ({
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
+                      type="button"
+                      onClick={(e) => e.preventDefault()}
                       variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
@@ -128,7 +130,7 @@ const BankPaymentForm: React.FC<BankPaymentFormProps> = ({
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-50" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
