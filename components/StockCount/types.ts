@@ -17,3 +17,9 @@ export interface Warehouse {
     warehouseName: string;
     warehouseCode: string;
 }
+
+export interface Branch {
+    id: string;
+    branchName: string;
+    branchCode: string;
+}

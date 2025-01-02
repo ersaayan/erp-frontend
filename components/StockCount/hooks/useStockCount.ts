@@ -39,10 +39,9 @@ export const useStockCount = () => {
         );
     }, []);
 
-    const submitCount = useCallback(async (warehouseId: string) => {
+    const submitCount = useCallback(async (warehouseId: string, branchCode: string) => {
         try {
             setLoading(true);
-
             const response = await fetch(`${process.env.BASE_URL}/warehouses/stocktake`, {
                 method: 'POST',
                 headers: {
@@ -52,6 +51,7 @@ export const useStockCount = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                     warehouseId,
+                    branchCode,
                     products: countedProducts.map(product => ({
                         stockCardId: product.id,
                         quantity: product.quantity

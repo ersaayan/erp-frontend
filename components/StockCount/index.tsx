@@ -11,6 +11,7 @@ import { CountedProduct } from "./types";
 
 const StockCount: React.FC = () => {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
+  const [selectedBranchCode, setSelectedBranchCode] = useState<string>("");
   const {
     countedProducts,
     loading,
@@ -24,6 +25,12 @@ const StockCount: React.FC = () => {
     setSelectedWarehouseId(warehouseId);
   };
 
+  const handleBranchSelect = (branchCode: string) => {
+    setSelectedBranchCode(branchCode);
+    // Reset warehouse selection when branch changes
+    setSelectedWarehouseId("");
+  };
+
   const handleProductAdd = (product: CountedProduct) => {
     addProduct(product);
   };
@@ -32,12 +39,16 @@ const StockCount: React.FC = () => {
     <div className="grid-container">
       <Card className="p-6">
         <div className="space-y-6">
-          <WarehouseSelect onWarehouseSelect={handleWarehouseSelect} />
+          <WarehouseSelect
+            onWarehouseSelect={handleWarehouseSelect}
+            onBranchSelect={handleBranchSelect}
+            selectedBranchCode={selectedBranchCode}
+          />
 
           <SearchSection
             warehouseId={selectedWarehouseId}
             onProductAdd={handleProductAdd}
-            disabled={!selectedWarehouseId}
+            disabled={!selectedWarehouseId || !selectedBranchCode}
           />
 
           <CountedProductsTable
@@ -47,9 +58,14 @@ const StockCount: React.FC = () => {
           />
 
           <SubmitSection
-            onSubmit={() => submitCount(selectedWarehouseId)}
+            onSubmit={() =>
+              submitCount(selectedWarehouseId, selectedBranchCode)
+            }
             disabled={
-              !selectedWarehouseId || countedProducts.length === 0 || loading
+              !selectedWarehouseId ||
+              !selectedBranchCode ||
+              countedProducts.length === 0 ||
+              loading
             }
             loading={loading}
           />
