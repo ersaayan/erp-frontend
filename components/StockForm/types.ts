@@ -31,13 +31,10 @@ export interface Manufacturer {
 
 export interface StockUnit {
     id?: string;
-    value: string;
-    label: string;
+    value?: string;
+    label?: string;
     priceListId: string;
-    vatRate: number | null;
     price: number;
-    priceWithVat: number | null;
-    barcode: string;
 }
 
 export interface FilterBuilderPopupPosition {
