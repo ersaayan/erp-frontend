@@ -185,7 +185,6 @@ const StockForm: React.FC = () => {
           id: item.id?.toString() || "",
           priceListId: item.priceListId,
           price: item.price,
-          vatRate: item.vatRate,
         }))
       );
     }
