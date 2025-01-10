@@ -21,10 +21,6 @@ import { useStockForm } from "./hooks/useStockForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "./ErrorBoundary";
-// Barcode generator function
-const generateBarcode = () => {
-  return Math.floor(Math.random() * 1000000000000).toString();
-};
 
 interface StockUnitsGridProps {
   units: StockUnit[];
@@ -96,10 +92,7 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
             value: "",
             label: "",
             priceListId: priceList.id,
-            vatRate: formItem?.vatRate ?? (priceList.isVatIncluded ? 20 : null),
             price: formItem?.price ?? 0,
-            priceWithVat: formItem?.priceWithVat ?? 0,
-            barcode: formItem?.barcode || generateBarcode(),
           };
         })
         .filter(Boolean);
@@ -121,10 +114,7 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
       const unitsToUpdate = units.map((unit) => ({
         id: unit.id,
         priceListId: unit.priceListId,
-        vatRate: unit.vatRate,
         price: unit.price,
-        priceWithVat: unit.priceWithVat,
-        barcode: unit.barcode,
       }));
 
       if (
@@ -160,20 +150,9 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
     );
   }
 
-  // Price calculation with VAT
-  const calculatePriceWithVat = (price: number, vatRate: number | null) => {
-    if (!price || !vatRate) return price;
-    return parseFloat((price * (1 + vatRate / 100)).toFixed(2));
-  };
-
   // Editor preparing handler
   const onEditorPreparing = (e: any) => {
     if (!e?.dataField || !e?.row?.data?.priceListId) return;
-
-    const priceList = priceLists.find((pl) => pl.id === e.row.data.priceListId);
-    if (e.dataField === "vatRate" && e.editorOptions) {
-      e.editorOptions.disabled = !priceList?.isVatIncluded;
-    }
   };
 
   // Row update handler
@@ -184,15 +163,7 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
 
       const updatedUnits = units.map((unit) => {
         if (unit.priceListId === data.priceListId) {
-          const priceList = priceLists.find((pl) => pl.id === unit.priceListId);
-          const updatedUnit = { ...unit, ...data };
-
-          updatedUnit.priceWithVat =
-            priceList?.isVatIncluded && updatedUnit.vatRate !== null
-              ? calculatePriceWithVat(updatedUnit.price, updatedUnit.vatRate)
-              : updatedUnit.price;
-
-          return updatedUnit;
+          return { ...unit, ...data };
         }
         return unit;
       });
@@ -211,9 +182,7 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
     try {
       e.cancel = true;
       const updatedUnits = units.map((unit) =>
-        unit.priceListId === e.data.priceListId
-          ? { ...unit, price: 0, vatRate: 0, priceWithVat: 0 }
-          : unit
+        unit.priceListId === e.data.priceListId ? { ...unit, price: 0 } : unit
       );
 
       if (JSON.stringify(units) !== JSON.stringify(updatedUnits)) {
@@ -259,11 +228,7 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
           dataSource={priceLists}
           valueExpr="id"
           displayExpr={(item: any) =>
-            item
-              ? `${item.priceListName} (${item.currency})${
-                  item.isVatIncluded ? " - KDV Dahil" : ""
-                }`
-              : ""
+            item ? `${item.priceListName} (${item.currency})` : ""
           }
         />
       </Column>
@@ -275,38 +240,6 @@ const StockUnitsGridContent: React.FC<StockUnitsGridProps> = ({
         format="#,##0.00"
         allowEditing={true}
       />
-
-      <Column
-        dataField="vatRate"
-        caption="KDV (%)"
-        dataType="number"
-        format="#,##0"
-        allowEditing={true}
-        calculateCellValue={(rowData: StockUnit) => {
-          const priceList = priceLists.find(
-            (pl) => pl.id === rowData.priceListId
-          );
-          return priceList?.isVatIncluded ? rowData.vatRate : 0;
-        }}
-      />
-
-      <Column
-        dataField="priceWithVat"
-        caption="KDV Dahil Fiyat"
-        dataType="number"
-        format="#,##0.00"
-        allowEditing={false}
-        calculateCellValue={(rowData: StockUnit) => {
-          const priceList = priceLists.find(
-            (pl) => pl.id === rowData.priceListId
-          );
-          return priceList?.isVatIncluded && rowData.vatRate !== null
-            ? calculatePriceWithVat(rowData.price, rowData.vatRate)
-            : rowData.price;
-        }}
-      />
-
-      <Column dataField="barcode" caption="Barkod" allowEditing={true} />
 
       <Toolbar>
         <Item name="exportButton" location="after" />

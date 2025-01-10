@@ -23,6 +23,7 @@ import {
   Loader2,
   ImagePlus,
   Trash2,
+  Search,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StockProperties from "./StockProperties";
@@ -40,6 +41,8 @@ import Image from "next/image";
 import { SelectedProperty, Manufacturer, StockUnit } from "./types";
 import { usePriceLists } from "./hooks/usePriceLists";
 import { useAttributes } from "./hooks/useAttributes";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { useStockSearch } from "@/hooks/useStockSearch";
 
 const currencies = [
   { value: "TRY", label: "₺ TRY" },
@@ -88,6 +91,12 @@ const StockForm: React.FC = () => {
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<number | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [searchOpen, setSearchOpen] = useState(false);
+  const {
+    results: searchResults,
+    loading: searchLoading,
+    searchStocks,
+  } = useStockSearch();
   const {
     warehouses,
     loading: warehousesLoading,
@@ -172,21 +181,12 @@ const StockForm: React.FC = () => {
     }
     if (formState.priceListItems.length > 0) {
       setUnitList(
-        formState.priceListItems.map((item) => {
-          const calculatedPriceWithVat =
-            item.price * (1 + (item.vatRate ?? 0) / 100);
-
-          return {
-            id: item.id?.toString() || "", // Ensure 'id' is a string
-            value: "",
-            label: "",
-            priceListId: item.priceListId,
-            vatRate: item.vatRate,
-            price: item.price,
-            priceWithVat: parseFloat(calculatedPriceWithVat.toFixed(2)),
-            barcode: item.barcode,
-          };
-        })
+        formState.priceListItems.map((item) => ({
+          id: item.id?.toString() || "",
+          priceListId: item.priceListId,
+          price: item.price,
+          vatRate: item.vatRate,
+        }))
       );
     }
 
@@ -256,10 +256,36 @@ const StockForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     console.log("Doğrulama hatası tespit edildi");
     if (!validateForm()) {
+      const errorMessages = [];
+
+      if (formErrors.productName) {
+        errorMessages.push("Stok Adı");
+      }
+      if (formErrors.productCode) {
+        errorMessages.push("Stok Kodu");
+      }
+      if (formErrors.unit) {
+        errorMessages.push("Birim");
+      }
+      if (formErrors.brandId) {
+        errorMessages.push("Marka");
+      }
+      if (formErrors.maliyet) {
+        errorMessages.push("Maliyet");
+      }
+      if (formErrors.categories) {
+        errorMessages.push("Kategoriler");
+      }
+
       toast({
         variant: "destructive",
         title: "Doğrulama Hatası",
-        description: "Lütfen zorunlu alanları doldurun",
+        description:
+          errorMessages.length > 0
+            ? `Lütfen aşağıdaki zorunlu alanları doldurun:\n${errorMessages.join(
+                ", "
+              )}`
+            : "Lütfen zorunlu alanları doldurun",
       });
       return;
     }
@@ -301,19 +327,12 @@ const StockForm: React.FC = () => {
         currentId: m.currentId,
       }));
 
-      const updatedPriceListItems = unitList.map((unit) => {
-        const calculatedPriceWithVat =
-          unit.price * (1 + (unit.vatRate ?? 0) / 100);
-
-        return {
-          id: unit.id?.toString() || "", // Ensure 'id' is a string
-          priceListId: unit.priceListId,
-          price: unit.price,
-          vatRate: unit.vatRate,
-          priceWithVat: parseFloat(calculatedPriceWithVat.toFixed(2)),
-          barcode: unit.barcode,
-        };
-      });
+      const updatedPriceListItems = unitList.map((unit) => ({
+        id: unit.id?.toString() || "",
+        priceListId: unit.priceListId,
+        price: unit.price,
+        vatRate: formState.stockCard.kdv,
+      }));
 
       const updatedBarcodes = [
         ...barcodes.map((tag) => ({ barcode: tag.text })),
@@ -340,6 +359,17 @@ const StockForm: React.FC = () => {
       };
 
       await saveStockCard(priceLists, updatedFormState);
+
+      // Form alanlarını temizle
+      clearFormData();
+      setImages([]);
+      setBarcodes([]);
+      setMarketNames([]);
+      setSelectedCategories([]);
+      setSelectedProperties([]);
+      setUnitList([]);
+      setManufacturers([]);
+      setFormErrors({});
 
       toast({
         variant: "success",
@@ -372,6 +402,8 @@ const StockForm: React.FC = () => {
     validateForm,
     saveStockCard,
     toast,
+    formErrors,
+    clearFormData,
   ]);
 
   const handleImageUpload = async () => {
@@ -427,6 +459,225 @@ const StockForm: React.FC = () => {
   };
   return (
     <div className="flex flex-col h-full w-full">
+      {/* Arama Çubuğu */}
+      <div className="px-4 pt-4 mb-2">
+        <div className="relative">
+          <div className="relative">
+            <Input
+              placeholder="Stok kartı ara..."
+              onChange={(e) => {
+                searchStocks(e.target.value);
+                setSearchOpen(true);
+              }}
+              className="w-full"
+            />
+            {searchOpen && searchResults.length > 0 && (
+              <div className="absolute w-full bg-background border rounded-lg mt-1 shadow-lg z-50 max-h-[300px] overflow-auto">
+                {searchResults.map((stock) => (
+                  <div
+                    key={stock.id}
+                    className="p-2 hover:bg-accent cursor-pointer flex items-center space-x-2"
+                    onClick={async () => {
+                      try {
+                        // Önce formu temizle
+                        clearFormData();
+                        setImages([]);
+                        setBarcodes([]);
+                        setMarketNames([]);
+                        setSelectedCategories([]);
+                        setSelectedProperties([]);
+                        setUnitList([]);
+                        setManufacturers([]);
+                        setFormErrors({});
+
+                        // Seçilen stok kartının detaylarını al
+                        const response = await fetch(
+                          `${process.env.BASE_URL}/stockcards/stockCardsWithRelations/${stock.id}`,
+                          {
+                            headers: {
+                              Authorization: `Bearer ${localStorage.getItem(
+                                "auth_token"
+                              )}`,
+                            },
+                            credentials: "include",
+                          }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Stok kartı detayları alınamadı");
+                        }
+
+                        const stockDetail = await response.json();
+
+                        // Form state'ini güncelle
+                        const updatedFormState = {
+                          ...formState,
+                          isUpdateMode: true,
+                          stockCard: {
+                            ...formState.stockCard,
+                            id: stockDetail.id,
+                            productName: stockDetail.productName,
+                            productCode: stockDetail.productCode,
+                            unit: stockDetail.unit,
+                            brandId: stockDetail.brandId,
+                            productType: stockDetail.productType || "BasitUrun",
+                            maliyet: parseFloat(stockDetail.maliyet) || 0,
+                            maliyetDoviz: stockDetail.maliyetDoviz || "TRY",
+                            stockStatus: stockDetail.stockStatus ?? true,
+                            hasExpirationDate:
+                              stockDetail.hasExpirationDate ?? false,
+                            allowNegativeStock:
+                              stockDetail.allowNegativeStock ?? false,
+                            siraNo: stockDetail.siraNo || "",
+                            raf: stockDetail.raf || "",
+                            gtip: stockDetail.gtip || "",
+                            pluCode: stockDetail.pluCode || "",
+                            karMarji: parseFloat(stockDetail.karMarji) || 0,
+                            desi: parseFloat(stockDetail.desi) || 0,
+                            adetBoleni: parseInt(stockDetail.adetBoleni) || 1,
+                            riskQuantities:
+                              parseInt(stockDetail.riskQuantities) || 0,
+                            shortDescription:
+                              stockDetail.shortDescription || "",
+                            description: stockDetail.description || "",
+                          },
+                        };
+
+                        // Form alanlarını güncelle
+                        Object.entries(updatedFormState.stockCard).forEach(
+                          ([key, value]) => {
+                            updateStockCard(
+                              key as keyof typeof formState.stockCard,
+                              value
+                            );
+                          }
+                        );
+
+                        // isUpdateMode'u güncelle
+                        updateStockCard("id", stockDetail.id);
+
+                        // Diğer state'leri güncelle
+                        if (stockDetail.stockCardCategoryItem?.length > 0) {
+                          setSelectedCategories(
+                            stockDetail.stockCardCategoryItem.map(
+                              (c: any) => c.categoryId
+                            )
+                          );
+                        }
+
+                        if (stockDetail.barcodes?.length > 0) {
+                          setBarcodes(
+                            stockDetail.barcodes.map((b: any) => ({
+                              id: Math.random().toString(),
+                              text: b.barcode,
+                            }))
+                          );
+                        }
+
+                        if (stockDetail.stockCardMarketNames?.length > 0) {
+                          setMarketNames(
+                            stockDetail.stockCardMarketNames.map((m: any) => ({
+                              id: Math.random().toString(),
+                              text: m.marketName,
+                            }))
+                          );
+                        }
+
+                        if (stockDetail.stockCardPriceLists?.length > 0) {
+                          const updatedUnitList =
+                            stockDetail.stockCardPriceLists.map((pl: any) => ({
+                              id: pl.id?.toString() || "",
+                              priceListId: pl.priceListId,
+                              price: parseFloat(pl.price || 0),
+                              vatRate: parseFloat(pl.vatRate || 0),
+                            }));
+                          setUnitList(updatedUnitList);
+                          updatePriceListItems(updatedUnitList);
+                        }
+
+                        if (stockDetail.stockCardWarehouse?.length > 0) {
+                          const warehouse = stockDetail.stockCardWarehouse[0];
+                          updateWarehouse(
+                            warehouse.warehouseId,
+                            parseInt(warehouse.quantity) || 0
+                          );
+                        }
+
+                        if (stockDetail.stockCardAttributeItems?.length > 0) {
+                          const transformedProperties =
+                            stockDetail.stockCardAttributeItems.reduce(
+                              (acc: any, attr: any) => {
+                                const attribute = attributes.find(
+                                  (a) => a.id === attr.attributeId
+                                );
+                                if (!attribute) return acc;
+
+                                const existingProperty = acc.find(
+                                  (p: any) =>
+                                    p.propertyName === attribute.attributeName
+                                );
+                                if (existingProperty) {
+                                  if (
+                                    !existingProperty.selectedValues.includes(
+                                      attr.value
+                                    )
+                                  ) {
+                                    existingProperty.selectedValues.push(
+                                      attr.value
+                                    );
+                                    existingProperty.attributeIds.push(
+                                      attr.attributeId
+                                    );
+                                  }
+                                } else {
+                                  acc.push({
+                                    propertyName: attribute.attributeName,
+                                    selectedValues: [attr.value],
+                                    attributeIds: [attr.attributeId],
+                                  });
+                                }
+                                return acc;
+                              },
+                              []
+                            );
+
+                          setSelectedProperties(transformedProperties);
+                          updateAttributes(stockDetail.stockCardAttributeItems);
+                        }
+
+                        setSearchOpen(false);
+
+                        toast({
+                          title: "Başarılı",
+                          description: "Stok kartı bilgileri yüklendi",
+                        });
+                      } catch (error: any) {
+                        console.error("Stok kartı yükleme hatası:", error);
+                        toast({
+                          variant: "destructive",
+                          title: "Hata",
+                          description:
+                            error.message ||
+                            "Stok kartı yüklenirken bir hata oluştu",
+                        });
+                      }
+                    }}
+                  >
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{stock.productName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {stock.productCode}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center mb-4 px-4 pt-4">
         <div className="flex items-center space-x-4">
           <h2 className="text-2xl font-bold">Stok Formu</h2>
@@ -468,370 +719,470 @@ const StockForm: React.FC = () => {
 
           <TabsContent value="genel">
             <Card>
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  {/* Categories Section */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-lg font-semibold">
-                        Kategoriler
-                      </Label>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={refreshCategories}
-                          disabled={categoriesLoading}
-                        >
-                          <RefreshCcw
-                            className={`h-4 w-4 mr-2 ${
-                              categoriesLoading ? "animate-spin" : ""
-                            }`}
-                          />
-                          Yenile
-                        </Button>
-                      </div>
-                    </div>
-                    <CategorySelector
-                      selectedCategories={selectedCategories}
-                      onCategoryChange={setSelectedCategories}
-                    />
-                    {formErrors.categories && (
-                      <p className="text-sm text-destructive mt-1">
-                        {formErrors.categories}
-                      </p>
-                    )}
-                  </div>
+              <CardContent className="p-4">
+                {/* Üst Kısım - Form ve Kategoriler */}
+                <div className="mb-4">
+                  <PanelGroup direction="horizontal">
+                    {/* Sol Panel */}
+                    <Panel defaultSize={65} minSize={50}>
+                      <div className="pr-2">
+                        <div className="grid grid-cols-1 gap-3">
+                          {/* İlk Satır */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label htmlFor="productName">Stok Adı</Label>
+                              <Input
+                                id="productName"
+                                value={formState.stockCard.productName}
+                                onChange={(e) =>
+                                  updateStockCard("productName", e.target.value)
+                                }
+                                placeholder="Stok adını giriniz"
+                                className={
+                                  formErrors.productName
+                                    ? "border-destructive"
+                                    : ""
+                                }
+                              />
+                              {formErrors.productName && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {formErrors.productName}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor="productCode">Stok Kodu</Label>
+                              <Input
+                                id="productCode"
+                                value={formState.stockCard.productCode}
+                                onChange={(e) =>
+                                  updateStockCard("productCode", e.target.value)
+                                }
+                                placeholder="Stok kodunu giriniz"
+                                className={
+                                  formErrors.productCode
+                                    ? "border-destructive"
+                                    : ""
+                                }
+                              />
+                              {formErrors.productCode && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {formErrors.productCode}
+                                </p>
+                              )}
+                            </div>
+                          </div>
 
-                  {/* Basic Info Section */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="productName">Stok Adı</Label>
-                      <Input
-                        id="productName"
-                        value={formState.stockCard.productName}
-                        onChange={(e) =>
-                          updateStockCard("productName", e.target.value)
-                        }
-                        placeholder="Stok adını giriniz"
-                        className={
-                          formErrors.productName ? "border-destructive" : ""
-                        }
-                      />
-                      {formErrors.productName && (
-                        <p className="text-sm text-destructive mt-1">
-                          {formErrors.productName}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label htmlFor="productCode">Stok Kodu</Label>
-                      <Input
-                        id="productCode"
-                        value={formState.stockCard.productCode}
-                        onChange={(e) =>
-                          updateStockCard("productCode", e.target.value)
-                        }
-                        placeholder="Stok kodunu giriniz"
-                        className={
-                          formErrors.productCode ? "border-destructive" : ""
-                        }
-                      />
-                      {formErrors.productCode && (
-                        <p className="text-sm text-destructive mt-1">
-                          {formErrors.productCode}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label>Barkodlar</Label>
-                      <TagInput
-                        tags={barcodes}
-                        setTags={setBarcodes}
-                        placeholder="Barkod girin ve Enter'a basın"
-                        styleClasses={{
-                          input: "w-full",
-                          tag: { body: "bg-red-500/10 text-red-500" },
-                        }}
-                        activeTagIndex={activeTagIndex}
-                        setActiveTagIndex={setActiveTagIndex}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="unit">Birim</Label>
-                      <Select
-                        value={formState.stockCard.unit}
-                        onValueChange={(value) =>
-                          updateStockCard("unit", value)
-                        }
-                      >
-                        <SelectTrigger
-                          className={
-                            formErrors.unit ? "border-destructive" : ""
-                          }
-                        >
-                          <SelectValue placeholder="Birim seçin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {units.map((unit) => (
-                            <SelectItem key={unit.value} value={unit.value}>
-                              {unit.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.unit && (
-                        <p className="text-sm text-destructive mt-1">
-                          {formErrors.unit}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label htmlFor="brand">Marka</Label>
-                      {brandsLoading ? (
-                        <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">
-                            Yükleniyor...
-                          </span>
-                        </div>
-                      ) : brandsError ? (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{brandsError}</AlertDescription>
-                        </Alert>
-                      ) : (
-                        <Select
-                          value={formState.stockCard.brandId}
-                          onValueChange={(value) =>
-                            updateStockCard("brandId", value)
-                          }
-                        >
-                          <SelectTrigger
-                            className={
-                              formErrors.brandId ? "border-destructive" : ""
-                            }
-                          >
-                            <SelectValue placeholder="Marka seçin" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {brands.map((brand) => (
-                              <SelectItem key={brand.id} value={brand.id}>
-                                {brand.brandName} ({brand.brandCode})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {formErrors.brandId && (
-                        <p className="text-sm text-destructive mt-1">
-                          {formErrors.brandId}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label>Stok Tipi</Label>
-                      <Select
-                        value={formState.stockCard.productType}
-                        onValueChange={(value) =>
-                          updateStockCard("productType", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Stok tipi seçin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {productTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="maliyet">Maliyet</Label>
-                      <Input
-                        id="maliyet"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formState.stockCard.maliyet}
-                        onChange={(e) =>
-                          updateStockCard("maliyet", parseFloat(e.target.value))
-                        }
-                        className={`text-right ${
-                          formErrors.maliyet ? "border-destructive" : ""
-                        }`}
-                      />
-                      {formErrors.maliyet && (
-                        <p className="text-sm text-destructive mt-1">
-                          {formErrors.maliyet}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label>Maliyet Dövizi</Label>
-                      <Select
-                        value={formState.stockCard.maliyetDoviz}
-                        onValueChange={(value) =>
-                          updateStockCard("maliyetDoviz", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {currencies.map((currency) => (
-                            <SelectItem
-                              key={currency.value}
-                              value={currency.value}
-                            >
-                              {currency.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Depo</Label>
-                      {warehousesLoading ? (
-                        <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">
-                            Yükleniyor...
-                          </span>
-                        </div>
-                      ) : warehousesError ? (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{warehousesError}</AlertDescription>
-                        </Alert>
-                      ) : (
-                        <Select
-                          value={formState.stockCardWarehouse[0]?.warehouseId}
-                          onValueChange={(value) =>
-                            updateWarehouse(
-                              value,
-                              formState.stockCardWarehouse[0]?.quantity || 0
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Depo seçin" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {warehouses.map((warehouse) => (
-                              <SelectItem
-                                key={warehouse.id}
-                                value={warehouse.id}
+                          {/* İkinci Satır */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <Label htmlFor="brand">Marka</Label>
+                              {brandsLoading ? (
+                                <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <span className="text-muted-foreground">
+                                    Yükleniyor...
+                                  </span>
+                                </div>
+                              ) : brandsError ? (
+                                <Alert variant="destructive">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <AlertDescription>
+                                    {brandsError}
+                                  </AlertDescription>
+                                </Alert>
+                              ) : (
+                                <Select
+                                  value={formState.stockCard.brandId}
+                                  onValueChange={(value) =>
+                                    updateStockCard("brandId", value)
+                                  }
+                                >
+                                  <SelectTrigger
+                                    className={
+                                      formErrors.brandId
+                                        ? "border-destructive"
+                                        : ""
+                                    }
+                                  >
+                                    <SelectValue placeholder="Marka seçin" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {brands.map((brand) => (
+                                      <SelectItem
+                                        key={brand.id}
+                                        value={brand.id}
+                                      >
+                                        {brand.brandName} ({brand.brandCode})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              {formErrors.brandId && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {formErrors.brandId}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Birim</Label>
+                              <Select
+                                value={formState.stockCard.unit}
+                                onValueChange={(value) =>
+                                  updateStockCard("unit", value)
+                                }
                               >
-                                {warehouse.warehouseName} (
-                                {warehouse.warehouseCode})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                    <div>
-                      <Label htmlFor="quantity">Stok Miktarı</Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        min="0"
-                        value={formState.stockCardWarehouse[0]?.quantity || 0}
-                        onChange={(e) => {
-                          const warehouseId =
-                            formState.stockCardWarehouse[0]?.warehouseId;
-                          if (warehouseId) {
-                            updateWarehouse(
-                              warehouseId,
-                              parseInt(e.target.value)
-                            );
-                          }
-                        }}
-                        className="text-right"
-                      />
-                    </div>
-                  </div>
+                                <SelectTrigger
+                                  className={
+                                    formErrors.unit ? "border-destructive" : ""
+                                  }
+                                >
+                                  <SelectValue placeholder="Birim seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {units.map((unit) => (
+                                    <SelectItem
+                                      key={unit.value}
+                                      value={unit.value}
+                                    >
+                                      {unit.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {formErrors.unit && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {formErrors.unit}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Stok Tipi</Label>
+                              <Select
+                                value={formState.stockCard.productType}
+                                onValueChange={(value) =>
+                                  updateStockCard("productType", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Stok tipi seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {productTypes.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
 
-                  {/* Units and Price Lists Section */}
-                  <div className="space-y-2">
-                    <Label className="text-lg font-semibold">
+                          {/* Üçüncü Satır */}
+                          <div>
+                            <Label>Barkodlar</Label>
+                            <TagInput
+                              tags={barcodes}
+                              setTags={setBarcodes}
+                              placeholder="Barkod girin ve Enter'a basın"
+                              styleClasses={{
+                                input: "w-full",
+                                tag: { body: "bg-red-500/10 text-red-500" },
+                              }}
+                              activeTagIndex={activeTagIndex}
+                              setActiveTagIndex={setActiveTagIndex}
+                            />
+                          </div>
+
+                          {/* Dördüncü Satır */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <Label htmlFor="maliyet">Maliyet</Label>
+                              <Input
+                                id="maliyet"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={formState.stockCard.maliyet}
+                                onChange={(e) =>
+                                  updateStockCard(
+                                    "maliyet",
+                                    parseFloat(e.target.value)
+                                  )
+                                }
+                                className={`text-right ${
+                                  formErrors.maliyet ? "border-destructive" : ""
+                                }`}
+                              />
+                              {formErrors.maliyet && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {formErrors.maliyet}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Maliyet Dövizi</Label>
+                              <Select
+                                value={formState.stockCard.maliyetDoviz}
+                                onValueChange={(value) =>
+                                  updateStockCard("maliyetDoviz", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {currencies.map((currency) => (
+                                    <SelectItem
+                                      key={currency.value}
+                                      value={currency.value}
+                                    >
+                                      {currency.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label htmlFor="kdv">KDV (%)</Label>
+                              <Input
+                                id="kdv"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={formState.stockCard.kdv || 0}
+                                onChange={(e) =>
+                                  updateStockCard(
+                                    "kdv",
+                                    parseInt(e.target.value)
+                                  )
+                                }
+                                className="text-right"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Beşinci Satır */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Depo</Label>
+                              {warehousesLoading ? (
+                                <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <span className="text-muted-foreground">
+                                    Yükleniyor...
+                                  </span>
+                                </div>
+                              ) : warehousesError ? (
+                                <Alert variant="destructive">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <AlertDescription>
+                                    {warehousesError}
+                                  </AlertDescription>
+                                </Alert>
+                              ) : (
+                                <Select
+                                  value={
+                                    formState.stockCardWarehouse[0]?.warehouseId
+                                  }
+                                  onValueChange={(value) =>
+                                    updateWarehouse(
+                                      value,
+                                      formState.stockCardWarehouse[0]
+                                        ?.quantity || 0
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Depo seçin" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {warehouses.map((warehouse) => (
+                                      <SelectItem
+                                        key={warehouse.id}
+                                        value={warehouse.id}
+                                      >
+                                        {warehouse.warehouseName} (
+                                        {warehouse.warehouseCode})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor="quantity">Stok Miktarı</Label>
+                              <Input
+                                id="quantity"
+                                type="number"
+                                min="0"
+                                value={
+                                  formState.stockCardWarehouse[0]?.quantity || 0
+                                }
+                                onChange={(e) => {
+                                  const warehouseId =
+                                    formState.stockCardWarehouse[0]
+                                      ?.warehouseId;
+                                  if (warehouseId) {
+                                    updateWarehouse(
+                                      warehouseId,
+                                      parseInt(e.target.value)
+                                    );
+                                  }
+                                }}
+                                className="text-right"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Panel>
+
+                    {/* Resize Handle */}
+                    <PanelResizeHandle className="w-1.5 bg-border/40 hover:bg-border/60 transition-colors rounded-sm mx-1" />
+
+                    {/* Sağ Panel - Kategoriler */}
+                    <Panel defaultSize={35} minSize={25}>
+                      <div className="pl-2 h-full">
+                        <div className="flex flex-col h-full">
+                          <div className="flex justify-between items-center mb-2">
+                            <Label className="text-base font-semibold">
+                              Kategoriler
+                            </Label>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={refreshCategories}
+                              disabled={categoriesLoading}
+                            >
+                              <RefreshCcw
+                                className={`h-4 w-4 mr-2 ${
+                                  categoriesLoading ? "animate-spin" : ""
+                                }`}
+                              />
+                              Yenile
+                            </Button>
+                          </div>
+                          <div className="flex-grow overflow-auto border rounded-md p-2">
+                            <CategorySelector
+                              selectedCategories={selectedCategories}
+                              onCategoryChange={setSelectedCategories}
+                            />
+                          </div>
+                          {formErrors.categories && (
+                            <p className="text-sm text-destructive mt-1">
+                              {formErrors.categories}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Panel>
+                  </PanelGroup>
+                </div>
+
+                {/* Alt Kısım - Birim, Fiyat Listesi ve Resimler */}
+                <div className="space-y-4">
+                  {/* Birim ve Fiyat Listesi */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">
                       Birim ve Fiyat Listesi
                     </Label>
-                    <StockUnits units={unitList} setUnits={setUnitList} />
+                    <div className="border rounded-md p-2">
+                      <StockUnits units={unitList} setUnits={setUnitList} />
+                    </div>
                   </div>
 
-                  {/* Images Section */}
-                  <div className="space-y-2">
-                    <Label className="text-lg font-semibold">Resimler</Label>
-                    <div className="flex items-start space-x-2">
+                  {/* Resimler */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-base font-semibold">
+                        Resimler
+                      </Label>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={handleImageUpload}
                         disabled={imageUploadLoading}
+                        className="hover:bg-primary/10"
                       >
-                        <ImagePlus className="h-4 w-4 mr-2" />
-                        Ekle
+                        {imageUploadLoading ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <ImagePlus className="h-4 w-4 mr-2" />
+                        )}
+                        Resim Ekle
                       </Button>
                     </div>
-                  </div>
-
-                  {images.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-                      <div className="flex flex-col items-center space-y-2">
-                        <ImagePlus className="h-8 w-8 text-gray-400" />
-                        <p className="text-sm text-muted-foreground">
-                          Resim yüklemek için yukarıdaki butonları kullanın
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-4 gap-4">
-                      {images.map((image, index) => (
-                        <div key={index} className="relative group">
-                          <Image
-                            src={image}
-                            alt={`Product ${index + 1}`}
-                            width={128}
-                            height={128}
-                            className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => setPreviewImage(index)}
-                          />
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => {
-                              const newImages = [...images];
-                              newImages.splice(index, 1);
-                              setImages(newImages);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                    <div className="border rounded-md bg-muted/30 min-h-[200px] relative">
+                      {images.length === 0 ? (
+                        <div className="h-full flex items-center justify-center text-center p-8">
+                          <div className="flex flex-col items-center space-y-3">
+                            <div className="p-4 rounded-full bg-muted">
+                              <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Henüz resim eklenmemiş
+                              </p>
+                              <p className="text-xs text-muted-foreground/60">
+                                Resim eklemek için yukarıdaki butonu kullanın
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                      ) : (
+                        <div className="p-3">
+                          <div className="grid grid-cols-3 gap-3">
+                            {images.map((image, index) => (
+                              <div
+                                key={index}
+                                className="group relative aspect-square rounded-md overflow-hidden bg-background shadow-sm ring-1 ring-border/50"
+                              >
+                                <Image
+                                  src={image}
+                                  alt={`Ürün ${index + 1}`}
+                                  fill
+                                  className="object-cover transition-transform group-hover:scale-105"
+                                  onClick={() => setPreviewImage(index)}
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Button
+                                    size="icon"
+                                    variant="destructive"
+                                    className="h-8 w-8"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const newImages = [...images];
+                                      newImages.splice(index, 1);
+                                      setImages(newImages);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/60 text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                  Resim {index + 1}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  <ImagePreview
-                    images={images}
-                    currentIndex={previewImage ?? 0}
-                    isOpen={previewImage !== null}
-                    onClose={() => setPreviewImage(null)}
-                    onNavigate={handleNavigatePreview}
-                  />
+                  </div>
                 </div>
+
+                <ImagePreview
+                  images={images}
+                  currentIndex={previewImage ?? 0}
+                  isOpen={previewImage !== null}
+                  onClose={() => setPreviewImage(null)}
+                  onNavigate={handleNavigatePreview}
+                />
               </CardContent>
             </Card>
           </TabsContent>
