@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import CustomerSection from "./CustomerSection";
 import InvoiceForm from "./InvoiceForm";
 import ProductsSection from "./ProductsSection";
+import ExpenseSection from "./ExpenseSection";
 import PaymentSection from "./PaymentSection";
-import { InvoiceFormData, StockItem } from "./types";
+import { ExpenseItem, InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
 import { usePurchaseInvoice } from "@/hooks/usePurchaseInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
@@ -27,6 +28,7 @@ const PurchaseInvoice: React.FC = () => {
   });
 
   const [products, setProducts] = useState<StockItem[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
   const { loading, handleSubmit, handleDelete } = usePurchaseInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
@@ -247,11 +249,19 @@ const PurchaseInvoice: React.FC = () => {
               warehouseId={invoiceData.warehouseId}
             />
           </Card>
+
+          <Card className="flex-1 p-4 mt-4">
+            <ExpenseSection
+              expenses={expenses}
+              onExpensesChange={setExpenses}
+            />
+          </Card>
         </div>
 
         <Card className="w-[400px] p-4 flex flex-col min-h-0">
           <PaymentSection
             products={products}
+            expenses={expenses}
             payments={payments}
             onPaymentsChange={setPayments}
             onSave={handleSave}

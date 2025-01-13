@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
+import { ExpenseItem } from "../types";
 import PaymentMethodSelect from "./PaymentMethodSelect";
 import PaymentForm from "./PaymentForm";
 import PaymentList from "./PaymentList";
@@ -13,6 +14,7 @@ import { getCurrencySymbol } from "@/lib/utils/currency";
 
 interface PaymentSectionProps {
   products: StockItem[];
+  expenses: ExpenseItem[];
   payments: PaymentDetails[];
   onPaymentsChange: (payments: PaymentDetails[]) => void;
   onSave: () => void;
@@ -23,6 +25,7 @@ interface PaymentSectionProps {
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
   products,
+  expenses,
   payments = [],
   onPaymentsChange,
   onSave,
@@ -42,22 +45,33 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       (sum, product) => sum + product.quantity * product.unitPrice,
       0
     );
+    const totalExpenses = expenses.reduce((sum, expense) => {
+      // Convert expense amount to TRY if needed
+      let amount = expense.price;
+      if (expense.currency === "USD") {
+        amount *= exchangeRates.USD_TRY;
+      } else if (expense.currency === "EUR") {
+        amount *= exchangeRates.EUR_TRY;
+      }
+      return sum + amount;
+    }, 0);
     const vatTotal = products.reduce(
       (sum, product) => sum + product.vatAmount,
       0
     );
-    const total = subtotal + vatTotal;
+    const total = subtotal + vatTotal + totalExpenses;
     const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
     const remaining = total - paid;
 
     return {
       subtotal,
+      totalExpenses,
       vatTotal,
       total,
       paid,
       remaining,
     };
-  }, [products, payments]);
+  }, [products, expenses, payments]);
 
   const handlePaymentAdd = (data: {
     amount: number;
@@ -91,6 +105,12 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             <span>Ara Toplam</span>
             <span>
               {totals.subtotal.toFixed(2)} {currency}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>Toplam Masraf</span>
+            <span>
+              {totals.totalExpenses.toFixed(2)} {currency}
             </span>
           </div>
           <div className="flex justify-between text-sm">

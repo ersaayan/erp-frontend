@@ -89,6 +89,12 @@ export const usePurchaseInvoice = () => {
                 totalVat,
                 totalPaid,
                 totalDebt,
+                expenses: expenses.map(expense => ({
+                    expenseCode: expense.expenseCode,
+                    expenseName: expense.expenseName,
+                    price: expense.price,
+                    currency: expense.currency
+                })),
                 items: products.map(product => ({
                     stockCardId: product.stockId,
                     quantity: product.quantity,
