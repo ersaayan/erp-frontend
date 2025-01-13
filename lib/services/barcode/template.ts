@@ -12,6 +12,5 @@ export const DEFAULT_TEMPLATE: BarcodeTemplate = {
         top: '25mm'
     },
     fontFamily: 'Arial',
-    fontSize: '10pt',
-    bold: true
+    fontSize: '10pt'
 };

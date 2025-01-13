@@ -11,9 +11,11 @@ export const generateBarcodeHTML = async (
     const formattedStockCode = data.stockCode.split("/").join("\n");
 
     return `
-        <div class="barcode-container">
-            <img class="qr-code" src="${qrCode}" />
-            <div class="stock-code">${formattedStockCode}</div>
+        <div class="page-container">
+            <div class="barcode-container">
+                <img class="qr-code" src="${qrCode}" />
+                <div class="stock-code">${formattedStockCode}</div>
+            </div>
         </div>
     `;
 };
@@ -28,9 +30,15 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             margin: 0;
             padding: 0;
         }
-        .barcode-container {
-            width: ${template.width};
+        .page-container {
+            page-break-after: always;
+            page-break-inside: avoid;
             height: ${template.height};
+            width: ${template.width};
+        }
+        .barcode-container {
+            width: 100%;
+            height: 100%;
             position: relative;
         }
         .qr-code {
