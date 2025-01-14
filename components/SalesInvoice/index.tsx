@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import CustomerSection from "./CustomerSection";
 import InvoiceForm from "./InvoiceForm";
 import ProductsSection from "./ProductsSection";
+import ExpenseSection from "./ExpenseSection";
 import PaymentSection from "./PaymentSection";
-import { InvoiceFormData, StockItem } from "./types";
+import { ExpenseItem, InvoiceFormData, StockItem } from "./types";
 import { PaymentDetails } from "./PaymentSection/types";
 import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
@@ -27,6 +28,7 @@ const SalesInvoice: React.FC = () => {
   });
 
   const [products, setProducts] = useState<StockItem[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
   const { loading, handleSubmit, handleDelete } = useSalesInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
@@ -96,6 +98,19 @@ const SalesInvoice: React.FC = () => {
           }))
         );
 
+        // Set expenses if they exist
+        if (invoiceDetail.expenses) {
+          setExpenses(
+            invoiceDetail.expenses.map((expense) => ({
+              id: expense.id,
+              expenseCode: expense.costCode,
+              expenseName: expense.costName,
+              price: parseFloat(expense.price),
+              currency: expense.currency,
+            }))
+          );
+        }
+
         // Set payments
         if (invoiceDetail.payments && invoiceDetail.payments.length > 0) {
           setPayments(
@@ -138,6 +153,7 @@ const SalesInvoice: React.FC = () => {
     const result = await handleSubmit(
       invoiceData,
       products,
+      expenses,
       payments,
       isEditMode
     );
@@ -160,6 +176,13 @@ const SalesInvoice: React.FC = () => {
         description: invoiceData.description,
         currentCode: invoiceData.current?.currentCode,
         priceListId: invoiceData.current?.priceList?.id,
+        expenses: expenses.map((expense) => ({
+          costCode: expense.expenseCode,
+          costName: expense.expenseName,
+          quantity: 1,
+          price: expense.price.toString(),
+          currency: expense.currency,
+        })),
         items: products.map((product) => ({
           stockCardId: product.stockId,
           quantity: product.quantity,
@@ -195,8 +218,9 @@ const SalesInvoice: React.FC = () => {
           current: null,
         });
 
-        // Reset products and payments
+        // Reset all states
         setProducts([]);
+        setExpenses([]);
         setPayments([]);
 
         // Reset edit mode
@@ -238,6 +262,14 @@ const SalesInvoice: React.FC = () => {
             />
           </Card>
 
+          <Card className="flex-1 p-4 mt-4">
+            <ExpenseSection
+              expenses={expenses}
+              onExpensesChange={setExpenses}
+              current={invoiceData.current}
+            />
+          </Card>
+
           <Card className="flex-1 p-4 overflow-hidden">
             <ProductsSection
               products={products}
@@ -251,6 +283,7 @@ const SalesInvoice: React.FC = () => {
         <Card className="w-[400px] p-4">
           <PaymentSection
             products={products}
+            expenses={expenses}
             payments={payments}
             onPaymentsChange={setPayments}
             onSave={handleSave}

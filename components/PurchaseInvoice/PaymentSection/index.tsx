@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { ExpenseItem } from "../types";
+import { currencyService } from "@/lib/services/currency";
 import PaymentMethodSelect from "./PaymentMethodSelect";
 import PaymentForm from "./PaymentForm";
 import PaymentList from "./PaymentList";
@@ -34,6 +35,23 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   isEditMode,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [exchangeRates, setExchangeRates] = useState({
+    USD_TRY: 0,
+    EUR_TRY: 0,
+  });
+
+  // Fetch exchange rates
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const rates = await currencyService.getExchangeRates();
+        setExchangeRates(rates);
+      } catch (error) {
+        console.error("Error fetching exchange rates:", error);
+      }
+    };
+    fetchRates();
+  }, []);
 
   // Get currency from first product (all products should have same currency)
   const currency = products[0]?.currency || "TRY";
@@ -46,13 +64,15 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       0
     );
     const totalExpenses = expenses.reduce((sum, expense) => {
-      // Convert expense amount to TRY if needed
       let amount = expense.price;
-      if (expense.currency === "USD") {
-        amount *= exchangeRates.USD_TRY;
+
+      // Convert to USD if expense is in a different currency
+      if (expense.currency === "TRY") {
+        amount = amount / exchangeRates.USD_TRY;
       } else if (expense.currency === "EUR") {
-        amount *= exchangeRates.EUR_TRY;
+        amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
       }
+
       return sum + amount;
     }, 0);
     const vatTotal = products.reduce(
@@ -61,7 +81,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     );
     const total = subtotal + vatTotal + totalExpenses;
     const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
-    const remaining = total - paid;
+    const remaining = Number((total - paid).toFixed(2)); // Round to 2 decimal places
+    const hasRemainingAmount = Math.abs(remaining) > 0.01; // Check if remaining amount is significant
 
     return {
       subtotal,
@@ -70,9 +91,24 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       total,
       paid,
       remaining,
+      hasRemainingAmount,
     };
-  }, [products, expenses, payments]);
+  }, [products, expenses, payments, exchangeRates]);
 
+  // Determine button state and message
+  const buttonDisabled =
+    loading || products.length === 0 || totals.hasRemainingAmount;
+  const getButtonTooltip = () => {
+    if (products.length === 0) return "Ürün ekleyin";
+    if (totals.hasRemainingAmount) {
+      return totals.remaining > 0
+        ? `${totals.remaining.toFixed(2)} ${currency} tutarında eksik ödeme var`
+        : `${Math.abs(totals.remaining).toFixed(
+            2
+          )} ${currency} tutarında fazla ödeme var`;
+    }
+    return "";
+  };
   const handlePaymentAdd = (data: {
     amount: number;
     accountId: string;
@@ -109,9 +145,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           </div>
           <div className="flex justify-between text-sm">
             <span>Toplam Masraf</span>
-            <span>
-              {totals.totalExpenses.toFixed(2)} {currency}
-            </span>
+            <span>{totals.totalExpenses.toFixed(2)} USD</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>KDV</span>
@@ -134,7 +168,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           </div>
           <div className="flex justify-between font-bold text-lg">
             <span>Kalan</span>
-            <span>
+            <span
+              className={totals.hasRemainingAmount ? "text-destructive" : ""}
+            >
               {totals.remaining.toFixed(2)} {currency}
             </span>
           </div>
@@ -177,9 +213,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         className="w-full bg-[#84CC16] hover:bg-[#65A30D]"
         size="lg"
         onClick={onSave}
-        disabled={
-          loading || products.length === 0 || Math.abs(totals.remaining) > 0.01
-        }
+        disabled={buttonDisabled}
+        title={getButtonTooltip()}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isEditMode ? "Faturayı Güncelle" : "Faturayı Kaydet"}

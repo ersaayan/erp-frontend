@@ -98,6 +98,19 @@ const PurchaseInvoice: React.FC = () => {
           }))
         );
 
+        // Set expenses if they exist
+        if (invoiceDetail.expenses) {
+          setExpenses(
+            invoiceDetail.expenses.map((expense) => ({
+              id: expense.id,
+              expenseCode: expense.costCode,
+              expenseName: expense.costName,
+              price: parseFloat(expense.price),
+              currency: expense.currency,
+            }))
+          );
+        }
+
         // Set payments
         if (invoiceDetail.payments && invoiceDetail.payments.length > 0) {
           setPayments(
@@ -140,6 +153,7 @@ const PurchaseInvoice: React.FC = () => {
     const result = await handleSubmit(
       invoiceData,
       products,
+      expenses,
       payments,
       isEditMode
     );
@@ -163,6 +177,12 @@ const PurchaseInvoice: React.FC = () => {
         description: invoiceData.description,
         currentCode: invoiceData.current?.currentCode,
         priceListId: invoiceData.current?.priceList?.id,
+        expenses: expenses.map((expense) => ({
+          costCode: expense.expenseCode,
+          costName: expense.expenseName,
+          quantity: 1,
+          price: expense.price.toString(),
+        })),
         items: products.map((product) => ({
           stockCardId: product.stockId,
           quantity: product.quantity,
@@ -198,8 +218,9 @@ const PurchaseInvoice: React.FC = () => {
           current: null,
         });
 
-        // Reset products and payments
+        // Reset all states
         setProducts([]);
+        setExpenses([]);
         setPayments([]);
 
         // Reset edit mode
@@ -254,6 +275,7 @@ const PurchaseInvoice: React.FC = () => {
             <ExpenseSection
               expenses={expenses}
               onExpensesChange={setExpenses}
+              current={invoiceData.current}
             />
           </Card>
         </div>
