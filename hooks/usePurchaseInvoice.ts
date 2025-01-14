@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { InvoiceFormData, StockItem } from '@/components/PurchaseInvoice/types';
+import { ExpenseItem, InvoiceFormData, StockItem } from '@/components/PurchaseInvoice/types';
 import { PaymentDetails } from '@/components/PurchaseInvoice/PaymentSection/types';
 import { useToast } from '@/hooks/use-toast';
 import { usePurchaseInvoiceValidation } from './usePurchaseInvoiceValidation';
@@ -49,6 +49,7 @@ export const usePurchaseInvoice = () => {
     const handleSubmit = useCallback(async (
         invoiceData: InvoiceFormData,
         products: StockItem[],
+        expenses: ExpenseItem[],
         payments: PaymentDetails[],
         isEditMode: boolean = false
     ) => {
@@ -56,7 +57,7 @@ export const usePurchaseInvoice = () => {
             setLoading(true);
 
             // Validate form data
-            if (!validateForm(invoiceData, products, payments)) {
+            if (!validateForm(invoiceData, products, expenses, payments)) {
                 return { success: false };
             }
 
@@ -105,6 +106,13 @@ export const usePurchaseInvoice = () => {
                     amount: payment.amount,
                     currency: payment.currency,
                     description: payment.description,
+                })),
+                expenses: expenses.map(expense => ({
+                    costCode: expense.expenseCode,
+                    costName: expense.expenseName,
+                    quantity: 1,
+                    price: expense.price.toString(),
+                    currency: expense.currency,
                 })),
             };
 

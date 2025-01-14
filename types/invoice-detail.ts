@@ -51,6 +51,16 @@ export interface InvoiceDetailResponse {
         description?: string;
     }>;
 
+    // Masraf Bilgileri
+    expenses: Array<{
+        id: string;
+        costCode: string;
+        costName: string;
+        quantity: number;
+        price: string;
+        currency: string;
+    }>;
+
     // Toplam Değerler
     subtotal: number;
     totalVat: number;

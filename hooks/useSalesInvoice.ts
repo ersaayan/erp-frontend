@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { InvoiceFormData, StockItem } from '@/components/SalesInvoice/types';
+import { InvoiceFormData, StockItem, ExpenseItem } from '@/components/SalesInvoice/types';
 import { PaymentDetails } from '@/components/SalesInvoice/PaymentSection/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSalesInvoiceValidation } from './useSalesInvoiceValidation';
@@ -49,6 +49,7 @@ export const useSalesInvoice = () => {
     const handleSubmit = useCallback(async (
         invoiceData: InvoiceFormData,
         products: StockItem[],
+        expenses: ExpenseItem[],
         payments: PaymentDetails[],
         isEditMode: boolean = false
     ) => {
@@ -56,7 +57,7 @@ export const useSalesInvoice = () => {
             setLoading(true);
 
             // Validate form data
-            if (!validateForm(invoiceData, products, payments)) {
+            if (!validateForm(invoiceData, products, expenses, payments)) {
                 return { success: false };
             }
 
@@ -106,6 +107,13 @@ export const useSalesInvoice = () => {
                     currency: payment.currency,
                     description: payment.description,
                 })),
+                expenses: expenses.map(expense => ({
+                    costCode: expense.expenseCode,
+                    costName: expense.expenseName,
+                    quantity: 1,
+                    price: expense.price.toString(),
+                    currency: expense.currency,
+                })),
             };
 
             // Send request to API and wait for response
@@ -125,25 +133,8 @@ export const useSalesInvoice = () => {
                 body: JSON.stringify(invoicePayload),
             });
 
-            console.log('API Response Status:', response.status);
-            console.log('API Response Headers:', Object.fromEntries(response.headers.entries()));
-            const responseText = await response.text();
-            console.log('API Raw Response:', responseText);
-
             if (!response.ok) {
-                throw new Error(`API Hatası: ${response.status} - ${responseText || 'Bilinmeyen hata'}`);
-            }
-
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('JSON parse hatası:', parseError);
-                throw new Error(`API yanıtı geçerli bir JSON formatında değil. Yanıt: ${responseText}`);
-            }
-
-            if (!result) {
-                throw new Error('API yanıtı boş');
+                throw new Error('Failed to save invoice');
             }
 
             toast({
@@ -152,7 +143,7 @@ export const useSalesInvoice = () => {
                 variant: "success",
             });
 
-            return { success: true, data: result };
+            return { success: true };
         } catch (error) {
             console.error('Error saving invoice:', error);
             toast({

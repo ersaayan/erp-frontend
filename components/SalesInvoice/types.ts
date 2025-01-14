@@ -38,6 +38,14 @@ export interface StockItem {
     isVatIncluded: boolean;
 }
 
+export interface ExpenseItem {
+    id: string;
+    expenseCode: string;
+    expenseName: string;
+    price: number;
+    currency: string;
+}
+
 export interface Branch {
     id: string;
     branchName: string;
