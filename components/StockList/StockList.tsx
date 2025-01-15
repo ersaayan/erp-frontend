@@ -43,7 +43,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -217,9 +216,14 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
     try {
       setLoading(true);
-      const barcodeData: BarcodeData[] = selectedStocks.map((stock) => ({
-        stockCode: stock.productCode,
-      }));
+      const barcodeData: BarcodeData[] = selectedStocks
+        .sort((a, b) => a.productCode.localeCompare(b.productCode))
+        .map((stock) => ({
+          stockCode: stock.productCode,
+          stockName: stock.productName,
+          barcode: stock.barcodes?.[0]?.barcode || stock.productCode,
+        }));
+
       const printer = new BarcodePrinter();
       await printer.printBarcodes(barcodeData);
       toast({
@@ -544,34 +548,62 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             </Button>
 
             <Dialog open={showPreview} onOpenChange={setShowPreview}>
-              <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
-                <DialogHeader>
+              <DialogContent className="max-w-2xl flex flex-col h-[80vh] p-0">
+                <DialogHeader className="px-6 py-4 border-b">
                   <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                   <div className="space-y-2">
-                    <p>Seçili Ürünler:</p>
-                    <ul className="list-disc pl-4 space-y-1 max-h-full">
-                      {selectedStocks?.map((stock) => (
-                        <li key={stock.id}>
-                          {stock.productName} ({stock.productCode})
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="font-medium">
+                      Seçili Ürünler ({selectedStocks.length}):
+                    </p>
+                    <div className="border rounded-md">
+                      <table className="w-full">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="px-4 py-2 text-left">Stok Kodu</th>
+                            <th className="px-4 py-2 text-left">Stok Adı</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedStocks
+                            .sort((a, b) =>
+                              a.productCode.localeCompare(b.productCode)
+                            )
+                            .map((stock) => (
+                              <tr key={stock.id} className="border-t">
+                                <td className="px-4 py-2">
+                                  {stock.productCode}
+                                </td>
+                                <td className="px-4 py-2">
+                                  {stock.productName}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-                <DialogFooter className="sticky bottom-0 w-full px-6 py-4 bg-background border-t">
-                  <Button variant="outline" onClick={() => setShowPreview(false)}>
-                    İptal
-                  </Button>
-                  <Button
-                    onClick={handlePrint}
-                    className="bg-[#84CC16] hover:bg-[#65A30D]"
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Yazdır
-                  </Button>
-                </DialogFooter>
+                <div className="mt-auto border-t bg-background px-6 py-4">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowPreview(false)}
+                    >
+                      İptal
+                    </Button>
+                    <Button
+                      onClick={handlePrint}
+                      className="bg-[#84CC16] hover:bg-[#65A30D]"
+                    >
+                      {loading && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Yazdır
+                    </Button>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
