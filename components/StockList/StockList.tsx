@@ -43,7 +43,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -549,7 +548,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             </Button>
 
             <Dialog open={showPreview} onOpenChange={setShowPreview}>
-              <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
+              <DialogContent className="max-w-2xl flex flex-col h-[80vh] p-0">
                 <DialogHeader className="px-6 py-4 border-b">
                   <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
                 </DialogHeader>
@@ -586,23 +585,25 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                     </div>
                   </div>
                 </div>
-                <DialogFooter className="sticky bottom-0 w-full px-6 py-4 bg-background border-t flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowPreview(false)}
-                  >
-                    İptal
-                  </Button>
-                  <Button
-                    onClick={handlePrint}
-                    className="bg-[#84CC16] hover:bg-[#65A30D]"
-                  >
-                    {loading && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Yazdır
-                  </Button>
-                </DialogFooter>
+                <div className="mt-auto border-t bg-background px-6 py-4">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowPreview(false)}
+                    >
+                      İptal
+                    </Button>
+                    <Button
+                      onClick={handlePrint}
+                      className="bg-[#84CC16] hover:bg-[#65A30D]"
+                    >
+                      {loading && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Yazdır
+                    </Button>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
