@@ -54,7 +54,7 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             left: 2mm;
             top: 50%;
             transform: translateY(-50%);
-            text-align: left;
+            text-align: center;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};
             font-weight: bold;

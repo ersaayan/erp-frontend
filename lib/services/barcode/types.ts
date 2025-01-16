@@ -10,9 +10,6 @@ export interface BarcodeTemplate {
         left: string;
         top: string;
     };
-    textPosition: {
-        top: string;
-    };
     fontFamily: string;
     fontSize: string;
 }
