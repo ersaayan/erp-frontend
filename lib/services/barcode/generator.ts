@@ -50,10 +50,9 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
         }
         .stock-code {
             position: absolute;
-            width: 30mm;
+            width: 27mm;
             left: 2mm;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 2.5mm;
             text-align: center;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};

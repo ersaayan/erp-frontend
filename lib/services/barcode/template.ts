@@ -5,7 +5,7 @@ export const DEFAULT_TEMPLATE: BarcodeTemplate = {
     height: '25mm',
     qrCodeSize: '20mm',
     qrCodePosition: {
-        left: '28mm',
+        left: '29mm',
         top: '2.5mm'
     },
     fontFamily: 'Arial',
