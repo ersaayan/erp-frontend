@@ -12,6 +12,10 @@ import { PaymentDetails } from "./PaymentSection/types";
 import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { printInvoice } from "@/lib/services/print/invoice";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -231,15 +235,54 @@ const SalesInvoice: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">
           {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
         </h2>
-        {isEditMode && (
-          <Badge variant="secondary" className="ml-2">
-            Düzenleme Modu
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              try {
+                printInvoice(
+                  {
+                    ...invoiceData,
+                    items: products,
+                    expenses,
+                    payments,
+                  },
+                  {
+                    title: "Satış Faturası",
+                    type: "sales",
+                  }
+                );
+                toast({
+                  title: "Başarılı",
+                  description: "Yazdırma işlemi başlatıldı",
+                });
+              } catch (error) {
+                toast({
+                  variant: "destructive",
+                  title: "Hata",
+                  description:
+                    error instanceof Error
+                      ? error.message
+                      : "Yazdırma işlemi başarısız oldu",
+                });
+              }
+            }}
+            disabled={!invoiceData.current || products.length === 0}
+            className="bg-[#84CC16] hover:bg-[#65A30D] text-white"
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Yazdır
+          </Button>
+          {isEditMode && (
+            <Badge variant="secondary" className="ml-2">
+              Düzenleme Modu
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 gap-4 overflow-hidden">
