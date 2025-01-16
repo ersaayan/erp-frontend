@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { currencyService } from '../currency';
 
 interface PrintInvoiceOptions {
     title: string;
@@ -7,15 +8,42 @@ interface PrintInvoiceOptions {
 
 export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) => {
     try {
+        // Get exchange rates for expense calculations
+        const exchangeRates = await currencyService.getExchangeRates();
+
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
             throw new Error('Yazdırma penceresi açılamadı');
         }
 
-        // Calculate totals
-        const totalAmount = invoice.items.reduce((sum: number, item: any) => sum + item.totalAmount, 0);
+        // Calculate product totals
+        const totalProducts = invoice.items.reduce((sum: number, item: any) => {
+            let amount = item.totalAmount;
+            if (item.currency === "TRY") {
+                amount = amount / exchangeRates.USD_TRY;
+            } else if (item.currency === "EUR") {
+                amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+            }
+            return sum + amount;
+        }, 0);
+
+        // Calculate expense totals in USD
+        const totalExpenses = invoice.expenses?.reduce((sum: number, expense: any) => {
+            let amount = expense.price;
+            if (expense.currency === "TRY") {
+                amount = amount / exchangeRates.USD_TRY;
+            } else if (expense.currency === "EUR") {
+                amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+            }
+            return sum + amount;
+        }, 0) || 0;
+
+        // Calculate VAT and discount totals
         const totalVat = invoice.items.reduce((sum: number, item: any) => sum + item.vatAmount, 0);
         const totalDiscount = invoice.items.reduce((sum: number, item: any) => sum + (item.discountAmount || 0), 0);
+
+        // Calculate final total
+        const totalAmount = totalProducts + totalExpenses;
 
         printWindow.document.write(`
       <html>
@@ -129,6 +157,16 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
               text-align: right;
             }
             
+            .total-row {
+              font-weight: bold;
+              background: #f8f8f8;
+            }
+            
+            .total-row td {
+              border-top: 2px solid #ddd;
+              padding-top: 8px;
+            }
+            
             .summary-section {
               display: flex;
               justify-content: flex-end;
@@ -219,7 +257,6 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
                   <th>Birim</th>
                   <th class="text-right">B.Fiyat</th>
                   <th class="text-right">KDV%</th>
-                  <th class="text-right">İnd.</th>
                   <th class="text-right">KDV Tutarı</th>
                   <th class="text-right">Toplam</th>
                 </tr>
@@ -233,20 +270,61 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
                     <td>${item.unit}</td>
                     <td class="text-right">${item.unitPrice.toFixed(2)}</td>
                     <td class="text-right">${item.vatRate.toFixed(2)}</td>
-                    <td class="text-right">${(item.discountAmount || 0).toFixed(2)}</td>
                     <td class="text-right">${item.vatAmount.toFixed(2)}</td>
-                    <td class="text-right">${item.totalAmount.toFixed(2)}</td>
+                    <td class="text-right">${item.totalAmount.toFixed(2)} ${item.currency}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
 
+            ${invoice.expenses && invoice.expenses.length > 0 ? `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Masraf Kodu</th>
+                    <th>Masraf Adı</th>
+                    <th class="text-right">Tutar</th>
+                    <th>Para Birimi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${invoice.expenses.map((expense: any) => {
+            // Convert expense amount to USD for display
+            let usdAmount = expense.price;
+            if (expense.currency === "TRY") {
+                usdAmount = expense.price / exchangeRates.USD_TRY;
+            } else if (expense.currency === "EUR") {
+                usdAmount = (expense.price * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+            }
+            return `
+                      <tr>
+                        <td>${expense.expenseCode}</td>
+                        <td>${expense.expenseName}</td>
+                        <td class="text-right">${expense.price.toFixed(2)} ${expense.currency}</td>
+                        <td class="text-right">${usdAmount.toFixed(2)} USD</td>
+                      </tr>
+                    `;
+        }).join('')}
+                  <tr class="total-row">
+                    <td colspan="2" class="text-right">Toplam Masraf:</td>
+                    <td colspan="2" class="text-right">${totalExpenses.toFixed(2)} USD</td>
+                  </tr>
+                </tbody>
+              </table>
+            ` : ''}
+
             <div class="summary-section">
               <div class="summary-block">
                 <div class="summary-row">
                   <span>Ara Toplam:</span>
-                  <span>${(totalAmount - totalVat).toFixed(2)} ${invoice.current.priceList.currency}</span>
+                  <span>${(totalProducts - totalVat).toFixed(2)} ${invoice.current.priceList.currency}</span>
                 </div>
+                ${invoice.expenses && invoice.expenses.length > 0 ? `
+                  <div class="summary-row">
+                    <span>Toplam Masraf:</span>
+                    <span>${totalExpenses.toFixed(2)} USD</span>
+                  </div>
+                ` : ''}
                 <div class="summary-row">
                   <span>Toplam İndirim:</span>
                   <span>${totalDiscount.toFixed(2)} ${invoice.current.priceList.currency}</span>
