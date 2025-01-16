@@ -50,14 +50,19 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
         }
         .stock-code {
             position: absolute;
-            width: 27mm;
+            width: 30mm;
             left: 2mm;
-            top: 2.5mm;
+            top: 50%;
+            transform: translateY(-50%);
             text-align: center;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};
             font-weight: bold;
             white-space: pre-line;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: ${template.height};
         }
     `;
 };
