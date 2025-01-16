@@ -31,12 +31,7 @@ const menuItems = [
       { name: "Cari İşlemleri", disabled: false },
       { name: "Kasa İşlemleri", disabled: false },
       { name: "Banka İşlemleri", disabled: false },
-      // { name: 'Kredi Kartı İşlemleri', disabled: false },
       { name: "POS İşlemleri", disabled: false },
-      /* { name: 'Çek/Senet İşlemleri', disabled: false },
-      { name: 'Hizmet/Masraf İşlemleri', disabled: false },
-      { name: 'Evrak Yönetimi', disabled: false },
-      { name: 'Online Banka İşlemleri', disabled: false }, */
     ],
   },
   {
@@ -45,7 +40,6 @@ const menuItems = [
     subItems: [
       { name: "Stok Listesi", disabled: false },
       { name: "Stok Formu", disabled: false },
-      //  { name: 'Hizmet - Masraflar', disabled: false },
       { name: "Hareketler", disabled: false },
       { name: "Kategoriler", disabled: false },
       { name: "Özellikler", disabled: false },
@@ -63,7 +57,6 @@ const menuItems = [
       { name: "Cari Kategorileri", disabled: false },
       { name: "Hesap Özeti", disabled: false },
       { name: "Cari Formu", disabled: false },
-      // { name: 'Ödeme/Tahsilat Plan', disabled: false },
     ],
   },
   {
@@ -77,8 +70,6 @@ const menuItems = [
       { name: "Depo Listesi", disabled: false },
       { name: "Sipariş Paketleme", disabled: false },
       { name: "Stok Sayım", disabled: false },
-      // { name: "Mal Kabul", disabled: true },
-      // { name: "Mal Çıkış", disabled: true },
     ],
   },
   /* {
@@ -91,13 +82,13 @@ const menuItems = [
     ],
   }, */
   {
-    name: "Fatura / İrsaliye",
+    name: "Fatura / İrsaliye / Fiş",
     icon: <File className="h-5 w-5" />,
     subItems: [
       { name: "Fatura/İrsaliye Listesi", disabled: false },
+      { name: "Fiş Listesi", disabled: false },
       { name: "Alış Faturası", disabled: false },
       { name: "Satış Faturası", disabled: false },
-      //  { name: 'Planlı Fatura', disabled: false },
       // { name: "BA/BS", disabled: true },
       // { name: "Gelen E-Faturalar", disabled: true },
       // { name: "Gelen E-İrsaliyeler", disabled: true },
@@ -187,8 +178,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
 
   return (
     <aside
-      className={`bg-sidebar-bg text-sidebar-text transition-all duration-300 ease-in-out ${isCollapsed ? "w-16" : "w-64"
-        }`}
+      className={`bg-sidebar-bg text-sidebar-text transition-all duration-300 ease-in-out ${
+        isCollapsed ? "w-16" : "w-64"
+      }`}
     >
       <div className="p-4 flex justify-center items-center">
         <Image
@@ -204,8 +196,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
             <div key={item.name} className="mb-1">
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-sm text-sidebar-text hover:bg-sidebar-hover ${isCollapsed ? "px-2" : "px-3"
-                  }`}
+                className={`w-full justify-start text-sm text-sidebar-text hover:bg-sidebar-hover ${
+                  isCollapsed ? "px-2" : "px-3"
+                }`}
                 onClick={() => {
                   if (item.subItems && !isCollapsed) {
                     toggleExpand(item.name);

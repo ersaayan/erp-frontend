@@ -91,6 +91,9 @@ const CompanyForm = dynamic(() => import("@/components/CompanyForm"), {
 const Definitions = dynamic(() => import("@/components/Definitions"), {
   ssr: false,
 });
+const FisListesi = dynamic(() => import("@/components/ReceiptList"), {
+  ssr: false,
+});
 const Roles = dynamic(() => import("@/components/Roles"), { ssr: false });
 const Branches = dynamic(() => import("@/components/Branches"), { ssr: false });
 interface MainTabsProps {
@@ -142,6 +145,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <StockCount />;
       case "Fatura/İrsaliye Listesi":
         return <InvoiceList onMenuItemClick={onMenuItemClick} />;
+      case "Fiş Listesi":
+        return <FisListesi />;
       case "Alış Faturası":
         return <PurchaseInvoice />;
       case "Satış Faturası":
