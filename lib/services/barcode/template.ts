@@ -3,13 +3,13 @@ import { BarcodeTemplate } from './types';
 export const DEFAULT_TEMPLATE: BarcodeTemplate = {
     width: '50mm',
     height: '25mm',
-    qrCodeSize: '20mm',
+    qrCodeSize: '15mm',
     qrCodePosition: {
-        left: '28mm',
-        top: '2.5mm'
+        left: '33mm',
+        top: '5mm'
     },
     textPosition: {
-        top: '8mm'
+        top: '10mm'
     },
     fontFamily: 'Arial',
     fontSize: '8pt'

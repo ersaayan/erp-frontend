@@ -22,7 +22,7 @@ jobs:
           script: |
             cd /var/www/erp-dev-frontend/
             git pull origin master
+            pm2 delete frontend || true
             npm install
             npm run build
-            pm2 delete frontend || true
             pm2 start npm --name frontend -- start

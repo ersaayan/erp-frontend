@@ -49,7 +49,7 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
         }
         .stock-code {
             position: absolute;
-            width: 25mm;
+            width: 30mm;
             left: 2mm;
             top: ${template.textPosition.top};
             text-align: left;
