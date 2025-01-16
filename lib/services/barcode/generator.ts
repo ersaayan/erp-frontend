@@ -8,13 +8,12 @@ export const generateBarcodeHTML = async (
     template: BarcodeTemplate = DEFAULT_TEMPLATE
 ): Promise<string> => {
     const qrCode = await generateQRCode(data.stockCode);
-    const formattedStockCode = data.stockCode.split("/").join("\n");
 
     return `
         <div class="page-container">
             <div class="barcode-container">
+                <div class="stock-code">${data.stockCode}</div>
                 <img class="qr-code" src="${qrCode}" />
-                <div class="stock-code">${formattedStockCode}</div>
             </div>
         </div>
     `;
@@ -50,13 +49,13 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
         }
         .stock-code {
             position: absolute;
-            width: 100%;
+            width: 25mm;
+            left: 2mm;
             top: ${template.textPosition.top};
-            text-align: center;
+            text-align: left;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};
             font-weight: bold;
-            white-space: pre-line;
         }
     `;
 };

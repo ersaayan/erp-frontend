@@ -23,6 +23,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Receipt } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 import ReceiptDetailDialog from "./ReceiptDetailDialog";
 
 const receiptTypes = [
@@ -39,6 +41,7 @@ const ReceiptListGrid: React.FC = () => {
     null
   );
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
   const fetchReceipts = useCallback(async () => {
     try {
@@ -82,6 +85,138 @@ const ReceiptListGrid: React.FC = () => {
     setDetailDialogOpen(true);
   }, []);
 
+  const handleConvertToInvoice = useCallback(async () => {
+    if (selectedRowKeys.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen en az bir fiş seçin",
+      });
+      return;
+    }
+
+    // Seçili fişleri al
+    const selectedReceipts = receipts.filter((receipt) =>
+      selectedRowKeys.includes(receipt.id)
+    );
+
+    // Seçili fiş kontrolü
+    if (selectedReceipts.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Seçili fiş bulunamadı",
+      });
+      return;
+    }
+
+    // Cari ve fiş tipi kontrolü
+    const firstReceipt = selectedReceipts[0];
+
+    // Fiş tipi kontrolü
+    if (!firstReceipt.receiptType) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Fiş tipi bulunamadı",
+      });
+      return;
+    }
+
+    const hasDifferentCurrents = selectedReceipts.some(
+      (receipt) => receipt.currentId !== firstReceipt.currentId
+    );
+
+    // Fiş tipi kontrolü - Giris veya Cikis olmalı
+    const hasDifferentTypes = selectedReceipts.some(
+      (receipt) => receipt?.receiptType !== firstReceipt.receiptType
+    );
+
+    // Geçersiz fiş tipi kontrolü
+    const hasInvalidType = !["Giris", "Cikis"].includes(
+      firstReceipt.receiptType
+    );
+
+    if (hasDifferentCurrents) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen aynı cariye ait fişleri seçiniz",
+      });
+      return;
+    }
+
+    if (hasDifferentTypes) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen aynı tipteki fişleri seçiniz (Giriş veya Çıkış)",
+      });
+      return;
+    }
+
+    if (hasInvalidType) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description:
+          "Geçersiz fiş tipi. Sadece Giriş veya Çıkış fişleri faturalaştırılabilir",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Seçili fiş ID'lerini hazırla
+      const receiptIds = selectedReceipts
+        .filter((receipt) => receipt && receipt.id)
+        .map((receipt) => receipt.id);
+
+      if (receiptIds.length === 0) {
+        throw new Error("Geçerli fiş ID'si bulunamadı");
+      }
+
+      const response = await fetch(
+        `${process.env.BASE_URL}/warehouses/receipt/toInvoice`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(receiptIds),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Fişler faturalaştırılırken bir hata oluştu");
+      }
+
+      toast({
+        title: "Başarılı",
+        description: "Seçili fişler başarıyla faturalaştırıldı",
+      });
+
+      // Listeyi yenile
+      fetchReceipts();
+      // Seçimleri temizle
+      setSelectedRowKeys([]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Fişler faturalaştırılamadı. Lütfen seçiminizi kontrol edip tekrar deneyin.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRowKeys, receipts, toast, fetchReceipts]);
+
   useEffect(() => {
     fetchReceipts();
   }, [fetchReceipts]);
@@ -105,7 +240,20 @@ const ReceiptListGrid: React.FC = () => {
   }
 
   return (
-    <>
+    <div>
+      <div className="p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleConvertToInvoice}
+          disabled={selectedRowKeys.length === 0}
+          className="bg-[#84CC16] hover:bg-[#65A30D] text-white"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Seçili Fişleri Faturalaştır ({selectedRowKeys.length})
+        </Button>
+      </div>
+
       <DataGrid
         dataSource={receipts}
         showBorders={true}
@@ -118,7 +266,9 @@ const ReceiptListGrid: React.FC = () => {
         columnAutoWidth={true}
         wordWrapEnabled={true}
         onRowDblClick={handleRowDblClick}
-        height="calc(100vh - 250px)"
+        height="calc(100vh - 300px)"
+        selectedRowKeys={selectedRowKeys}
+        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
       >
         <StateStoring
           enabled={true}
@@ -173,7 +323,7 @@ const ReceiptListGrid: React.FC = () => {
         isOpen={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
       />
-    </>
+    </div>
   );
 };
 
