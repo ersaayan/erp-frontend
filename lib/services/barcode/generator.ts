@@ -52,8 +52,8 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             position: absolute;
             width: 28mm;
             left: 2mm;
-            top: 50%;
-            transform: translateY(-50%);
+            top: ${template.qrCodePosition.top};
+            height: ${template.qrCodeSize};
             text-align: center;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};
@@ -62,7 +62,6 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%;
         }
     `;
 };
