@@ -50,7 +50,7 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
         }
         .stock-code {
             position: absolute;
-            width: 30mm;
+            width: 28mm;
             left: 2mm;
             top: 50%;
             transform: translateY(-50%);
@@ -62,7 +62,7 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             display: flex;
             align-items: center;
             justify-content: center;
-            height: ${template.height};
+            height: 100%;
         }
     `;
 };
