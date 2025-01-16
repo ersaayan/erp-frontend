@@ -5,7 +5,7 @@ export const DEFAULT_TEMPLATE: BarcodeTemplate = {
     height: '25mm',
     qrCodeSize: '15mm',
     qrCodePosition: {
-        left: 'calc(50mm - 17mm)',
+        left: 'calc(50mm - 17mm + 5mm)',
         top: '5mm'
     },
     textPosition: {
