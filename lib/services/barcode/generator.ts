@@ -52,7 +52,8 @@ export const generateStyleSheet = (template: BarcodeTemplate = DEFAULT_TEMPLATE)
             position: absolute;
             width: 30mm;
             left: 2mm;
-            top: ${template.textPosition.top};
+            top: 50%;
+            transform: translateY(-50%);
             text-align: left;
             font-family: ${template.fontFamily};
             font-size: ${template.fontSize};
