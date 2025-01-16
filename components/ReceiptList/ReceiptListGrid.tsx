@@ -100,15 +100,38 @@ const ReceiptListGrid: React.FC = () => {
       selectedRowKeys.includes(receipt.id)
     );
 
+    // Seçili fiş kontrolü
+    if (selectedReceipts.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Seçili fiş bulunamadı",
+      });
+      return;
+    }
+
     // Cari ve fiş tipi kontrolü
     const firstReceipt = selectedReceipts[0];
+
+    // Fiş tipi kontrolü
+    if (!firstReceipt.receiptType) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Fiş tipi bulunamadı",
+      });
+      return;
+    }
+
     const hasDifferentCurrents = selectedReceipts.some(
       (receipt) => receipt.currentId !== firstReceipt.currentId
     );
+
     // Fiş tipi kontrolü - Giris veya Cikis olmalı
     const hasDifferentTypes = selectedReceipts.some(
-      (receipt) => receipt.receiptType !== firstReceipt.receiptType
+      (receipt) => receipt?.receiptType !== firstReceipt.receiptType
     );
+
     // Geçersiz fiş tipi kontrolü
     const hasInvalidType = !["Giris", "Cikis"].includes(
       firstReceipt.receiptType
@@ -144,6 +167,16 @@ const ReceiptListGrid: React.FC = () => {
 
     try {
       setLoading(true);
+
+      // Seçili fiş ID'lerini hazırla
+      const receiptIds = selectedReceipts
+        .filter((receipt) => receipt && receipt.id)
+        .map((receipt) => receipt.id);
+
+      if (receiptIds.length === 0) {
+        throw new Error("Geçerli fiş ID'si bulunamadı");
+      }
+
       const response = await fetch(
         `${process.env.BASE_URL}/warehouses/receipt/toInvoice`,
         {
@@ -153,7 +186,7 @@ const ReceiptListGrid: React.FC = () => {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
           credentials: "include",
-          body: JSON.stringify(selectedRowKeys),
+          body: JSON.stringify(receiptIds),
         }
       );
 

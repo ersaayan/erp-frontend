@@ -1,16 +1,16 @@
 import { BarcodeTemplate } from './types';
 
 export const DEFAULT_TEMPLATE: BarcodeTemplate = {
-    width: '80mm',
-    height: '40mm',
+    width: '50mm',
+    height: '25mm',
     qrCodeSize: '20mm',
     qrCodePosition: {
-        left: '30mm',
-        top: '3mm'
+        left: '28mm',
+        top: '2.5mm'
     },
     textPosition: {
-        top: '25mm'
+        top: '8mm'
     },
     fontFamily: 'Arial',
-    fontSize: '10pt'
+    fontSize: '8pt'
 };
