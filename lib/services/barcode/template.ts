@@ -9,5 +9,5 @@ export const DEFAULT_TEMPLATE: BarcodeTemplate = {
         top: '5mm'
     },
     fontFamily: 'Arial',
-    fontSize: '10pt'
+    fontSize: '8pt'
 };
