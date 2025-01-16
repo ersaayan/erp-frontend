@@ -96,10 +96,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   }, [products, expenses, payments, exchangeRates]);
 
   // Determine button state and message
-  const buttonDisabled =
-    loading || products.length === 0 || totals.hasRemainingAmount;
+  const buttonDisabled = loading || totals.hasRemainingAmount;
   const getButtonTooltip = () => {
-    if (products.length === 0) return "Ürün ekleyin";
     if (totals.hasRemainingAmount) {
       return totals.remaining > 0
         ? `${totals.remaining.toFixed(2)} ${currency} tutarında eksik ödeme var`
