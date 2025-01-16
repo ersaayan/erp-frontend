@@ -235,9 +235,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     <th class="text-right">Miktar</th>
                     <th>Birim</th>
                     <th class="text-right">B.Fiyat</th>
-                    <th class="text-right">KDV%</th>
-                    <th class="text-right">İnd.</th>
-                    <th class="text-right">Net</th>
                     <th class="text-right">Toplam</th>
                   </tr>
                 </thead>
@@ -254,15 +251,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                         detail.unitPrice
                       ).toFixed(2)}</td>
                       <td class="text-right">${parseFloat(
-                        detail.vatRate
-                      ).toFixed(2)}</td>
-                      <td class="text-right">${parseFloat(
-                        detail.discount
-                      ).toFixed(2)}</td>
-                      <td class="text-right">${parseFloat(
-                        detail.netPrice
-                      ).toFixed(2)}</td>
-                      <td class="text-right">${parseFloat(
                         detail.totalPrice
                       ).toFixed(2)}</td>
                     </tr>
@@ -270,7 +258,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     )
                     .join("")}
                   <tr class="total-row">
-                    <td colspan="8" class="text-right">Genel Toplam:</td>
+                    <td colspan="5" class="text-right">Genel Toplam:</td>
                     <td class="text-right">${totalAmount.toFixed(2)} ${
         receipt.current.priceList.currency
       }</td>
@@ -479,9 +467,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     <TableHead className="text-right">Miktar</TableHead>
                     <TableHead>Birim</TableHead>
                     <TableHead className="text-right">Birim Fiyat</TableHead>
-                    <TableHead className="text-right">KDV %</TableHead>
-                    <TableHead className="text-right">İndirim</TableHead>
-                    <TableHead className="text-right">Net Tutar</TableHead>
                     <TableHead className="text-right">Toplam</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -498,21 +483,12 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                         {parseFloat(detail.unitPrice).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {parseFloat(detail.vatRate).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {parseFloat(detail.discount).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {parseFloat(detail.netPrice).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
                         {parseFloat(detail.totalPrice).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
-                    <TableCell colSpan={8} className="text-right font-bold">
+                    <TableCell colSpan={5} className="text-right font-bold">
                       Genel Toplam:
                     </TableCell>
                     <TableCell className="text-right font-bold">
