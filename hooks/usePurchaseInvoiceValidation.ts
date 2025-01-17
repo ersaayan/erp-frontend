@@ -23,11 +23,6 @@ export const usePurchaseInvoiceValidation = () => {
             // Validate invoice form data
             purchaseInvoiceSchema.parse(invoiceData);
 
-            // Validate products
-            if (products.length === 0) {
-                throw new Error("En az bir ürün eklemelisiniz");
-            }
-
             products.forEach((product, index) => {
                 try {
                     productSchema.parse(product);
