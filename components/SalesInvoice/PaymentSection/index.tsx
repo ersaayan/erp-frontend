@@ -63,26 +63,55 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       (sum, product) => sum + product.quantity * product.unitPrice,
       0
     );
-    const totalExpenses = expenses.reduce((sum, expense) => {
-      let amount = expense.price;
 
-      // Convert to USD if expense is in a different currency
-      if (expense.currency === "TRY") {
-        amount = amount / exchangeRates.USD_TRY;
-      } else if (expense.currency === "EUR") {
-        amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+    // Masrafları carinin para birimine dönüştürerek toplama
+    const totalExpenses = expenses.reduce((sum, expense) => {
+      // Eğer masraf para birimi cari para birimi ile aynı ise direkt ekle
+      if (expense.currency === currency) {
+        return sum + expense.price;
       }
 
-      return sum + amount;
+      // Farklı para birimlerini dönüştür
+      let convertedAmount = expense.price;
+
+      // TRY'den diğer para birimlerine dönüşüm
+      if (expense.currency === "TRY") {
+        if (currency === "USD") {
+          convertedAmount = expense.price / exchangeRates.USD_TRY;
+        } else if (currency === "EUR") {
+          convertedAmount = expense.price / exchangeRates.EUR_TRY;
+        }
+      }
+      // USD'den diğer para birimlerine dönüşüm
+      else if (expense.currency === "USD") {
+        if (currency === "TRY") {
+          convertedAmount = expense.price * exchangeRates.USD_TRY;
+        } else if (currency === "EUR") {
+          convertedAmount =
+            (expense.price * exchangeRates.USD_TRY) / exchangeRates.EUR_TRY;
+        }
+      }
+      // EUR'dan diğer para birimlerine dönüşüm
+      else if (expense.currency === "EUR") {
+        if (currency === "TRY") {
+          convertedAmount = expense.price * exchangeRates.EUR_TRY;
+        } else if (currency === "USD") {
+          convertedAmount =
+            (expense.price * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+        }
+      }
+
+      return sum + convertedAmount;
     }, 0);
+
     const vatTotal = products.reduce(
       (sum, product) => sum + product.vatAmount,
       0
     );
     const total = subtotal + vatTotal + totalExpenses;
     const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
-    const remaining = Number((total - paid).toFixed(2)); // Round to 2 decimal places
-    const hasRemainingAmount = Math.abs(remaining) > 0.01; // Check if remaining amount is significant
+    const remaining = Number((total - paid).toFixed(2));
+    const hasRemainingAmount = Math.abs(remaining) > 0.01;
 
     return {
       subtotal,
@@ -93,7 +122,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       remaining,
       hasRemainingAmount,
     };
-  }, [products, payments, expenses, exchangeRates]);
+  }, [products, payments, expenses, currency, exchangeRates]);
 
   // Determine button state and message
   const buttonDisabled = loading || totals.hasRemainingAmount;
@@ -143,7 +172,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           </div>
           <div className="flex justify-between text-sm">
             <span>Toplam Masraf</span>
-            <span>{totals.totalExpenses.toFixed(2)} USD</span>
+            <span>
+              {totals.totalExpenses.toFixed(2)} {currency}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span>KDV</span>
