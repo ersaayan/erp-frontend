@@ -74,7 +74,7 @@ export const usePosCollectionForm = (currentCode: string) => {
             description: values.description || '',
             debtAmount: values.amount,
             creditAmount: 0,
-            movementType: 'Alacak',
+            movementType: 'Borc',
             documentType: 'Devir',
             posDocumentType: 'General',
             paymentType: 'POS',

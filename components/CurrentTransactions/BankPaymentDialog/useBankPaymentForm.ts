@@ -76,7 +76,7 @@ export const useBankPaymentForm = (currentCode: string) => {
             description: values.description || '',
             debtAmount: 0,
             creditAmount: values.amount,
-            movementType: 'Borc',
+            movementType: 'Alacak',
             documentType: 'Devir',
             bankDocumentType: 'General',
             paymentType: 'Banka',

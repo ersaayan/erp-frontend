@@ -74,7 +74,7 @@ export const useCashPaymentForm = (currentCode: string) => {
             description: values.description || '',
             debtAmount: 0,
             creditAmount: values.amount,
-            movementType: 'Borc',
+            movementType: 'Alacak',
             documentType: 'Devir',
             vaultDocumentType: 'General',
             paymentType: 'Kasa',
