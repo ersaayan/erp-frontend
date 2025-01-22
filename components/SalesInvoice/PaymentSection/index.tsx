@@ -22,6 +22,7 @@ interface PaymentSectionProps {
   onDelete?: () => void;
   loading: boolean;
   isEditMode: boolean;
+  current: any; // Cari bilgisi
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -33,6 +34,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onDelete,
   loading,
   isEditMode,
+  current,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [exchangeRates, setExchangeRates] = useState({
@@ -40,21 +42,27 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     EUR_TRY: 0,
   });
 
-  // Fetch exchange rates
+  // Fetch exchange rates and set default currency based on current
   useEffect(() => {
     const fetchRates = async () => {
       try {
         const rates = await currencyService.getExchangeRates();
         setExchangeRates(rates);
+
+        // Cari seçildiğinde varsayılan para birimini ayarla
+        if (current?.priceList?.currency) {
+          setSelectedMethod(current.priceList.currency);
+        }
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
       }
     };
     fetchRates();
-  }, []);
+  }, [current]);
 
   // Get currency from first product (all products should have same currency)
-  const currency = products[0]?.currency || "TRY";
+  const currency =
+    current?.priceList?.currency || products[0]?.currency || "TRY";
   const currencySymbol = getCurrencySymbol(currency);
 
   // Calculate totals

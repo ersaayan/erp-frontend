@@ -37,6 +37,13 @@ const PurchaseInvoice: React.FC = () => {
   const { loading, handleSubmit, handleDelete } = usePurchaseInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Cari değiştiğinde ödemeleri sıfırla ve kur değişikliğini tetikle
+  useEffect(() => {
+    if (invoiceData.current) {
+      setPayments([]);
+    }
+  }, [invoiceData]);
+
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
     const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
@@ -333,6 +340,7 @@ const PurchaseInvoice: React.FC = () => {
             onDelete={isEditMode ? handleInvoiceDelete : undefined}
             loading={loading}
             isEditMode={isEditMode}
+            current={invoiceData.current}
           />
         </Card>
       </div>
