@@ -37,13 +37,6 @@ const SalesInvoice: React.FC = () => {
   const { loading, handleSubmit, handleDelete } = useSalesInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Cari değiştiğinde ödemeleri sıfırla ve kur değişikliğini tetikle
-  useEffect(() => {
-    if (invoiceData.current) {
-      setPayments([]);
-    }
-  }, [invoiceData]);
-
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
     const savedCurrentData = localStorage.getItem("currentSalesInvoice");

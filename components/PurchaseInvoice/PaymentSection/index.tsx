@@ -22,7 +22,17 @@ interface PaymentSectionProps {
   onDelete?: () => void;
   loading: boolean;
   isEditMode: boolean;
-  current: any; // Cari bilgisi
+  current: {
+    id: string;
+    currentCode: string;
+    currentName: string;
+    priceList?: {
+      id: string;
+      priceListName: string;
+      currency: string;
+      isVatIncluded: boolean;
+    };
+  } | null;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -42,25 +52,20 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     EUR_TRY: 0,
   });
 
-  // Fetch exchange rates and set default currency based on current
+  // Fetch exchange rates
   useEffect(() => {
     const fetchRates = async () => {
       try {
         const rates = await currencyService.getExchangeRates();
         setExchangeRates(rates);
-
-        // Cari seçildiğinde varsayılan para birimini ayarla
-        if (current?.priceList?.currency) {
-          setSelectedMethod(current.priceList.currency);
-        }
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
       }
     };
     fetchRates();
-  }, [current]);
+  }, []);
 
-  // Get currency from first product (all products should have same currency)
+  // Get currency from current's price list or first product
   const currency =
     current?.priceList?.currency || products[0]?.currency || "TRY";
   const currencySymbol = getCurrencySymbol(currency);
