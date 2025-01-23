@@ -88,6 +88,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     pageSize: "50",
     virtualScrolling: true,
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Get all unique warehouses and price lists
   const getAllWarehouses = useCallback(() => {
@@ -251,14 +252,17 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen silmek için en az bir stok seçin.",
+        description: "Lütfen silmek için en az bir stok kartı seçin",
       });
       return;
     }
+    setDeleteDialogOpen(true);
+  }, [selectedRowKeys.length, toast]);
 
+  const confirmDelete = async () => {
     try {
       setLoading(true);
-      const ids = selectedRowKeys;
+      // API endpoint'i ve silme işlemi burada implement edilecek
       const response = await fetch(
         `${process.env.BASE_URL}/stockcards/deleteManyStockCardsWithRelations/`,
         {
@@ -267,21 +271,22 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
+          body: JSON.stringify({ ids: selectedRowKeys }),
           credentials: "include",
-          body: JSON.stringify({ ids }),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Silme işlemi başarısız oldu.");
+        throw new Error("Silme işlemi başarısız oldu");
       }
 
       toast({
         title: "Başarılı",
-        description: "Seçili stoklar başarıyla silindi.",
+        description: "Seçili stok kartları başarıyla silindi",
       });
 
-      await fetchData();
+      setDeleteDialogOpen(false);
+      fetchData(); // Listeyi yenile
     } catch (error) {
       toast({
         variant: "destructive",
@@ -289,13 +294,12 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         description:
           error instanceof Error
             ? error.message
-            : "Bilinmeyen bir hata oluştu.",
+            : "Silme işlemi sırasında bir hata oluştu",
       });
     } finally {
       setLoading(false);
-      setBulkActionsOpen(false);
     }
-  }, [selectedRowKeys, fetchData, toast]);
+  };
 
   const onExporting = useCallback((e: any) => {
     const workbook = new Workbook();
@@ -819,6 +823,53 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Stok Kartlarını Sil</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Aşağıdaki stok kartlarını silmek istediğinize emin misiniz? Bu
+                işlem geri alınamaz.
+              </AlertDescription>
+            </Alert>
+            <div className="mt-4 space-y-2">
+              {selectedStocks.map((stock) => (
+                <Card key={stock.id} className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{stock.productName}</p>
+                      <p className="text-sm text-gray-500">
+                        Kod: {stock.productCode}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hayır, İptal Et
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Evet, Sil
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

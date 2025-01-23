@@ -35,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Card } from "@/components/ui/card";
 
 interface CurrentMovementsGridProps {
   selectedCurrent: Current | null;
@@ -267,6 +268,24 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     [handleEdit, handleDelete]
   );
 
+  // Toplam değerleri hesapla
+  const calculateTotals = () => {
+    const totalDebt = movements.reduce(
+      (sum, movement) =>
+        sum + (movement.debtAmount ? parseFloat(movement.debtAmount) : 0),
+      0
+    );
+    const totalCredit = movements.reduce(
+      (sum, movement) =>
+        sum + (movement.creditAmount ? parseFloat(movement.creditAmount) : 0),
+      0
+    );
+    const balance = totalDebt - totalCredit;
+    return { totalDebt, totalCredit, balance };
+  };
+
+  const { totalDebt, totalCredit, balance } = calculateTotals();
+
   if (!selectedCurrent) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -284,17 +303,66 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     );
   }
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
-    <>
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="p-3 border">
+          <div className="flex flex-col">
+            <div className="text-xs font-medium text-muted-foreground mb-1">
+              Borç Toplamı
+            </div>
+            <div className="text-xl font-bold text-red-600 tracking-tight">
+              {new Intl.NumberFormat("tr-TR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(totalDebt)}
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3 border">
+          <div className="flex flex-col">
+            <div className="text-xs font-medium text-muted-foreground mb-1">
+              Alacak Toplamı
+            </div>
+            <div className="text-xl font-bold text-green-600 tracking-tight">
+              {new Intl.NumberFormat("tr-TR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(totalCredit)}
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3 border">
+          <div className="flex flex-col">
+            <div className="text-xs font-medium text-muted-foreground mb-1">
+              Bakiye
+            </div>
+            <div className="flex items-baseline">
+              <span
+                className={`text-xl font-bold tracking-tight ${
+                  balance >= 0 ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                {new Intl.NumberFormat("tr-TR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Math.abs(balance))}
+              </span>
+              <span className="text-xs font-medium ml-2 text-muted-foreground">
+                {balance >= 0 ? "Borç" : "Alacak"}
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <DataGrid
         dataSource={movements}
         showBorders={true}
@@ -396,7 +464,7 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 };
 
