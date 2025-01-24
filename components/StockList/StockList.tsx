@@ -714,6 +714,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           {getAllWarehouses().map((warehouse) => (
             <Column
               key={warehouse.id}
+              dataField={`stockCardWarehouse.${warehouse.id}.quantity`}
               caption={warehouse.name}
               calculateCellValue={(rowData: StockCard) => {
                 const warehouseData = rowData.stockCardWarehouse.find(
