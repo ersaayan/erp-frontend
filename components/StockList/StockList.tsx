@@ -969,9 +969,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PERCENTAGE">Yüzde</SelectItem>
+                        <SelectItem value="PERCENTAGE">
+                          Yüzdelik Artış
+                        </SelectItem>
                         <SelectItem value="FIXED_AMOUNT">
-                          Sabit Tutar
+                          Sabit Tutar Artış
                         </SelectItem>
                         <SelectItem value="NEW_PRICE">Yeni Fiyat</SelectItem>
                       </SelectContent>
