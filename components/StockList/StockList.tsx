@@ -36,6 +36,7 @@ import {
   RefreshCw,
   Settings,
   Upload,
+  DollarSign,
 } from "lucide-react";
 import { StockCard } from "./types";
 import { currencyService } from "@/lib/services/currency";
@@ -58,6 +59,38 @@ import {
 import { Card } from "../ui/card";
 import { BarcodePrinter } from "@/lib/services/barcode/printer";
 import { BarcodeData } from "@/lib/services/barcode/types";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+interface BulkPriceUpdateInput {
+  priceListId: string;
+  stockCardIds: string[];
+  updateType: "PERCENTAGE" | "FIXED_AMOUNT" | "NEW_PRICE";
+  value: number;
+  roundingDecimal?: number;
+  updateVatRate?: boolean;
+  newVatRate?: number;
+}
+
+const bulkPriceUpdateSchema = z.object({
+  priceListId: z.string().min(1, "Fiyat listesi seçiniz"),
+  updateType: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "NEW_PRICE"], {
+    required_error: "Güncelleme tipi seçiniz",
+  }),
+  value: z.number().min(0, "Değer 0'dan büyük olmalıdır"),
+  roundingDecimal: z.number().min(0).max(4).optional(),
+  updateVatRate: z.boolean().default(false),
+  newVatRate: z.number().min(0).max(100).optional(),
+});
 
 interface StockListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -89,6 +122,17 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     virtualScrolling: true,
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkPriceUpdateOpen, setBulkPriceUpdateOpen] = useState(false);
+
+  const bulkPriceUpdateForm = useForm<z.infer<typeof bulkPriceUpdateSchema>>({
+    resolver: zodResolver(bulkPriceUpdateSchema),
+    defaultValues: {
+      updateType: "PERCENTAGE",
+      value: 0,
+      roundingDecimal: 2,
+      updateVatRate: false,
+    },
+  });
 
   // Get all unique warehouses and price lists
   const getAllWarehouses = useCallback(() => {
@@ -138,8 +182,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
 
   const onSelectionChanged = useCallback((e: any) => {
     setSelectedRowKeys(e.selectedRowKeys);
-    const selectedItems = e.selectedRowsData || [];
-    setSelectedStocks(selectedItems);
+    setSelectedStocks(e.selectedRowsData || []);
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -517,6 +560,56 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     ]
   );
 
+  const handleBulkPriceUpdate = async (
+    values: z.infer<typeof bulkPriceUpdateSchema>
+  ) => {
+    if (selectedRowKeys.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen en az bir ürün seçin",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${process.env.BASE_URL}/stockcards/bulkUpdatePrices`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          body: JSON.stringify({
+            ...values,
+            stockCardIds: selectedStocks.map((stock) => stock.id),
+          } as BulkPriceUpdateInput),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Fiyat güncelleme işlemi başarısız oldu");
+      }
+
+      toast({
+        title: "Başarılı",
+        description: "Fiyatlar başarıyla güncellendi",
+      });
+      setBulkPriceUpdateOpen(false);
+      fetchData();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error instanceof Error ? error.message : "Bir hata oluştu",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (error) {
     return (
       <Alert variant="destructive" className="m-4">
@@ -531,14 +624,20 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       {renderToolbarContent()}
 
       {bulkActionsOpen && (
-        <Card className="p-4 rounded-md flex items-center">
+        <Card className="p-4 rounded-md">
           <div className="flex gap-2">
-            <Button variant="destructive" onClick={handleDeleteSelected}>
-              Seçili Olanları Sil
+            <Button
+              variant="outline"
+              className="justify-start"
+              onClick={() => {
+                setBulkPriceUpdateOpen(true);
+              }}
+            >
+              <DollarSign className="mr-2 h-4 w-4" />
+              Toplu Fiyat Güncelleme
             </Button>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setShowPreview(true)}
               disabled={selectedRowKeys.length === 0 || loading}
               className="min-w-[120px]"
@@ -550,66 +649,9 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
               )}
               {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
             </Button>
-
-            <Dialog open={showPreview} onOpenChange={setShowPreview}>
-              <DialogContent className="max-w-2xl flex flex-col h-[80vh] p-0">
-                <DialogHeader className="px-6 py-4 border-b">
-                  <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-4">
-                  <div className="space-y-2">
-                    <p className="font-medium">
-                      Seçili Ürünler ({selectedStocks.length}):
-                    </p>
-                    <div className="border rounded-md">
-                      <table className="w-full">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="px-4 py-2 text-left">Stok Kodu</th>
-                            <th className="px-4 py-2 text-left">Stok Adı</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedStocks
-                            .sort((a, b) =>
-                              a.productCode.localeCompare(b.productCode)
-                            )
-                            .map((stock) => (
-                              <tr key={stock.id} className="border-t">
-                                <td className="px-4 py-2">
-                                  {stock.productCode}
-                                </td>
-                                <td className="px-4 py-2">
-                                  {stock.productName}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-auto border-t bg-background px-6 py-4">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowPreview(false)}
-                    >
-                      İptal
-                    </Button>
-                    <Button
-                      onClick={handlePrint}
-                      className="bg-[#84CC16] hover:bg-[#65A30D]"
-                    >
-                      {loading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Yazdır
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button variant="destructive" onClick={handleDeleteSelected}>
+              Seçili Olanları Sil
+            </Button>
           </div>
         </Card>
       )}
@@ -870,6 +912,212 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Evet, Sil
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkPriceUpdateOpen} onOpenChange={setBulkPriceUpdateOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Toplu Fiyat Güncelleme</DialogTitle>
+          </DialogHeader>
+          <Form {...bulkPriceUpdateForm}>
+            <form
+              onSubmit={bulkPriceUpdateForm.handleSubmit(handleBulkPriceUpdate)}
+              className="space-y-4"
+            >
+              <FormField
+                control={bulkPriceUpdateForm.control}
+                name="priceListId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fiyat Listesi</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Fiyat listesi seçin" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {getAllPriceLists().map((priceList) => (
+                          <SelectItem key={priceList.id} value={priceList.id}>
+                            {priceList.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bulkPriceUpdateForm.control}
+                name="updateType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Güncelleme Tipi</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Güncelleme tipi seçin" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="PERCENTAGE">Yüzde</SelectItem>
+                        <SelectItem value="FIXED_AMOUNT">
+                          Sabit Tutar
+                        </SelectItem>
+                        <SelectItem value="NEW_PRICE">Yeni Fiyat</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bulkPriceUpdateForm.control}
+                name="value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Değer</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bulkPriceUpdateForm.control}
+                name="roundingDecimal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Yuvarlama Hassasiyeti</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="4"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bulkPriceUpdateForm.control}
+                name="updateVatRate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>KDV Oranını Güncelle</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              {bulkPriceUpdateForm.watch("updateVatRate") && (
+                <FormField
+                  control={bulkPriceUpdateForm.control}
+                  name="newVatRate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Yeni KDV Oranı (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Güncelle
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl flex flex-col h-[80vh] p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-2">
+              <p className="font-medium">
+                Seçili Ürünler ({selectedStocks.length}):
+              </p>
+              <div className="border rounded-md">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Stok Kodu</th>
+                      <th className="px-4 py-2 text-left">Stok Adı</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedStocks
+                      .sort((a, b) =>
+                        a.productCode.localeCompare(b.productCode)
+                      )
+                      .map((stock) => (
+                        <tr key={stock.id} className="border-t">
+                          <td className="px-4 py-2">{stock.productCode}</td>
+                          <td className="px-4 py-2">{stock.productName}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div className="mt-auto border-t bg-background px-6 py-4">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowPreview(false)}>
+                İptal
+              </Button>
+              <Button
+                onClick={handlePrint}
+                className="bg-[#84CC16] hover:bg-[#65A30D]"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Yazdır
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
