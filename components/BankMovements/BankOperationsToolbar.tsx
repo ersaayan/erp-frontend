@@ -2,22 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { List, RefreshCw, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { List, RefreshCw } from "lucide-react";
 import { Bank } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BankOperationsToolbarProps {
   onShowAllMovements: () => void;
@@ -31,7 +25,6 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
   onBankSelect,
 }) => {
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -81,58 +74,33 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
     });
   };
 
+  const handleBankChange = (value: string) => {
+    const selectedBank = banks.find((bank) => bank.id === value) || null;
+    onBankSelect(selectedBank);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center h-10">
         <div className="flex items-center space-x-2">
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-[250px] justify-between"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : selectedBank ? (
-                  selectedBank.bankName
-                ) : (
-                  "Banka Seçin"
-                )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[250px] p-0">
-              <Command>
-                <CommandInput placeholder="Banka Ara..." />
-                <CommandEmpty>Banka bulunamadı.</CommandEmpty>
-                <CommandGroup>
-                  {banks.map((bank) => (
-                    <CommandItem
-                      key={bank.id}
-                      value={bank.bankName}
-                      onSelect={() => {
-                        onBankSelect(bank);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedBank?.id === bank.id
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {bank.bankName}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Select
+            disabled={isLoading}
+            value={selectedBank?.id || ""}
+            onValueChange={handleBankChange}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue
+                placeholder={isLoading ? "Yükleniyor..." : "Banka Seçin"}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {banks.map((bank) => (
+                <SelectItem key={bank.id} value={bank.id}>
+                  {bank.bankName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             variant="outline"
