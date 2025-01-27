@@ -21,6 +21,8 @@ import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { StockTakeMovement } from "./types";
 import { Box } from "@mui/material";
+import { Button } from "@/components/ui/button";
+import { List } from "lucide-react";
 import StockTakeDetailModal from "./StockTakeDetailModal";
 
 interface MovementsGridProps {
@@ -125,12 +127,15 @@ const MovementsGrid = ({
           width={70}
           caption="İşlemler"
           cellRender={(cellData: any) => (
-            <button
-              className="dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-text"
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-[#84CC16] hover:bg-[#65A30D]"
               onClick={() => handleViewDetail(cellData.row.data.id)}
             >
+              <List className="h-4 w-4 mr-2" />
               Detay
-            </button>
+            </Button>
           )}
         />
 
