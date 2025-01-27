@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { List, RefreshCw, Check, ChevronsUpDown } from "lucide-react";
+import { List, RefreshCw, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Bank } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -33,11 +33,12 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Bankaları getir
     const fetchBanks = async () => {
       try {
+        setIsLoading(true);
         const response = await fetch(`${process.env.BASE_URL}/banks`, {
           headers: {
             "Content-Type": "application/json",
@@ -45,14 +46,32 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
           },
           credentials: "include",
         });
+
+        if (!response.ok) {
+          throw new Error("Bankalar yüklenemedi");
+        }
+
         const data = await response.json();
-        setBanks(data);
+        if (Array.isArray(data)) {
+          setBanks(data);
+        } else {
+          console.error("Beklenmeyen veri formatı:", data);
+          setBanks([]);
+        }
       } catch (error) {
         console.error("Bankalar yüklenirken hata oluştu:", error);
+        setBanks([]);
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Bankalar yüklenirken bir hata oluştu.",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchBanks();
-  }, []);
+  }, [toast]);
 
   const handleRefresh = () => {
     window.dispatchEvent(new CustomEvent("refreshBankOperations"));
@@ -73,8 +92,15 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
                 role="combobox"
                 aria-expanded={open}
                 className="w-[250px] justify-between"
+                disabled={isLoading}
               >
-                {selectedBank ? selectedBank.bankName : "Banka Seçin"}
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : selectedBank ? (
+                  selectedBank.bankName
+                ) : (
+                  "Banka Seçin"
+                )}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
