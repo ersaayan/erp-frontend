@@ -2,22 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { List, Search } from "lucide-react";
+import { List } from "lucide-react";
 import { Pos } from "./types";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PosOperationsToolbarProps {
   onShowAllMovements: () => void;
@@ -30,7 +23,6 @@ const PosOperationsToolbar: React.FC<PosOperationsToolbarProps> = ({
   onPosSelect,
   selectedPos,
 }) => {
-  const [open, setOpen] = useState(false);
   const [posList, setPosList] = useState<Pos[]>([]);
 
   // TODO: Bu kısım API'den gelecek şekilde güncellenecek
@@ -53,48 +45,32 @@ const PosOperationsToolbar: React.FC<PosOperationsToolbarProps> = ({
     ]);
   }, []);
 
+  const handlePosChange = (value: string) => {
+    if (value === "") {
+      onPosSelect(null);
+      return;
+    }
+    const selectedPos = posList.find((pos) => pos.id === value);
+    if (selectedPos) {
+      onPosSelect(selectedPos);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-end items-center gap-2">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-[250px] justify-between"
-            >
-              {selectedPos ? selectedPos.posName : "POS Seçiniz..."}
-              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[250px] p-0">
-            <Command>
-              <CommandInput placeholder="POS Arayın..." />
-              <CommandEmpty>POS bulunamadı.</CommandEmpty>
-              <CommandGroup>
-                {posList.map((pos) => (
-                  <CommandItem
-                    key={pos.id}
-                    value={pos.posName}
-                    onSelect={() => {
-                      onPosSelect(pos);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedPos?.id === pos.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {pos.posName}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Select value={selectedPos?.id || ""} onValueChange={handlePosChange}>
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="POS Seçiniz..." />
+          </SelectTrigger>
+          <SelectContent>
+            {posList.map((pos) => (
+              <SelectItem key={pos.id} value={pos.id}>
+                {pos.posName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Button
           variant="default"
