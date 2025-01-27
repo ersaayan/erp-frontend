@@ -38,7 +38,13 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
     // Bankaları getir
     const fetchBanks = async () => {
       try {
-        const response = await fetch(`${process.env.BASE_URL}/banks`);
+        const response = await fetch(`${process.env.BASE_URL}/banks`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
         const data = await response.json();
         setBanks(data);
       } catch (error) {

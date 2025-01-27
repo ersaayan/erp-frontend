@@ -98,14 +98,13 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0">
-              <Command value={selectedVault?.vaultName || ""}>
+              <Command>
                 <CommandInput placeholder="Kasa ara..." />
                 <CommandEmpty>Kasa bulunamadı.</CommandEmpty>
                 <CommandGroup>
-                  {vaults.map((vault) => (
+                  {vaults?.map((vault) => (
                     <CommandItem
                       key={vault.id}
-                      value={vault.vaultName || ""}
                       onSelect={() => {
                         onVaultSelect(vault);
                         setOpen(false);
