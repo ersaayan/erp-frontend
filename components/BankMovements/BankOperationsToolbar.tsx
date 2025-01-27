@@ -38,7 +38,7 @@ const BankOperationsToolbar: React.FC<BankOperationsToolbarProps> = ({
     // Bankaları getir
     const fetchBanks = async () => {
       try {
-        const response = await fetch("/api/banks");
+        const response = await fetch("/banks");
         const data = await response.json();
         setBanks(data);
       } catch (error) {
