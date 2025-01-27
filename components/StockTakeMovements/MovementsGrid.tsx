@@ -124,7 +124,7 @@ const MovementsGrid = ({
 
         <Column
           type="buttons"
-          width={70}
+          width={50}
           caption="İşlemler"
           cellRender={(cellData: any) => (
             <Button
@@ -133,8 +133,7 @@ const MovementsGrid = ({
               className="bg-[#84CC16] hover:bg-[#65A30D]"
               onClick={() => handleViewDetail(cellData.row.data.id)}
             >
-              <List className="h-4 w-4 mr-2" />
-              Detay
+              <List className="h-4 w-4" />
             </Button>
           )}
         />
