@@ -7,13 +7,6 @@ import { Vault } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -33,6 +26,11 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [vaults, setVaults] = useState<Vault[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredVaults = vaults.filter((vault) =>
+    vault.vaultName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchVaults = async () => {
@@ -93,36 +91,51 @@ const VaultOperationsToolbar: React.FC<VaultOperationsToolbarProps> = ({
                 aria-expanded={open}
                 className="min-w-[200px] justify-between"
               >
-                {selectedVault ? `${selectedVault.vaultName}` : "Kasa Seçin..."}
+                {selectedVault ? selectedVault.vaultName : "Kasa Seçin..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder="Kasa ara..." />
-                <CommandEmpty>Kasa bulunamadı.</CommandEmpty>
-                <CommandGroup>
-                  {vaults?.map((vault) => (
-                    <CommandItem
-                      key={vault.id}
-                      onSelect={() => {
-                        onVaultSelect(vault);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
+            <PopoverContent className="w-[200px] p-0" align="start">
+              <div className="flex flex-col">
+                <input
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Kasa ara..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="max-h-[300px] overflow-y-auto">
+                  {filteredVaults.length === 0 ? (
+                    <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-muted-foreground">
+                      Kasa bulunamadı.
+                    </div>
+                  ) : (
+                    filteredVaults.map((vault) => (
+                      <div
+                        key={vault.id}
                         className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedVault?.id === vault.id
-                            ? "opacity-100"
-                            : "opacity-0"
+                          "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground cursor-pointer",
+                          selectedVault?.id === vault.id && "bg-accent"
                         )}
-                      />
-                      {vault.vaultName}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
+                        onClick={() => {
+                          onVaultSelect(vault);
+                          setOpen(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedVault?.id === vault.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {vault.vaultName}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
 
