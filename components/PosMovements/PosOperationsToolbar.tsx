@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface PosOperationsToolbarProps {
   onShowAllMovements: () => void;
@@ -24,25 +25,34 @@ const PosOperationsToolbar: React.FC<PosOperationsToolbarProps> = ({
   selectedPos,
 }) => {
   const [posList, setPosList] = useState<Pos[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: Bu kısım API'den gelecek şekilde güncellenecek
   useEffect(() => {
-    setPosList([
-      {
-        id: "1",
-        posName: "POS 1",
-        branchCode: "001",
-        balance: "1000",
-        currency: "TRY",
-      },
-      {
-        id: "2",
-        posName: "POS 2",
-        branchCode: "002",
-        balance: "2000",
-        currency: "TRY",
-      },
-    ]);
+    const fetchPosList = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${process.env.BASE_URL}/pos`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch POS devices");
+        }
+        const data = await response.json();
+        setPosList(data);
+      } catch (error) {
+        console.error("POS listesi alınırken hata oluştu:", error);
+        toast.error("POS listesi alınamadı");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosList();
   }, []);
 
   const handlePosChange = (value: string) => {
@@ -59,9 +69,15 @@ const PosOperationsToolbar: React.FC<PosOperationsToolbarProps> = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-end items-center gap-2">
-        <Select value={selectedPos?.id || ""} onValueChange={handlePosChange}>
+        <Select
+          value={selectedPos?.id || ""}
+          onValueChange={handlePosChange}
+          disabled={loading}
+        >
           <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="POS Seçiniz..." />
+            <SelectValue
+              placeholder={loading ? "Yükleniyor..." : "POS Seçiniz..."}
+            />
           </SelectTrigger>
           <SelectContent>
             {posList.map((pos) => (
