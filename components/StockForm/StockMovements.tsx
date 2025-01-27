@@ -58,7 +58,7 @@ const StockMovements: React.FC<StockMovementsProps> = ({ productCode }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          `${process.env.BASE_URL}/stockMovements/byProductCode/${productCode}`,
+          `${process.env.BASE_URL}/stockMovements/byStockCardId/${productCode}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("auth_token")}`,

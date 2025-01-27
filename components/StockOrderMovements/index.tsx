@@ -17,7 +17,7 @@ const StockMovements: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/stockMovements/byStockCardId/${stockId}`,
+        `${process.env.BASE_URL}/stockMovements/orders/${stockId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -42,12 +42,15 @@ const StockMovements: React.FC = () => {
   const handleAllMovements = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/stockMovements`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${process.env.BASE_URL}/stockMovements/orders`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch all stock movements");

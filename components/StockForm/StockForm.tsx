@@ -1424,7 +1424,7 @@ const StockForm: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="hareketler">
-            <StockMovements productCode={formState.stockCard.productName} />
+            <StockMovements productCode={formState.stockCard.id} />
           </TabsContent>
         </Tabs>
       </div>

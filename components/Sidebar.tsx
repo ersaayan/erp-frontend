@@ -16,6 +16,7 @@ import {
   Settings,
   File,
   Circle,
+  RefreshCcw,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -55,7 +56,6 @@ const menuItems = [
     subItems: [
       { name: "Cari Listesi", disabled: false },
       { name: "Cari Kategorileri", disabled: false },
-      { name: "Hesap Özeti", disabled: false },
       { name: "Cari Formu", disabled: false },
     ],
   },
@@ -92,6 +92,21 @@ const menuItems = [
       // { name: "BA/BS", disabled: true },
       // { name: "Gelen E-Faturalar", disabled: true },
       // { name: "Gelen E-İrsaliyeler", disabled: true },
+    ],
+  },
+  {
+    name: "Hareketler",
+    icon: <RefreshCcw className="h-5 w-5" />,
+    subItems: [
+      { name: "Stok Hareketleri", disabled: false },
+      { name: "Cari Hareketleri", disabled: false },
+      { name: "Alış Hareketleri", disabled: false },
+      { name: "Satış Hareketleri", disabled: false },
+      { name: "Sipariş Hareketleri", disabled: false },
+      { name: "Stok Sayım Hareketleri", disabled: false },
+      { name: "Nakit Hareketleri", disabled: false },
+      { name: "Banka Hareketleri", disabled: false },
+      { name: "POS Hareketleri", disabled: false },
     ],
   },
   /* {

@@ -11,6 +11,30 @@ const StockForm = dynamic(() => import("@/components/StockForm/StockForm"), {
 const StockMovements = dynamic(() => import("@/components/StockMovements"), {
   ssr: false,
 });
+const StockPurchaseMovements = dynamic(
+  () => import("@/components/StockPurchaseMovements"),
+  {
+    ssr: false,
+  }
+);
+const StockSalesMovements = dynamic(
+  () => import("@/components/StockSalesMovements"),
+  {
+    ssr: false,
+  }
+);
+const StockOrderMovements = dynamic(
+  () => import("@/components/StockOrderMovements"),
+  {
+    ssr: false,
+  }
+);
+const StockTakeMovements = dynamic(
+  () => import("@/components/StockTakeMovements"),
+  {
+    ssr: false,
+  }
+);
 const Categories = dynamic(() => import("@/components/Categories"), {
   ssr: false,
 });
@@ -40,9 +64,6 @@ const CurrentCategories = dynamic(
   () => import("@/components/CurrentCategories"),
   { ssr: false }
 );
-const AccountSummary = dynamic(() => import("@/components/AccountSummary"), {
-  ssr: false,
-});
 const CurrentForm = dynamic(() => import("@/components/CurrentForm"), {
   ssr: false,
 });
@@ -94,6 +115,9 @@ const Definitions = dynamic(() => import("@/components/Definitions"), {
 const FisListesi = dynamic(() => import("@/components/ReceiptList"), {
   ssr: false,
 });
+const BankMovements = dynamic(() => import("@/components/BankMovements"), {
+  ssr: false,
+});
 const Roles = dynamic(() => import("@/components/Roles"), { ssr: false });
 const Branches = dynamic(() => import("@/components/Branches"), { ssr: false });
 interface MainTabsProps {
@@ -117,6 +141,18 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <BundleSetStockForm />;
       case "Hareketler":
         return <StockMovements />;
+      case "Stok Hareketleri":
+        return <StockMovements />;
+      case "Alış Hareketleri":
+        return <StockPurchaseMovements />;
+      case "Satış Hareketleri":
+        return <StockSalesMovements />;
+      case "Sipariş Hareketleri":
+        return <StockOrderMovements />;
+      case "Stok Sayım Hareketleri":
+        return <StockTakeMovements />;
+      case "Banka Hareketleri":
+        return <BankMovements />;
       case "Kategoriler":
         return <Categories />;
       case "Özellikler":
@@ -131,8 +167,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <CurrentList onMenuItemClick={onMenuItemClick} />;
       case "Cari Kategorileri":
         return <CurrentCategories />;
-      case "Hesap Özeti":
-        return <AccountSummary />;
+      case "Cari Hareketleri":
+        return <CurrentTransactions onMenuItemClick={onMenuItemClick} />;
       case "Cari Formu":
         return <CurrentForm />;
       case "Hızlı Satış":

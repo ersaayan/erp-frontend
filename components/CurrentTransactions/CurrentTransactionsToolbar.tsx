@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -24,14 +24,24 @@ import { useBankTransferDialog } from "./BankTransferDialog/useBankTransferDialo
 import { useBankPaymentDialog } from "./BankPaymentDialog/useBankPaymentDialog";
 import { usePosCollectionDialog } from "./PosCollectionDialog/usePosCollectionDialog";
 import { usePosPaymentDialog } from "./PosPaymentDialog/usePosPaymentDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Command, CommandInput } from "@/components/ui/command";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
-  onMenuItemClick?: (itemName: string) => void;
+  onCurrentSelect: (current: Current) => void;
+  onMenuItemClick: (itemName: string) => void;
 }
 
 const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   selectedCurrent,
+  onCurrentSelect,
   onMenuItemClick,
 }) => {
   const { toast } = useToast();
@@ -41,15 +51,45 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const { openDialog: openBankPaymentDialog } = useBankPaymentDialog();
   const { openDialog: openPosCollectionDialog } = usePosCollectionDialog();
   const { openDialog: openPosPaymentDialog } = usePosPaymentDialog();
+  const [currents, setCurrents] = useState<Current[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchCurrents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${process.env.BASE_URL}/currents`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch currents");
+      }
+
+      const data = await response.json();
+      setCurrents(data);
+    } catch (error) {
+      console.error("Error fetching currents:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Cariler yüklenirken bir hata oluştu.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchCurrents();
+  }, [fetchCurrents]);
 
   const handleRefresh = () => {
-    window.dispatchEvent(new CustomEvent("refreshCurrents"));
-    window.dispatchEvent(new CustomEvent("refreshCurrentMovements"));
-
-    toast({
-      title: "Success",
-      description: "Veriler başarıyla yenilendi",
-    });
+    const event = new Event("refreshCurrentMovements");
+    window.dispatchEvent(event);
   };
 
   const handleNewCurrentForm = () => {
@@ -80,6 +120,10 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
       onMenuItemClick?.("Satış Faturası");
     }
   };
+
+  const filteredCurrents = currents.filter((current) =>
+    current.currentName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -205,6 +249,46 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
           </DropdownMenu> */}
         </div>
       )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Select
+            value={selectedCurrent?.id?.toString()}
+            onValueChange={(value) => {
+              const selected = currents.find((c) => c.id.toString() === value);
+              if (selected) {
+                onCurrentSelect(selected);
+              }
+            }}
+          >
+            <SelectTrigger className="w-[350px]">
+              <SelectValue placeholder="Cari Seçiniz..." />
+            </SelectTrigger>
+            <SelectContent>
+              <Command>
+                <CommandInput
+                  placeholder="Cari Ara..."
+                  value={searchTerm}
+                  onValueChange={setSearchTerm}
+                />
+              </Command>
+              {filteredCurrents.map((current) => (
+                <SelectItem key={current.id} value={current.id.toString()}>
+                  {current.currentName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
