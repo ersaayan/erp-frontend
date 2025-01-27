@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import DataGrid, {
   Column,
   Export,
@@ -21,6 +21,7 @@ import { saveAs } from "file-saver-es";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { StockTakeMovement } from "./types";
 import { Box } from "@mui/material";
+import StockTakeDetailModal from "./StockTakeDetailModal";
 
 interface MovementsGridProps {
   data: StockTakeMovement[];
@@ -34,6 +35,8 @@ const MovementsGrid = ({
   onSelectionChanged,
 }: MovementsGridProps) => {
   const dataGridRef = useRef<DataGrid>(null);
+  const [selectedMovement, setSelectedMovement] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const onExporting = useCallback((e: any) => {
     const workbook = new Workbook();
@@ -59,6 +62,25 @@ const MovementsGrid = ({
       });
     });
   }, []);
+
+  const handleViewDetail = async (id: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.BASE_URL}/warehouses/stocktake/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      setSelectedMovement(data);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error("Stok sayım detayları yüklenirken hata oluştu:", error);
+    }
+  };
 
   return (
     <Box sx={{ flex: 1, minHeight: 0 }}>
@@ -97,6 +119,20 @@ const MovementsGrid = ({
         <Scrolling mode="virtual" rowRenderingMode="virtual" />
         <Paging enabled={false} />
         <Export enabled={true} allowExportSelectedData={true} />
+
+        <Column
+          type="buttons"
+          width={70}
+          caption="İşlemler"
+          cellRender={(cellData: any) => (
+            <button
+              className="dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-text"
+              onClick={() => handleViewDetail(cellData.row.data.id)}
+            >
+              Detay
+            </button>
+          )}
+        />
 
         <Column
           dataField="documentNo"
@@ -163,6 +199,12 @@ const MovementsGrid = ({
           <Item name="columnChooserButton" location="after" />
         </Toolbar>
       </DataGrid>
+
+      <StockTakeDetailModal
+        open={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        data={selectedMovement}
+      />
     </Box>
   );
 };
