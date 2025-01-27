@@ -118,6 +118,12 @@ const FisListesi = dynamic(() => import("@/components/ReceiptList"), {
 const BankMovements = dynamic(() => import("@/components/BankMovements"), {
   ssr: false,
 });
+const VaultMovements = dynamic(() => import("@/components/VaultMovements"), {
+  ssr: false,
+});
+const PosMovements = dynamic(() => import("@/components/PosMovements"), {
+  ssr: false,
+});
 const Roles = dynamic(() => import("@/components/Roles"), { ssr: false });
 const Branches = dynamic(() => import("@/components/Branches"), { ssr: false });
 interface MainTabsProps {
@@ -153,6 +159,10 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <StockTakeMovements />;
       case "Banka Hareketleri":
         return <BankMovements />;
+      case "POS Hareketleri":
+        return <PosMovements />;
+      case "Nakit Hareketleri":
+        return <VaultMovements />;
       case "Kategoriler":
         return <Categories />;
       case "Özellikler":
