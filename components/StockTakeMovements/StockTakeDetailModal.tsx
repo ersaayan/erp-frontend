@@ -1,18 +1,22 @@
+import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
   DialogTitle,
-  IconButton,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Chip,
-  Divider,
-} from "@mui/material";
-import { X } from "lucide-react";
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface StockTakeDetail {
   id: string;
@@ -69,16 +73,16 @@ const StockTakeDetailModal = ({
 }: StockTakeDetailModalProps) => {
   if (!data) return null;
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case "Completed":
-        return "success";
+        return "secondary" as const;
       case "InProgress":
-        return "warning";
+        return "default" as const;
       case "Cancelled":
-        return "error";
+        return "destructive" as const;
       default:
-        return "default";
+        return "outline" as const;
     }
   };
 
@@ -95,14 +99,16 @@ const StockTakeDetailModal = ({
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeVariant = (
+    type: string
+  ): "default" | "outline" | "secondary" => {
     switch (type) {
       case "Full":
-        return "primary";
-      case "Partial":
-        return "info";
-      default:
         return "default";
+      case "Partial":
+        return "secondary";
+      default:
+        return "outline";
     }
   };
 
@@ -118,149 +124,119 @@ const StockTakeDetailModal = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="lg"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: "12px",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-        },
-      }}
-    >
-      <DialogTitle
-        className="flex justify-between items-center bg-gray-50 px-6 py-4"
-        sx={{ margin: 0 }}
-      >
-        <div className="flex items-center space-x-4">
-          <span className="text-xl font-semibold">Stok Sayım Detayı</span>
-          <Chip
-            label={getStatusText(data.status)}
-            color={getStatusColor(data.status) as any}
-            size="small"
-          />
-          <Chip
-            label={getTypeText(data.stockTakeType)}
-            color={getTypeColor(data.stockTakeType) as any}
-            size="small"
-            variant="outlined"
-          />
-        </div>
-        <IconButton
-          onClick={onClose}
-          className="hover:bg-gray-200 transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent className="p-6">
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                Sayım Bilgileri
-              </h3>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Belge No</div>
-                  <div className="font-medium">{data.documentNo}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Referans</div>
-                  <div className="font-medium">{data.reference || "-"}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Başlangıç</div>
-                  <div className="font-medium">
-                    {new Date(data.startedAt).toLocaleString("tr-TR")}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Oluşturan</div>
-                  <div className="font-medium">{data.createdBy}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Açıklama</div>
-                  <div className="font-medium">{data.description || "-"}</div>
-                </div>
-              </div>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl">
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <DialogTitle className="text-xl">Stok Sayım Detayı</DialogTitle>
+              <Badge variant={getStatusVariant(data.status)}>
+                {getStatusText(data.status)}
+              </Badge>
+              <Badge variant={getTypeVariant(data.stockTakeType)}>
+                {getTypeText(data.stockTakeType)}
+              </Badge>
             </div>
-
-            <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                Depo Bilgileri
-              </h3>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Depo Adı</div>
-                  <div className="font-medium">
-                    {data.warehouse.warehouseName}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Depo Kodu</div>
-                  <div className="font-medium">
-                    {data.warehouse.warehouseCode}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Şehir/İlçe</div>
-                  <div className="font-medium">
-                    {data.warehouse.city} / {data.warehouse.district}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">Telefon</div>
-                  <div className="font-medium">{data.warehouse.phone}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-500">E-posta</div>
-                  <div className="font-medium">{data.warehouse.email}</div>
-                </div>
-              </div>
-            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+        </DialogHeader>
 
-          <Divider />
+        <ScrollArea className="max-h-[80vh]">
+          <div className="space-y-6 p-1">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="rounded-lg border p-4 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Sayım Bilgileri</h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Belge No</div>
+                    <div className="font-medium">{data.documentNo}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Referans</div>
+                    <div className="font-medium">{data.reference || "-"}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Başlangıç</div>
+                    <div className="font-medium">
+                      {new Date(data.startedAt).toLocaleString("tr-TR")}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Oluşturan</div>
+                    <div className="font-medium">{data.createdBy}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Açıklama</div>
+                    <div className="font-medium">{data.description || "-"}</div>
+                  </div>
+                </div>
+              </div>
 
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm">
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Sayım Detayları
-              </h3>
+              <div className="rounded-lg border p-4 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Depo Bilgileri</h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Depo Adı</div>
+                    <div className="font-medium">
+                      {data.warehouse.warehouseName}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Depo Kodu</div>
+                    <div className="font-medium">
+                      {data.warehouse.warehouseCode}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Şehir/İlçe</div>
+                    <div className="font-medium">
+                      {data.warehouse.city} / {data.warehouse.district}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">Telefon</div>
+                    <div className="font-medium">{data.warehouse.phone}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-muted-foreground">E-posta</div>
+                    <div className="font-medium">{data.warehouse.email}</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <TableContainer>
+
+            <Separator />
+
+            <div className="rounded-lg border shadow-sm">
+              <div className="p-4 border-b">
+                <h3 className="text-lg font-semibold">Sayım Detayları</h3>
+              </div>
               <Table>
-                <TableHead>
+                <TableHeader>
                   <TableRow>
-                    <TableCell className="font-semibold">Ürün Kodu</TableCell>
-                    <TableCell className="font-semibold">Ürün Adı</TableCell>
-                    <TableCell className="font-semibold">Birim</TableCell>
-                    <TableCell className="font-semibold" align="right">
-                      Miktar
-                    </TableCell>
-                    <TableCell className="font-semibold" align="right">
-                      Fark
-                    </TableCell>
-                    <TableCell className="font-semibold">Not</TableCell>
+                    <TableHead>Ürün Kodu</TableHead>
+                    <TableHead>Ürün Adı</TableHead>
+                    <TableHead>Birim</TableHead>
+                    <TableHead className="text-right">Miktar</TableHead>
+                    <TableHead className="text-right">Fark</TableHead>
+                    <TableHead>Not</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {data.details.map((detail) => (
-                    <TableRow key={detail.id} hover>
+                    <TableRow key={detail.id}>
                       <TableCell className="font-medium">
                         {detail.stockCard.productCode}
                       </TableCell>
                       <TableCell>{detail.stockCard.productName}</TableCell>
                       <TableCell>{detail.stockCard.unit}</TableCell>
-                      <TableCell align="right" className="font-medium">
+                      <TableCell className="text-right font-medium">
                         {detail.quantity}
                       </TableCell>
                       <TableCell
-                        align="right"
-                        className={`font-medium ${
+                        className={`text-right font-medium ${
                           Number(detail.difference) > 0
                             ? "text-green-600"
                             : Number(detail.difference) < 0
@@ -276,9 +252,9 @@ const StockTakeDetailModal = ({
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
