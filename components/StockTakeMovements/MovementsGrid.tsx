@@ -143,14 +143,6 @@ const MovementsGrid = ({
           allowHeaderFiltering={true}
         />
         <Column
-          dataField="completedAt"
-          caption="Tamamlanma Tarihi"
-          dataType="datetime"
-          format="dd.MM.yyyy HH:mm"
-          allowFiltering={true}
-          allowHeaderFiltering={true}
-        />
-        <Column
           dataField="createdBy"
           caption="Oluşturan"
           allowFiltering={true}
