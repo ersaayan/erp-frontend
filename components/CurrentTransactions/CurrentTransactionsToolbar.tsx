@@ -10,6 +10,7 @@ import {
   CreditCard,
   RefreshCw,
   Search,
+  Zap,
 } from "lucide-react";
 import { Current } from "./types";
 import {
@@ -26,6 +27,8 @@ import { useBankPaymentDialog } from "./BankPaymentDialog/useBankPaymentDialog";
 import { usePosCollectionDialog } from "./PosCollectionDialog/usePosCollectionDialog";
 import { usePosPaymentDialog } from "./PosPaymentDialog/usePosPaymentDialog";
 import { Input } from "@/components/ui/input";
+import { useQuickMovementDialog } from "./QuickMovementDialog/useQuickMovementDialog";
+import QuickMovementDialog from "./QuickMovementDialog";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
@@ -47,6 +50,8 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const { openDialog: openPosCollectionDialog } =
     usePosCollectionDialog() || {};
   const { openDialog: openPosPaymentDialog } = usePosPaymentDialog() || {};
+  const { open: quickMovementOpen, setOpen: setQuickMovementOpen } =
+    useQuickMovementDialog();
 
   const [currents, setCurrents] = useState<Current[]>([]);
   const [loading, setLoading] = useState(false);
@@ -153,6 +158,17 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
             <RefreshCw className="h-4 w-4 mr-2" />
             Yenile
           </Button>
+          {selectedCurrent && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-[#F59E0B] hover:bg-[#D97706]"
+              onClick={() => setQuickMovementOpen(true)}
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Hızlı Hareket
+            </Button>
+          )}
         </div>
       </div>
 
@@ -311,6 +327,12 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
           </Button>
         </div>
       </div>
+
+      <QuickMovementDialog
+        open={quickMovementOpen}
+        onOpenChange={setQuickMovementOpen}
+        current={selectedCurrent}
+      />
     </div>
   );
 };
