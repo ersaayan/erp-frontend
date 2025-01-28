@@ -45,18 +45,27 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   onMenuItemClick,
 }) => {
   const { toast } = useToast();
-  const { openDialog: openCashCollectionDialog } = useCashCollectionDialog();
-  const { openDialog: openCashPaymentDialog } = useCashPaymentDialog();
-  const { openDialog: openBankTransferDialog } = useBankTransferDialog();
-  const { openDialog: openBankPaymentDialog } = useBankPaymentDialog();
-  const { openDialog: openPosCollectionDialog } = usePosCollectionDialog();
-  const { openDialog: openPosPaymentDialog } = usePosPaymentDialog();
+  const { openDialog: openCashCollectionDialog } =
+    useCashCollectionDialog() || {};
+  const { openDialog: openCashPaymentDialog } = useCashPaymentDialog() || {};
+  const { openDialog: openBankTransferDialog } = useBankTransferDialog() || {};
+  const { openDialog: openBankPaymentDialog } = useBankPaymentDialog() || {};
+  const { openDialog: openPosCollectionDialog } =
+    usePosCollectionDialog() || {};
+  const { openDialog: openPosPaymentDialog } = usePosPaymentDialog() || {};
+
   const [currents, setCurrents] = useState<Current[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const searchCurrents = useCallback(
     async (query: string) => {
+      if (!query) {
+        setCurrents([]);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await fetch(
@@ -74,7 +83,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
         }
 
         const data = await response.json();
-        setCurrents(data);
+        setCurrents(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching currents:", error);
         toast({
@@ -82,6 +91,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
           title: "Hata",
           description: "Cariler aranırken bir hata oluştu.",
         });
+        setCurrents([]);
       } finally {
         setLoading(false);
       }
@@ -90,16 +100,25 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   );
 
   useEffect(() => {
-    if (searchTerm) {
+    if (searchTerm && isOpen) {
       const delayDebounceFn = setTimeout(() => {
         searchCurrents(searchTerm);
       }, 300);
 
       return () => clearTimeout(delayDebounceFn);
-    } else {
-      setCurrents([]);
     }
-  }, [searchTerm, searchCurrents]);
+  }, [searchTerm, searchCurrents, isOpen]);
+
+  const handleValueChange = useCallback(
+    (value: string) => {
+      const selected = currents.find((c) => c.id === value);
+      if (selected) {
+        onCurrentSelect(selected);
+        setSearchTerm("");
+      }
+    },
+    [currents, onCurrentSelect]
+  );
 
   const handleRefresh = () => {
     const event = new Event("refreshCurrentMovements");
@@ -264,12 +283,8 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
         <div className="flex items-center gap-4">
           <Select
             value={selectedCurrent?.id || ""}
-            onValueChange={(value) => {
-              const selected = currents.find((c) => c.id === value);
-              if (selected) {
-                onCurrentSelect(selected);
-              }
-            }}
+            onValueChange={handleValueChange}
+            onOpenChange={setIsOpen}
           >
             <SelectTrigger className="w-[500px]">
               <SelectValue placeholder="Cari Ara/Seç..." />
@@ -279,7 +294,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
                 <CommandInput
                   placeholder="Cari Ara..."
                   value={searchTerm}
-                  onValueChange={setSearchTerm}
+                  onValueChange={(value) => setSearchTerm(value)}
                   className="h-9"
                 />
               </div>
@@ -303,7 +318,7 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => searchCurrents("")}
+            onClick={handleRefresh}
             disabled={loading}
           >
             <RefreshCw className="h-4 w-4" />
