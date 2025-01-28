@@ -121,9 +121,12 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
     }
   };
 
-  const filteredCurrents = currents.filter((current) =>
-    current.currentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCurrents =
+    currents.filter((current) =>
+      current?.currentName
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase() || "")
+    ) || [];
 
   return (
     <div className="flex flex-col gap-2">
@@ -252,28 +255,28 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <Command className="w-[200px]">
+            <CommandInput
+              placeholder="Cari Ara..."
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+            />
+          </Command>
           <Select
-            value={selectedCurrent?.id?.toString()}
+            value={selectedCurrent?.id || ""}
             onValueChange={(value) => {
-              const selected = currents.find((c) => c.id.toString() === value);
+              const selected = currents.find((c) => c.id === value);
               if (selected) {
                 onCurrentSelect(selected);
               }
             }}
           >
-            <SelectTrigger className="w-[350px]">
+            <SelectTrigger className="w-[300px]">
               <SelectValue placeholder="Cari Seçiniz..." />
             </SelectTrigger>
             <SelectContent>
-              <Command>
-                <CommandInput
-                  placeholder="Cari Ara..."
-                  value={searchTerm}
-                  onValueChange={setSearchTerm}
-                />
-              </Command>
               {filteredCurrents.map((current) => (
-                <SelectItem key={current.id} value={current.id.toString()}>
+                <SelectItem key={current.id} value={current.id}>
                   {current.currentName}
                 </SelectItem>
               ))}
