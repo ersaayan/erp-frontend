@@ -3,7 +3,6 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import DataGrid, {
   Column,
-  Export,
   Selection,
   FilterRow,
   HeaderFilter,
@@ -22,10 +21,6 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
-import {
-  exportDataGrid,
-  ExcelExportDataGridProps,
-} from "devextreme/excel_exporter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -74,6 +69,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+interface StockListProps {
+  onMenuItemClick: (itemName: string) => void;
+}
+
 interface BulkPriceUpdateInput {
   priceListId: string;
   stockCardIds: string[];
@@ -95,18 +94,6 @@ const bulkPriceUpdateSchema = z.object({
   newVatRate: z.number().min(0).max(100).optional(),
 });
 
-interface StockListProps {
-  onMenuItemClick: (itemName: string) => void;
-}
-
-interface CustomExcelExportProps extends ExcelExportDataGridProps {
-  columns?: Array<{
-    dataField: string;
-    caption: string;
-    defaultValue?: string;
-  }>;
-}
-
 const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const { toast } = useToast();
   const [stockData, setStockData] = useState<StockCard[]>([]);
@@ -117,10 +104,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     EUR_TRY: number;
   } | null>(null);
   const dataGridRef = useRef<DataGrid>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [quickFilterText, setQuickFilterText] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
   const [selectedStocks, setSelectedStocks] = useState<StockCard[]>([]);
   const [showPreview, setShowPreview] = useState(false);
@@ -355,104 +342,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     }
   };
 
-  const onExporting = useCallback((e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Stock List");
-
-    // Define custom columns for export
-    const customColumns = [
-      { dataField: "productCode", caption: "productCode" },
-      { dataField: "productName", caption: "productName" },
-      { dataField: "unit", caption: "unit" },
-      { dataField: "shortDescription", caption: "shortDescription" },
-      { dataField: "description", caption: "description" },
-      { dataField: "companyCode", caption: "companyCode" },
-      { dataField: "branchCode", caption: "branchCode" },
-      { dataField: "gtip", caption: "gtip" },
-      { dataField: "pluCode", caption: "pluCode" },
-      { dataField: "desi", caption: "desi", defaultValue: "0" },
-      { dataField: "adetBoleni", caption: "adetBoleni", defaultValue: "1" },
-      { dataField: "siraNo", caption: "siraNo" },
-      { dataField: "raf", caption: "raf" },
-      { dataField: "karMarji", caption: "karMarji", defaultValue: "20" },
-      {
-        dataField: "riskQuantities",
-        caption: "riskQuantities",
-        defaultValue: "50",
-      },
-      { dataField: "maliyet", caption: "maliyet" },
-      { dataField: "maliyetKur", caption: "maliyetKur" },
-      { dataField: "warehouseName", caption: "warehouseName" },
-      { dataField: "quantity", caption: "quantity" },
-      { dataField: "brandName", caption: "brandName" },
-      {
-        dataField: "productType",
-        caption: "productType",
-        defaultValue: "BasitUrun",
-      },
-      { dataField: "categories", caption: "categories" },
-      { dataField: "attributes", caption: "attributes" },
-      { dataField: "vatRate", caption: "vatRate" },
-      { dataField: "prices", caption: "prices" },
-      { dataField: "barcodes", caption: "barcodes" },
-      { dataField: "manufacturerName", caption: "manufacturerName" },
-      { dataField: "marketNames", caption: "marketNames" },
-    ];
-
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      autoFilterEnabled: true,
-      columns: customColumns,
-      fileName: "StokListesi",
-      customizeCell: ({ gridCell, excelCell }: any) => {
-        if (gridCell.rowType === "data") {
-          const data = gridCell.data;
-
-          // Format specific fields
-          if (gridCell.column.dataField === "stockCardPriceLists") {
-            const priceListsStr =
-              data.stockCardPriceLists
-                ?.map((pl: any) => `${pl.priceList.priceListName}=${pl.price}`)
-                .join(",") || "";
-            excelCell.value = priceListsStr;
-          }
-
-          if (gridCell.column.dataField === "barcodes") {
-            const barcodesStr =
-              data.barcodes?.map((b: any) => b.barcode).join(",") || "";
-            excelCell.value = barcodesStr;
-          }
-
-          if (gridCell.column.dataField === "categories") {
-            const categoriesStr =
-              data.stockCardCategoryItem
-                ?.map((cat: any) => cat.stockCardCategory.categoryName)
-                .join(",") || "";
-            excelCell.value = categoriesStr;
-          }
-
-          // Format numeric values
-          if (typeof gridCell.value === "number") {
-            excelCell.numFmt = "#,##0.00";
-          }
-
-          // Handle null/undefined values
-          if (gridCell.value === null || gridCell.value === undefined) {
-            excelCell.value = "";
-          }
-        }
-      },
-    } as CustomExcelExportProps).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "StokListesi.xlsx"
-        );
-      });
-    });
-  }, []);
-
   const applyQuickFilter = useCallback(() => {
     if (!dataGridRef.current) return;
 
@@ -558,89 +447,305 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       .join(" > ");
   }, []);
 
+  const handleExport = useCallback(async () => {
+    try {
+      setLoading(true);
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet("Stok Listesi");
+
+      // Sütun başlıklarını ayarla
+      worksheet.columns = [
+        { header: "productCode", key: "productCode", width: 20 },
+        { header: "productName", key: "productName", width: 30 },
+        { header: "unit", key: "unit", width: 10 },
+        { header: "shortDescription", key: "shortDescription", width: 40 },
+        { header: "description", key: "description", width: 40 },
+        { header: "companyCode", key: "companyCode", width: 15 },
+        { header: "branchCode", key: "branchCode", width: 15 },
+        { header: "gtip", key: "gtip", width: 15 },
+        { header: "pluCode", key: "pluCode", width: 15 },
+        { header: "desi", key: "desi", width: 10 },
+        { header: "adetBoleni", key: "adetBoleni", width: 10 },
+        { header: "siraNo", key: "siraNo", width: 10 },
+        { header: "raf", key: "raf", width: 10 },
+        { header: "karMarji", key: "karMarji", width: 10 },
+        { header: "riskQuantities", key: "riskQuantities", width: 15 },
+        { header: "maliyet", key: "maliyet", width: 10 },
+        { header: "maliyetKur", key: "maliyetKur", width: 10 },
+        { header: "warehouseName", key: "warehouseName", width: 15 },
+        { header: "quantity", key: "quantity", width: 10 },
+        { header: "brandName", key: "brandName", width: 15 },
+        { header: "productType", key: "productType", width: 15 },
+        { header: "categories", key: "categories", width: 20 },
+        { header: "attributes", key: "attributes", width: 30 },
+        { header: "vatRate", key: "vatRate", width: 10 },
+        { header: "prices", key: "prices", width: 40 },
+        { header: "barcodes", key: "barcodes", width: 30 },
+        { header: "marketNames", key: "marketNames", width: 20 },
+      ];
+
+      // Başlık satırını formatla
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFE0E6EF" },
+      };
+
+      // Verileri ekle
+      const rows = stockData.map((stock) => ({
+        productCode: stock.productCode || "",
+        productName: stock.productName || "",
+        unit: stock.unit || "",
+        shortDescription: stock.shortDescription || "",
+        description: stock.description || "",
+        companyCode: stock.companyCode || "",
+        branchCode: stock.branchCode || "",
+        gtip: stock.gtip || "",
+        pluCode: stock.pluCode || "",
+        desi: stock.desi || "0",
+        adetBoleni: stock.adetBoleni || "1",
+        siraNo: stock.siraNo || "",
+        raf: stock.raf || "",
+        karMarji: stock.karMarji || "20",
+        riskQuantities: stock.riskQuantities || "50",
+        maliyet: stock.maliyet || "",
+        maliyetKur: stock.maliyetDoviz || "",
+        warehouseName:
+          stock.stockCardWarehouse?.[0]?.warehouse?.warehouseName || "",
+        quantity: stock.stockCardWarehouse?.[0]?.quantity || "0",
+        brandName: stock.brand?.brandName || "",
+        productType: stock.productType || "BasitUrun",
+        categories:
+          stock.stockCardCategoryItem
+            ?.map((cat) => cat.stockCardCategory.categoryName)
+            .join(",") || "",
+        attributes:
+          stock.stockCardAttributeItems
+            ?.map(
+              (attr) =>
+                `${attr.attribute.attributeName}=${attr.attribute.value}`
+            )
+            .join(",") || "",
+        vatRate: stock.vatRate || "",
+        prices:
+          stock.stockCardPriceLists
+            ?.map((pl) => `${pl.priceList.priceListName}=${pl.price}`)
+            .join(",") || "",
+        barcodes: stock.barcodes?.map((b) => b.barcode).join(",") || "",
+        marketNames:
+          stock.stockCardMarketNames?.map((m) => m.marketName).join(",") || "",
+      }));
+
+      worksheet.addRows(rows);
+
+      // Tüm hücrelere border ekle
+      worksheet.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+        });
+      });
+
+      // Excel dosyasını oluştur ve indir
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(
+        new Blob([buffer], { type: "application/octet-stream" }),
+        "StokListesi.xlsx"
+      );
+
+      toast({
+        title: "Başarılı",
+        description: "Excel dosyası başarıyla oluşturuldu.",
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Excel dosyası oluşturulurken bir hata oluştu.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [stockData, toast]);
+
   const renderToolbarContent = useCallback(
     () => (
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <Input
-            placeholder="Hızlı arama..."
-            value={quickFilterText}
-            onChange={(e) => setQuickFilterText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applyQuickFilter()}
-            className="max-w-xs"
-          />
+      <div className="space-y-4">
+        {/* Ana Toolbar */}
+        <div className="flex items-center gap-4 bg-white p-2 rounded-lg shadow-sm border">
+          {/* Arama Grubu */}
+          <div className="flex items-center gap-2 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Input
+                placeholder="Stok kodu, adı veya barkod ile arama..."
+                value={quickFilterText}
+                onChange={(e) => setQuickFilterText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyQuickFilter()}
+                className="pl-10"
+              />
+              <Filter className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (dataGridRef.current) {
+                  dataGridRef.current.instance.clearFilter();
+                  setQuickFilterText("");
+                }
+              }}
+            >
+              Filtreleri Temizle
+            </Button>
+          </div>
+
+          {/* Dikey Ayırıcı */}
+          <div className="h-8 w-px bg-gray-200" />
+
+          {/* Veri İşlemleri Grubu */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={fetchData}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Yenile
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleExport()}>
+              <Download className="h-4 w-4 mr-2" />
+              Dışa Aktar
+            </Button>
+          </div>
+
+          {/* Dikey Ayırıcı */}
+          <div className="h-8 w-px bg-gray-200" />
+
+          {/* İçe Aktarma Grubu */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = "/stock_card_import.xlsx";
+                link.download = "stock_card_import.xlsx";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Şablon
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              İçe Aktar
+            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImport}
+              accept=".xlsx,.xls"
+              className="hidden"
+            />
+          </div>
+
+          {/* Dikey Ayırıcı */}
+          <div className="h-8 w-px bg-gray-200" />
+
+          {/* Ayarlar ve İşlemler Grubu */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Ayarlar
+            </Button>
+            <Button
+              variant={bulkActionsOpen ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
+              className="font-medium"
+              disabled={selectedRowKeys.length === 0}
+            >
+              <CheckSquare
+                className={`h-4 w-4 mr-2 ${
+                  selectedRowKeys.length === 0 ? "text-gray-400" : ""
+                }`}
+              />
+              Toplu İşlemler{" "}
+              {selectedRowKeys.length > 0 && `(${selectedRowKeys.length})`}
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (dataGridRef.current) {
-              dataGridRef.current.instance.clearFilter();
-              setQuickFilterText("");
-            }
-          }}
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Filtreleri Temizle
-        </Button>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Yenile
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const link = document.createElement("a");
-            link.href = "/stock_card_import.xlsx";
-            link.download = "stock_card_import.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Şablon İndir
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          İçeri Aktar
-        </Button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleImport}
-          accept=".xlsx,.xls"
-          className="hidden"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setSettingsOpen(true)}
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Ayarlar
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
-        >
-          <CheckSquare className="h-4 w-4 mr-2" />
-          Toplu İşlemler
-        </Button>
+
+        {/* Toplu İşlemler Paneli */}
+        {bulkActionsOpen && (
+          <Card className="bg-gray-50/50">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-gray-700">
+                  Toplu İşlemler
+                </h3>
+                <span className="text-sm text-gray-500">
+                  {selectedRowKeys.length} öğe seçili
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white hover:bg-gray-50"
+                  onClick={() => setBulkPriceUpdateOpen(true)}
+                >
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Fiyat Güncelle
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white hover:bg-gray-50"
+                  onClick={() => setShowPreview(true)}
+                  disabled={selectedRowKeys.length === 0 || loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Printer className="h-4 w-4 mr-2" />
+                  )}
+                  {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                  onClick={handleDeleteSelected}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Seçilenleri Sil
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
     ),
     [
       quickFilterText,
-      applyQuickFilter,
       fetchData,
       handleImport,
       bulkActionsOpen,
+      selectedRowKeys.length,
+      loading,
+      handleDeleteSelected,
+      applyQuickFilter,
+      handleExport,
     ]
   );
 
@@ -707,39 +812,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     <div className="p-4 space-y-4">
       {renderToolbarContent()}
 
-      {bulkActionsOpen && (
-        <Card className="p-4 rounded-md">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="justify-start"
-              onClick={() => {
-                setBulkPriceUpdateOpen(true);
-              }}
-            >
-              <DollarSign className="mr-2 h-4 w-4" />
-              Toplu Fiyat Güncelleme
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowPreview(true)}
-              disabled={selectedRowKeys.length === 0 || loading}
-              className="min-w-[120px]"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Printer className="h-4 w-4 mr-2" />
-              )}
-              {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteSelected}>
-              Seçili Olanları Sil
-            </Button>
-          </div>
-        </Card>
-      )}
-
       <DataGrid
         ref={dataGridRef}
         dataSource={stockData}
@@ -752,16 +824,11 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         columnAutoWidth={true}
         width={"100%"}
         wordWrapEnabled={true}
-        onExporting={onExporting}
         height="calc(100vh - 200px)"
         selectedRowKeys={selectedRowKeys}
         selection={{ mode: "multiple" }}
         onSelectionChanged={onSelectionChanged}
         onRowDblClick={handleRowDblClick}
-        export={{
-          enabled: true,
-          allowExportSelectedData: true,
-        }}
         loadPanel={{
           enabled: loading,
           showIndicator: true,
@@ -789,15 +856,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           }
         />
         <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
-        <Export
-          enabled={true}
-          allowExportSelectedData={true}
-          texts={{
-            exportAll: "Tümünü Dışa Aktar",
-            exportSelectedRows: "Seçilenleri Dışa Aktar",
-            exportTo: "Dışa Aktar",
-          }}
-        />
         <ColumnChooser enabled={true} mode="select" />
 
         <Column dataField="productCode" caption="Stok Kodu" fixed={true} />

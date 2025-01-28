@@ -26,6 +26,13 @@ export interface StockCard {
     updatedAt: string;
     createdBy: string | null;
     updatedBy: string | null;
+    vatRate: string;
+    manufacturerName: string;
+    marketNames: string;
+    attributes: Array<{
+        name: string;
+        value: string;
+    }>;
     branch: {
         id: string;
         branchName: string;
