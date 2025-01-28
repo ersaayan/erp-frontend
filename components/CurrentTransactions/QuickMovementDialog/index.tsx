@@ -121,7 +121,6 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
         creditAmount: movementType === "Alacak" ? amount : "0",
         movementType: movementType,
         documentType: documentType,
-        companyCode: "VIP",
         branchCode: selectedBranch,
       };
 
