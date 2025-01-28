@@ -398,26 +398,36 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           const data = gridCell.data;
 
           // Format specific fields
-          if (data.stockCardPriceLists) {
-            excelCell.value = data.stockCardPriceLists
-              .map((pl: any) => `${pl.priceList.priceListName}=${pl.price}`)
-              .join(",");
+          if (gridCell.column.dataField === "stockCardPriceLists") {
+            const priceListsStr =
+              data.stockCardPriceLists
+                ?.map((pl: any) => `${pl.priceList.priceListName}=${pl.price}`)
+                .join(",") || "";
+            excelCell.value = priceListsStr;
           }
 
-          if (data.barcodes) {
-            excelCell.value = data.barcodes
-              .map((b: any) => b.barcode)
-              .join(",");
+          if (gridCell.column.dataField === "barcodes") {
+            const barcodesStr =
+              data.barcodes?.map((b: any) => b.barcode).join(",") || "";
+            excelCell.value = barcodesStr;
           }
 
-          if (data.stockCardCategoryItem) {
-            excelCell.value = data.stockCardCategoryItem
-              .map((cat: any) => cat.stockCardCategory.categoryName)
-              .join(",");
+          if (gridCell.column.dataField === "categories") {
+            const categoriesStr =
+              data.stockCardCategoryItem
+                ?.map((cat: any) => cat.stockCardCategory.categoryName)
+                .join(",") || "";
+            excelCell.value = categoriesStr;
           }
 
+          // Format numeric values
           if (typeof gridCell.value === "number") {
             excelCell.numFmt = "#,##0.00";
+          }
+
+          // Handle null/undefined values
+          if (gridCell.value === null || gridCell.value === undefined) {
+            excelCell.value = "";
           }
         }
       },
@@ -425,7 +435,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       workbook.xlsx.writeBuffer().then((buffer) => {
         saveAs(
           new Blob([buffer], { type: "application/octet-stream" }),
-          "StockList.xlsx"
+          "StockLists.xlsx"
         );
       });
     });
