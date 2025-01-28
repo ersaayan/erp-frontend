@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Command, CommandInput } from "@/components/ui/command";
+import { CommandInput } from "@/components/ui/command";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
@@ -55,37 +55,51 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchCurrents = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/currents`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        credentials: "include",
-      });
+  const searchCurrents = useCallback(
+    async (query: string) => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${process.env.BASE_URL}/currents/search?query=${query}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch currents");
+        if (!response.ok) {
+          throw new Error("Failed to fetch currents");
+        }
+
+        const data = await response.json();
+        setCurrents(data);
+      } catch (error) {
+        console.error("Error fetching currents:", error);
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Cariler aranırken bir hata oluştu.",
+        });
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      setCurrents(data);
-    } catch (error) {
-      console.error("Error fetching currents:", error);
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Cariler yüklenirken bir hata oluştu.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   useEffect(() => {
-    fetchCurrents();
-  }, [fetchCurrents]);
+    if (searchTerm) {
+      const delayDebounceFn = setTimeout(() => {
+        searchCurrents(searchTerm);
+      }, 300);
+
+      return () => clearTimeout(delayDebounceFn);
+    } else {
+      setCurrents([]);
+    }
+  }, [searchTerm, searchCurrents]);
 
   const handleRefresh = () => {
     const event = new Event("refreshCurrentMovements");
@@ -120,13 +134,6 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
       onMenuItemClick?.("Satış Faturası");
     }
   };
-
-  const filteredCurrents =
-    currents.filter((current) =>
-      current?.currentName
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase() || "")
-    ) || [];
 
   return (
     <div className="flex flex-col gap-2">
@@ -255,13 +262,6 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Command className="w-[200px]">
-            <CommandInput
-              placeholder="Cari Ara..."
-              value={searchTerm}
-              onValueChange={setSearchTerm}
-            />
-          </Command>
           <Select
             value={selectedCurrent?.id || ""}
             onValueChange={(value) => {
@@ -271,21 +271,39 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
               }
             }}
           >
-            <SelectTrigger className="w-[300px]">
-              <SelectValue placeholder="Cari Seçiniz..." />
+            <SelectTrigger className="w-[500px]">
+              <SelectValue placeholder="Cari Ara/Seç..." />
             </SelectTrigger>
             <SelectContent>
-              {filteredCurrents.map((current) => (
-                <SelectItem key={current.id} value={current.id}>
-                  {current.currentName}
-                </SelectItem>
-              ))}
+              <div className="flex items-center px-2 pb-2">
+                <CommandInput
+                  placeholder="Cari Ara..."
+                  value={searchTerm}
+                  onValueChange={setSearchTerm}
+                  className="h-9"
+                />
+              </div>
+              {loading ? (
+                <div className="p-2 text-sm text-muted-foreground text-center">
+                  Yükleniyor...
+                </div>
+              ) : currents.length > 0 ? (
+                currents.map((current) => (
+                  <SelectItem key={current.id} value={current.id}>
+                    {current.currentName}
+                  </SelectItem>
+                ))
+              ) : searchTerm ? (
+                <div className="p-2 text-sm text-muted-foreground text-center">
+                  Sonuç bulunamadı
+                </div>
+              ) : null}
             </SelectContent>
           </Select>
           <Button
             variant="outline"
             size="icon"
-            onClick={handleRefresh}
+            onClick={() => searchCurrents("")}
             disabled={loading}
           >
             <RefreshCw className="h-4 w-4" />
