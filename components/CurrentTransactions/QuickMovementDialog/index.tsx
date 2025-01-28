@@ -32,6 +32,31 @@ interface QuickMovementDialogProps {
   current: Current | null;
 }
 
+type DocumentType =
+  | "Devir"
+  | "Fatura"
+  | "IadeFatura"
+  | "Kasa"
+  | "MusteriSeneti"
+  | "BorcSeneti"
+  | "MusteriCeki"
+  | "BorcCeki"
+  | "KarsiliksizCek"
+  | "Muhtelif";
+
+const DOCUMENT_TYPES: { value: DocumentType; label: string }[] = [
+  { value: "Devir", label: "Devir" },
+  { value: "Fatura", label: "Fatura" },
+  { value: "IadeFatura", label: "İade Fatura" },
+  { value: "Kasa", label: "Kasa" },
+  { value: "MusteriSeneti", label: "Müşteri Seneti" },
+  { value: "BorcSeneti", label: "Borç Seneti" },
+  { value: "MusteriCeki", label: "Müşteri Çeki" },
+  { value: "BorcCeki", label: "Borç Çeki" },
+  { value: "KarsiliksizCek", label: "Karşılıksız Çek" },
+  { value: "Muhtelif", label: "Muhtelif" },
+];
+
 const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
   open,
   onOpenChange,
@@ -40,10 +65,11 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [movementType, setMovementType] = useState<"Borc" | "Alacak">("Borc");
+  const [documentType, setDocumentType] = useState<DocumentType>("Muhtelif");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string>(""); // branchCode
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -94,7 +120,8 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
         debtAmount: movementType === "Borc" ? amount : "0",
         creditAmount: movementType === "Alacak" ? amount : "0",
         movementType: movementType,
-        documentType: "Muhtelif",
+        documentType: documentType,
+        companyCode: "VIP",
         branchCode: selectedBranch,
       };
 
@@ -121,6 +148,7 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
       setAmount("");
       setDescription("");
       setMovementType("Borc");
+      setDocumentType("Muhtelif");
       onOpenChange(false);
 
       // Trigger refresh
@@ -164,6 +192,24 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
                 {branches.map((branch) => (
                   <SelectItem key={branch.id} value={branch.branchCode}>
                     {branch.branchName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="documentType">Belge Tipi</label>
+            <Select
+              value={documentType}
+              onValueChange={(value: DocumentType) => setDocumentType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Belge Tipi Seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                {DOCUMENT_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
