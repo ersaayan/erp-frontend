@@ -22,7 +22,10 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import { Workbook } from "exceljs";
 import { saveAs } from "file-saver-es";
-import { exportDataGrid } from "devextreme/excel_exporter";
+import {
+  exportDataGrid,
+  ExcelExportDataGridProps,
+} from "devextreme/excel_exporter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -94,6 +97,14 @@ const bulkPriceUpdateSchema = z.object({
 
 interface StockListProps {
   onMenuItemClick: (itemName: string) => void;
+}
+
+interface CustomExcelExportProps extends ExcelExportDataGridProps {
+  columns?: Array<{
+    dataField: string;
+    caption: string;
+    defaultValue?: string;
+  }>;
 }
 
 const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
@@ -431,7 +442,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           }
         }
       },
-    }).then(() => {
+    } as CustomExcelExportProps).then(() => {
       workbook.xlsx.writeBuffer().then((buffer) => {
         saveAs(
           new Blob([buffer], { type: "application/octet-stream" }),
