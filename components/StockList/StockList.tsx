@@ -435,7 +435,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       workbook.xlsx.writeBuffer().then((buffer) => {
         saveAs(
           new Blob([buffer], { type: "application/octet-stream" }),
-          "StockLists.xlsx"
+          "StokListesi.xlsx"
         );
       });
     });
