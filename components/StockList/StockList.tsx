@@ -404,6 +404,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       worksheet,
       autoFilterEnabled: true,
       columns: customColumns,
+      fileName: "StokListesi",
       customizeCell: ({ gridCell, excelCell }: any) => {
         if (gridCell.rowType === "data") {
           const data = gridCell.data;
@@ -757,6 +758,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         selection={{ mode: "multiple" }}
         onSelectionChanged={onSelectionChanged}
         onRowDblClick={handleRowDblClick}
+        export={{
+          enabled: true,
+          allowExportSelectedData: true,
+        }}
         loadPanel={{
           enabled: loading,
           showIndicator: true,
@@ -784,7 +789,15 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
           }
         />
         <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
-        <Export enabled={true} allowExportSelectedData={true} />
+        <Export
+          enabled={true}
+          allowExportSelectedData={true}
+          texts={{
+            exportAll: "Tümünü Dışa Aktar",
+            exportSelectedRows: "Seçilenleri Dışa Aktar",
+            exportTo: "Dışa Aktar",
+          }}
+        />
         <ColumnChooser enabled={true} mode="select" />
 
         <Column dataField="productCode" caption="Stok Kodu" fixed={true} />
