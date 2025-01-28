@@ -348,12 +348,74 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Stock List");
 
+    // Define custom columns for export
+    const customColumns = [
+      { dataField: "productCode", caption: "productCode" },
+      { dataField: "productName", caption: "productName" },
+      { dataField: "unit", caption: "unit" },
+      { dataField: "shortDescription", caption: "shortDescription" },
+      { dataField: "description", caption: "description" },
+      { dataField: "companyCode", caption: "companyCode" },
+      { dataField: "branchCode", caption: "branchCode" },
+      { dataField: "gtip", caption: "gtip" },
+      { dataField: "pluCode", caption: "pluCode" },
+      { dataField: "desi", caption: "desi", defaultValue: "0" },
+      { dataField: "adetBoleni", caption: "adetBoleni", defaultValue: "1" },
+      { dataField: "siraNo", caption: "siraNo" },
+      { dataField: "raf", caption: "raf" },
+      { dataField: "karMarji", caption: "karMarji", defaultValue: "20" },
+      {
+        dataField: "riskQuantities",
+        caption: "riskQuantities",
+        defaultValue: "50",
+      },
+      { dataField: "maliyet", caption: "maliyet" },
+      { dataField: "maliyetKur", caption: "maliyetKur" },
+      { dataField: "warehouseName", caption: "warehouseName" },
+      { dataField: "quantity", caption: "quantity" },
+      { dataField: "brandName", caption: "brandName" },
+      {
+        dataField: "productType",
+        caption: "productType",
+        defaultValue: "BasitUrun",
+      },
+      { dataField: "categories", caption: "categories" },
+      { dataField: "attributes", caption: "attributes" },
+      { dataField: "vatRate", caption: "vatRate" },
+      { dataField: "prices", caption: "prices" },
+      { dataField: "barcodes", caption: "barcodes" },
+      { dataField: "manufacturerName", caption: "manufacturerName" },
+      { dataField: "marketNames", caption: "marketNames" },
+    ];
+
     exportDataGrid({
       component: e.component,
       worksheet,
       autoFilterEnabled: true,
+      columns: customColumns,
       customizeCell: ({ gridCell, excelCell }: any) => {
         if (gridCell.rowType === "data") {
+          const data = gridCell.data;
+
+          // Format specific fields
+          if (data.stockCardPriceLists) {
+            excelCell.value = data.stockCardPriceLists
+              .map((pl: any) => `${pl.priceList.priceListName}=${pl.price}`)
+              .join(",");
+          }
+
+          if (data.barcodes) {
+            excelCell.value = data.barcodes
+              .map((b: any) => b.barcode)
+              .join(",");
+          }
+
+          if (data.stockCardCategoryItem) {
+            excelCell.value = data.stockCardCategoryItem
+              .map((cat: any) => cat.stockCardCategory.categoryName)
+              .join(",");
+          }
+
           if (typeof gridCell.value === "number") {
             excelCell.numFmt = "#,##0.00";
           }
