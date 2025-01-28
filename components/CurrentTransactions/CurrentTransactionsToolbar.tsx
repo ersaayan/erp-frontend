@@ -9,6 +9,7 @@ import {
   Wallet,
   CreditCard,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import { Current } from "./types";
 import {
@@ -24,14 +25,7 @@ import { useBankTransferDialog } from "./BankTransferDialog/useBankTransferDialo
 import { useBankPaymentDialog } from "./BankPaymentDialog/useBankPaymentDialog";
 import { usePosCollectionDialog } from "./PosCollectionDialog/usePosCollectionDialog";
 import { usePosPaymentDialog } from "./PosPaymentDialog/usePosPaymentDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CommandInput } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 
 interface CurrentTransactionsToolbarProps {
   selectedCurrent: Current | null;
@@ -57,7 +51,6 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const [currents, setCurrents] = useState<Current[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
 
   const searchCurrents = useCallback(
     async (query: string) => {
@@ -100,25 +93,14 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   );
 
   useEffect(() => {
-    if (searchTerm && isOpen) {
+    if (searchTerm) {
       const delayDebounceFn = setTimeout(() => {
         searchCurrents(searchTerm);
       }, 300);
 
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, searchCurrents, isOpen]);
-
-  const handleValueChange = useCallback(
-    (value: string) => {
-      const selected = currents.find((c) => c.id === value);
-      if (selected) {
-        onCurrentSelect(selected);
-        setSearchTerm("");
-      }
-    },
-    [currents, onCurrentSelect]
-  );
+  }, [searchTerm, searchCurrents]);
 
   const handleRefresh = () => {
     const event = new Event("refreshCurrentMovements");
@@ -281,40 +263,44 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Select
-            value={selectedCurrent?.id || ""}
-            onValueChange={handleValueChange}
-            onOpenChange={setIsOpen}
-          >
-            <SelectTrigger className="w-[500px]">
-              <SelectValue placeholder="Cari Ara/Seç..." />
-            </SelectTrigger>
-            <SelectContent>
-              <div className="flex items-center px-2 pb-2">
-                <CommandInput
-                  placeholder="Cari Ara..."
-                  value={searchTerm}
-                  onValueChange={(value) => setSearchTerm(value)}
-                  className="h-9"
-                />
+          <div className="relative w-[500px]">
+            <Input
+              placeholder="Cari Ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pr-10"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            {searchTerm && currents.length > 0 && (
+              <div className="absolute w-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                {loading ? (
+                  <div className="p-2 text-sm text-muted-foreground text-center">
+                    Yükleniyor...
+                  </div>
+                ) : (
+                  currents.map((current) => (
+                    <div
+                      key={current.id}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        onCurrentSelect(current);
+                        setSearchTerm("");
+                      }}
+                    >
+                      {current.currentName}
+                    </div>
+                  ))
+                )}
               </div>
-              {loading ? (
-                <div className="p-2 text-sm text-muted-foreground text-center">
-                  Yükleniyor...
-                </div>
-              ) : currents.length > 0 ? (
-                currents.map((current) => (
-                  <SelectItem key={current.id} value={current.id}>
-                    {current.currentName}
-                  </SelectItem>
-                ))
-              ) : searchTerm ? (
+            )}
+            {searchTerm && !loading && currents.length === 0 && (
+              <div className="absolute w-full mt-1 bg-white border rounded-md shadow-lg z-50">
                 <div className="p-2 text-sm text-muted-foreground text-center">
                   Sonuç bulunamadı
                 </div>
-              ) : null}
-            </SelectContent>
-          </Select>
+              </div>
+            )}
+          </div>
           <Button
             variant="outline"
             size="icon"
