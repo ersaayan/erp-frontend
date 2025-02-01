@@ -367,7 +367,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/warehouses/order-prepare/${receipt.id}`,
+        `${process.env.BASE_URL}/warehouses/receipts/${receipt.id}`,
         {
           method: "DELETE",
           headers: {
