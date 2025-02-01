@@ -126,6 +126,14 @@ const PosMovements = dynamic(() => import("@/components/PosMovements"), {
 });
 const Roles = dynamic(() => import("@/components/Roles"), { ssr: false });
 const Branches = dynamic(() => import("@/components/Branches"), { ssr: false });
+const StockBalanceReport = dynamic(
+  () => import("@/components/StockBalanceReport"),
+  { ssr: false }
+);
+const Notifications = dynamic(() => import("@/components/Notifications"), {
+  ssr: false,
+});
+
 interface MainTabsProps {
   activeTab: string | null;
   onMenuItemClick: (itemName: string) => void;
@@ -217,6 +225,10 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <Roles />;
       case "Şubeler":
         return <Branches />;
+      case "Stok Bakiye Raporu":
+        return <StockBalanceReport />;
+      case "Bildirimler":
+        return <Notifications />;
       default:
         return null;
     }

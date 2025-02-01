@@ -114,6 +114,7 @@ export default function MainContent() {
           isSidebarCollapsed={isSidebarCollapsed}
           toggleSidebar={toggleSidebar}
           onLogout={handleLogout}
+          onMenuItemClick={handleMenuItemClick}
         />
 
         <main className="overflow-auto bg-background p-4">

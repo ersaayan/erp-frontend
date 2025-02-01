@@ -17,6 +17,7 @@ import {
   File,
   Circle,
   RefreshCcw,
+  BarChart2,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -109,30 +110,11 @@ const menuItems = [
       { name: "POS Hareketleri", disabled: false },
     ],
   },
-  /* {
+  {
     name: "Raporlar",
     icon: <BarChart2 className="h-5 w-5" />,
-    subItems: [
-      { name: "Cari Bakiye", disabled: false },
-      { name: "Cari Satışlar", disabled: false },
-      { name: "Banka Bakiye", disabled: false },
-      { name: "Kasa Bakiye", disabled: false },
-      { name: "Stok Devir Hiz", disabled: false },
-      { name: "Stok", disabled: false },
-      { name: "Envanter", disabled: false },
-      { name: "Fatura Hareketleri", disabled: false },
-      { name: "Sipariş Hareketleri", disabled: false },
-      { name: "Sipariş Stokları", disabled: false },
-      { name: "Pazaryeri Hakediş", disabled: false },
-      { name: "Fatura Karlılık", disabled: false },
-      { name: "Günlük Rapor", disabled: false },
-      { name: "Sayım Rapor Liste", disabled: false },
-      { name: "Stok Hareketleri", disabled: false },
-      { name: "Stok Bakiyeleri", disabled: false },
-      { name: "Kdv Rapor", disabled: false },
-      { name: "Firma/Şube Durum Raporu", disabled: false },
-    ],
-  }, */
+    subItems: [{ name: "Stok Bakiye Raporu", disabled: false }],
+  },
   {
     name: "Ayarlar",
     icon: <Settings className="h-5 w-5" />,

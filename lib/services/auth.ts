@@ -42,7 +42,7 @@ interface LoginResponse {
 export const getAuthHeader = () => {
     if (typeof window === "undefined") return {};
     const store = useAuthStore.getState();
-    return store.token ? { Authorization: `Bearer ${store.token}` } : {};
+    return store.token ? { Authorization: `Bearer ${localStorage.getItem("auth_token")}`, } : {};
 };
 
 export const isAuthenticated = () => {

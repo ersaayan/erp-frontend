@@ -22,17 +22,30 @@ interface MainHeaderProps {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   onLogout: () => void;
+  onMenuItemClick: (itemName: string) => void;
 }
 
 export const MainHeader: React.FC<MainHeaderProps> = ({
   toggleSidebar,
   onLogout,
+  onMenuItemClick,
 }) => {
   const [username, setUsername] = React.useState<string>("User");
-  const [notifications] = React.useState([
-    { id: 1, message: "Yeni bir bildirim var" },
-    { id: 2, message: "Önemli güncelleme mevcut" },
-  ]);
+  const [unreadNotifications, setUnreadNotifications] =
+    React.useState<number>(0);
+
+  const fetchUnreadNotifications = async () => {
+    try {
+      const response = await fetch("/api/notifications/unread");
+      if (!response.ok) {
+        throw new Error("Bildirimler alınamadı");
+      }
+      const data = await response.json();
+      setUnreadNotifications(data.length);
+    } catch (error) {
+      console.error("Bildirimler alınırken hata oluştu:", error);
+    }
+  };
 
   React.useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -42,7 +55,20 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
         setUsername(decoded.username);
       }
     }
+
+    // İlk yüklemede bildirimleri getir
+    fetchUnreadNotifications();
+
+    // Her 30 saniyede bir bildirimleri güncelle
+    const interval = setInterval(fetchUnreadNotifications, 30000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const handleNotificationsClick = () => {
+    // Navigate to Notifications page
+    onMenuItemClick?.("Bildirimler");
+  };
 
   return (
     <header className="bg-sidebar-bg text-sidebar-text p-2 flex items-center justify-between">
@@ -67,8 +93,10 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
               className="text-sidebar-text hover:bg-sidebar-hover relative"
             >
               <Bell className="h-5 w-5" />
-              {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                  {unreadNotifications}
+                </span>
               )}
             </Button>
           </PopoverTrigger>
@@ -76,20 +104,25 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             <div className="grid gap-4">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Bildirimler</h4>
-                <p className="text-sm text-muted-foreground">
-                  Son bildirimleriniz burada görüntülenir.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <Bell className="h-4 w-4" />
-                    <span className="text-sm">{notification.message}</span>
+                {unreadNotifications > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {unreadNotifications} adet okunmamış bildiriminiz var.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={handleNotificationsClick}
+                    >
+                      Bildirimleri Görüntüle
+                    </Button>
                   </div>
-                ))}
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Okunmamış bildiriminiz bulunmamaktadır.
+                  </p>
+                )}
               </div>
             </div>
           </PopoverContent>
