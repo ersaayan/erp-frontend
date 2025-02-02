@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   DataGrid,
   Column,
@@ -41,6 +41,9 @@ import {
 import { useStockSearch } from "@/hooks/useStockSearch";
 import type { StockBalanceReportParams, StockBalanceReportItem } from "./types";
 import { cn } from "@/lib/utils";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver-es";
+import { exportDataGrid } from "devextreme/excel_exporter";
 
 export default function StockBalanceReport() {
   const [loading, setLoading] = useState(false);
@@ -129,6 +132,52 @@ export default function StockBalanceReport() {
     if (!showCriticalOnly) return data;
     return data.filter((item) => item.currentStock <= item.criticalStock);
   };
+
+  const onExporting = useCallback((e: any) => {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet("Stok Bakiye Raporu");
+
+    exportDataGrid({
+      component: e.component,
+      worksheet,
+      autoFilterEnabled: true,
+      customizeCell: ({ gridCell, excelCell }: any) => {
+        if (gridCell?.column?.dataField === "warehouseName") {
+          excelCell.font = { ...excelCell.font, bold: true };
+        }
+        if (gridCell?.column?.dataField === "inQuantity") {
+          excelCell.font = { ...excelCell.font, color: { argb: "FF008000" } };
+        }
+        if (gridCell?.column?.dataField === "outQuantity") {
+          excelCell.font = { ...excelCell.font, color: { argb: "FFFF0000" } };
+        }
+        if (
+          gridCell?.column?.dataField === "currentStock" &&
+          gridCell.data?.currentStock <= gridCell.data?.criticalStock
+        ) {
+          excelCell.font = { ...excelCell.font, color: { argb: "FFFF0000" } };
+        }
+        if (
+          gridCell?.column?.dataField === "criticalStock" &&
+          gridCell.data?.currentStock <= gridCell.data?.criticalStock
+        ) {
+          excelCell.font = { ...excelCell.font, color: { argb: "FFFF0000" } };
+        }
+      },
+    }).then(() => {
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const date = new Date();
+        const fileName = `stok_bakiye_raporu_${format(
+          date,
+          "dd_MM_yyyy_HH_mm"
+        )}.xlsx`;
+        saveAs(
+          new Blob([buffer], { type: "application/octet-stream" }),
+          fileName
+        );
+      });
+    });
+  }, []);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -307,6 +356,7 @@ export default function StockBalanceReport() {
                 allowColumnResizing={true}
                 height="calc(100vh - 400px)"
                 className="rounded-md"
+                onExporting={onExporting}
                 onRowPrepared={(e) => {
                   if (e.data && e.data.currentStock <= e.data.criticalStock) {
                     e.rowElement.style.backgroundColor =
