@@ -373,9 +373,11 @@ export default function StockBalanceReport() {
                   format={{ type: "fixedPoint", precision: 2 }}
                   cellRender={(cell) => (
                     <div className="text-green-600 font-medium">
-                      {cell.value.toLocaleString("tr-TR", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {cell.value != null
+                        ? cell.value.toLocaleString("tr-TR", {
+                            minimumFractionDigits: 2,
+                          })
+                        : "0,00"}
                     </div>
                   )}
                 />
@@ -389,9 +391,11 @@ export default function StockBalanceReport() {
                   format={{ type: "fixedPoint", precision: 2 }}
                   cellRender={(cell) => (
                     <div className="text-red-600 font-medium">
-                      {cell.value.toLocaleString("tr-TR", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {cell.value != null
+                        ? cell.value.toLocaleString("tr-TR", {
+                            minimumFractionDigits: 2,
+                          })
+                        : "0,00"}
                     </div>
                   )}
                 />
@@ -405,6 +409,8 @@ export default function StockBalanceReport() {
                   format={{ type: "fixedPoint", precision: 2 }}
                   cellRender={(cell) => {
                     const isCritical =
+                      cell.data.currentStock != null &&
+                      cell.data.criticalStock != null &&
                       cell.data.currentStock <= cell.data.criticalStock;
                     return (
                       <div
@@ -413,9 +419,11 @@ export default function StockBalanceReport() {
                           isCritical ? "text-red-600" : ""
                         )}
                       >
-                        {cell.value.toLocaleString("tr-TR", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {cell.value != null
+                          ? cell.value.toLocaleString("tr-TR", {
+                              minimumFractionDigits: 2,
+                            })
+                          : "0,00"}
                         {isCritical && (
                           <AlertTriangle className="inline-block ml-1 h-4 w-4 text-red-600" />
                         )}
@@ -433,6 +441,8 @@ export default function StockBalanceReport() {
                   format={{ type: "fixedPoint", precision: 2 }}
                   cellRender={(cell) => {
                     const isCritical =
+                      cell.data.currentStock != null &&
+                      cell.data.criticalStock != null &&
                       cell.data.currentStock <= cell.data.criticalStock;
                     return (
                       <div
@@ -441,9 +451,11 @@ export default function StockBalanceReport() {
                           isCritical ? "text-red-600" : "text-orange-600"
                         )}
                       >
-                        {cell.value.toLocaleString("tr-TR", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {cell.value != null
+                          ? cell.value.toLocaleString("tr-TR", {
+                              minimumFractionDigits: 2,
+                            })
+                          : "0,00"}
                       </div>
                     );
                   }}
