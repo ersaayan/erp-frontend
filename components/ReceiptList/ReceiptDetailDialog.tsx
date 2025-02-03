@@ -92,46 +92,48 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
             <style>
               @media print {
                 @page {
-                  size: A4;
-                  margin: 10mm;
+                  size: auto;
+                  margin: 5mm;
                 }
               }
               
               body {
                 font-family: system-ui, -apple-system, sans-serif;
                 margin: 0;
-                padding: 20px;
-                font-size: 11px;
-                line-height: 1.3;
+                padding: 10px;
+                font-size: 8pt;
+                line-height: 1.2;
                 color: #333;
                 font-weight: 500;
+                width: 100%;
+                box-sizing: border-box;
               }
               
               .container {
-                max-width: 210mm;
+                width: 100%;
                 margin: 0 auto;
               }
               
               .header {
                 text-align: center;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
                 border-bottom: 1px solid #333;
               }
               
               .header h1 {
                 margin: 0;
-                font-size: 18px;
+                font-size: 12pt;
                 font-weight: 700;
               }
               
               .header .badge {
                 display: inline-block;
-                padding: 3px 8px;
-                border-radius: 4px;
-                font-size: 12px;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 8pt;
                 font-weight: 600;
-                margin-top: 6px;
+                margin-top: 4px;
               }
               
               .badge.in {
@@ -147,28 +149,28 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               .info-grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                margin-bottom: 15px;
+                gap: 10px;
+                margin-bottom: 10px;
               }
               
               .info-card {
                 border: 1px solid #e5e7eb;
-                border-radius: 6px;
-                padding: 12px;
+                border-radius: 4px;
+                padding: 8px;
               }
               
               .info-card h2 {
-                font-size: 14px;
+                font-size: 9pt;
                 font-weight: 700;
-                margin: 0 0 8px 0;
-                padding-bottom: 6px;
+                margin: 0 0 6px 0;
+                padding-bottom: 4px;
                 border-bottom: 1px solid #e5e7eb;
               }
               
               .info-row {
                 display: flex;
                 justify-content: space-between;
-                padding: 3px 0;
+                padding: 2px 0;
               }
               
               .info-label {
@@ -183,23 +185,37 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 15px 0;
-                font-size: 10px;
+                margin: 10px 0;
+                font-size: 7pt;
+                table-layout: fixed;
               }
               
               th {
                 background: #f3f4f6;
                 text-align: left;
-                padding: 6px;
+                padding: 4px;
                 font-weight: 700;
                 border-bottom: 1px solid #e5e7eb;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
               }
               
               td {
-                padding: 6px;
+                padding: 4px;
                 border-bottom: 1px solid #e5e7eb;
                 font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
               }
+
+              th:nth-child(1), td:nth-child(1) { width: 15%; }
+              th:nth-child(2), td:nth-child(2) { width: 35%; }
+              th:nth-child(3), td:nth-child(3) { width: 10%; }
+              th:nth-child(4), td:nth-child(4) { width: 12%; }
+              th:nth-child(5), td:nth-child(5) { width: 13%; }
+              th:nth-child(6), td:nth-child(6) { width: 15%; }
               
               .text-right {
                 text-align: right;
@@ -212,13 +228,39 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               }
               
               .footer {
-                margin-top: 30px;
-                padding-top: 15px;
+                margin-top: 20px;
+                padding-top: 10px;
                 border-top: 1px solid #e5e7eb;
-                font-size: 10px;
+                font-size: 7pt;
                 color: #666;
                 text-align: center;
                 font-weight: 500;
+              }
+
+              @media screen and (min-width: 210mm) {
+                body {
+                  font-size: 11pt;
+                }
+                
+                .header h1 {
+                  font-size: 16pt;
+                }
+                
+                .header .badge {
+                  font-size: 11pt;
+                }
+                
+                .info-card h2 {
+                  font-size: 12pt;
+                }
+                
+                table {
+                  font-size: 10pt;
+                }
+                
+                .footer {
+                  font-size: 9pt;
+                }
               }
             </style>
           </head>
