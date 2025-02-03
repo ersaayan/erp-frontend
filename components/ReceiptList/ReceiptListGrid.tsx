@@ -62,6 +62,7 @@ const ReceiptListGrid: React.FC = () => {
       }
 
       const data = await response.json();
+      console.log("Fetched receipts:", data);
       setReceipts(data);
       setError(null);
     } catch (err) {
@@ -219,6 +220,13 @@ const ReceiptListGrid: React.FC = () => {
 
   useEffect(() => {
     fetchReceipts();
+    // Debug için eklendi
+    console.log("Current receipts state:", {
+      receiptsLength: receipts.length,
+      firstReceipt: receipts[0],
+      loading,
+      error,
+    });
   }, [fetchReceipts]);
 
   if (loading) {
@@ -268,7 +276,13 @@ const ReceiptListGrid: React.FC = () => {
         onRowDblClick={handleRowDblClick}
         height="calc(100vh - 300px)"
         selectedRowKeys={selectedRowKeys}
-        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
+        onSelectionChanged={(e) => {
+          console.log("DataGrid props:", {
+            dataSource: receipts,
+            selectedRowKeys: e.selectedRowKeys,
+          });
+          setSelectedRowKeys(e.selectedRowKeys);
+        }}
       >
         <StateStoring
           enabled={true}
@@ -283,8 +297,8 @@ const ReceiptListGrid: React.FC = () => {
         <Grouping autoExpandAll={false} />
         <ColumnChooser enabled={true} mode="select" />
         <ColumnFixing enabled={true} />
-        <Scrolling mode="virtual" rowRenderingMode="virtual" />
-        <Paging enabled={false} />
+        <Scrolling mode="standard" />
+        <Paging defaultPageSize={20} />
         <SearchPanel visible={true} width={240} placeholder="Ara..." />
 
         <Column dataField="documentNo" caption="Fiş No" />
