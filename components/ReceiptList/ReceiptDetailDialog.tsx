@@ -577,7 +577,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   disabled={!receipt}
                   className="gap-2"
                 >
-                  <Printer className="h-4 w-4 mr-2" />
+                  <Printer className="h-4 w-4 mr-4" />
                   Yazdır
                 </Button>
               </div>
