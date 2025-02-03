@@ -559,7 +559,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mr-8">
                 <Button
                   variant="outline"
                   size="sm"
@@ -575,7 +575,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   size="sm"
                   onClick={handlePrint}
                   disabled={!receipt}
-                  className="gap-2 mr-2"
+                  className="gap-2"
                 >
                   <Printer className="h-4 w-4" />
                   Yazdır
