@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import DataGrid, {
   Column,
   FilterRow,
@@ -36,9 +36,7 @@ const receiptTypes = [
 
 const ReceiptListGrid: React.FC = () => {
   const { toast } = useToast();
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(
     null
@@ -46,91 +44,83 @@ const ReceiptListGrid: React.FC = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
-  const dataSource = useMemo(() => {
-    return new CustomStore({
-      key: "id",
-      load: async (loadOptions: any) => {
-        try {
-          setLoading(true);
+  const dataSource = new CustomStore({
+    key: "id",
+    load: async (loadOptions: any) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-          // Sayfalama parametreleri
-          const page = loadOptions.skip
-            ? Math.floor(loadOptions.skip / loadOptions.take) + 1
-            : 1;
-          const limit = loadOptions.take || 20;
+        // Sayfalama parametreleri
+        const page = loadOptions.skip
+          ? Math.floor(loadOptions.skip / loadOptions.take) + 1
+          : 1;
+        const limit = loadOptions.take || 20;
 
-          // Filtreleme parametreleri
-          const filter: any = {};
-          if (loadOptions.filter) {
-            loadOptions.filter.forEach((f: any) => {
-              if (f[1] === "contains") {
-                filter[f[0]] = f[2];
-              } else if (f[1] === "=") {
-                filter[f[0]] = f[2];
-              }
-            });
-          }
-
-          // Tarih filtresi varsa
-          if (filter.receiptDate) {
-            const date = new Date(filter.receiptDate);
-            filter.startDate = date.toISOString().split("T")[0];
-            filter.endDate = date.toISOString().split("T")[0];
-            delete filter.receiptDate;
-          }
-
-          // URL parametrelerini oluştur
-          const params = new URLSearchParams({
-            page: page.toString(),
-            limit: limit.toString(),
-            ...filter,
-          });
-
-          const response = await fetch(
-            `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-              },
-              credentials: "include",
+        // Filtreleme parametreleri
+        const filter: any = {};
+        if (loadOptions.filter) {
+          loadOptions.filter.forEach((f: any) => {
+            if (f[1] === "contains") {
+              filter[f[0]] = f[2];
+            } else if (f[1] === "=") {
+              filter[f[0]] = f[2];
             }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch receipts");
-          }
-
-          const result = await response.json();
-          setReceipts(result.data);
-          setTotalCount(result.total);
-          setError(null);
-
-          return {
-            data: result.data,
-            totalCount: result.total,
-          };
-        } catch (err) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "An error occurred while fetching data"
-          );
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to fetch receipts. Please try again.",
           });
-          return {
-            data: [],
-            totalCount: 0,
-          };
-        } finally {
-          setLoading(false);
         }
-      },
-    });
-  }, [toast]);
+
+        // Tarih filtresi varsa
+        if (filter.receiptDate) {
+          const date = new Date(filter.receiptDate);
+          filter.startDate = date.toISOString().split("T")[0];
+          filter.endDate = date.toISOString().split("T")[0];
+          delete filter.receiptDate;
+        }
+
+        // URL parametrelerini oluştur
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+          ...filter,
+        });
+
+        const response = await fetch(
+          `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch receipts");
+        }
+
+        const result = await response.json();
+        return {
+          data: result.data,
+          totalCount: result.total,
+        };
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while fetching data"
+        );
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch receipts. Please try again.",
+        });
+        throw new Error("Data Loading Error");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
   const handleRowDblClick = useCallback((e: any) => {
     setSelectedReceiptId(e.data.id);
@@ -147,87 +137,8 @@ const ReceiptListGrid: React.FC = () => {
       return;
     }
 
-    // Seçili fişleri al
-    const selectedReceipts = receipts.filter((receipt) =>
-      selectedRowKeys.includes(receipt.id)
-    );
-
-    // Seçili fiş kontrolü
-    if (selectedReceipts.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Seçili fiş bulunamadı",
-      });
-      return;
-    }
-
-    // Cari ve fiş tipi kontrolü
-    const firstReceipt = selectedReceipts[0];
-
-    // Fiş tipi kontrolü
-    if (!firstReceipt.receiptType) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Fiş tipi bulunamadı",
-      });
-      return;
-    }
-
-    const hasDifferentCurrents = selectedReceipts.some(
-      (receipt) => receipt.currentId !== firstReceipt.currentId
-    );
-
-    // Fiş tipi kontrolü - Giris veya Cikis olmalı
-    const hasDifferentTypes = selectedReceipts.some(
-      (receipt) => receipt?.receiptType !== firstReceipt.receiptType
-    );
-
-    // Geçersiz fiş tipi kontrolü
-    const hasInvalidType = !["Giris", "Cikis"].includes(
-      firstReceipt.receiptType
-    );
-
-    if (hasDifferentCurrents) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Lütfen aynı cariye ait fişleri seçiniz",
-      });
-      return;
-    }
-
-    if (hasDifferentTypes) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Lütfen aynı tipteki fişleri seçiniz (Giriş veya Çıkış)",
-      });
-      return;
-    }
-
-    if (hasInvalidType) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description:
-          "Geçersiz fiş tipi. Sadece Giriş veya Çıkış fişleri faturalaştırılabilir",
-      });
-      return;
-    }
-
     try {
       setLoading(true);
-
-      // Seçili fiş ID'lerini hazırla
-      const receiptIds = selectedReceipts
-        .filter((receipt) => receipt && receipt.id)
-        .map((receipt) => receipt.id);
-
-      if (receiptIds.length === 0) {
-        throw new Error("Geçerli fiş ID'si bulunamadı");
-      }
 
       const response = await fetch(
         `${process.env.BASE_URL}/warehouses/receipt/toInvoice`,
@@ -238,7 +149,7 @@ const ReceiptListGrid: React.FC = () => {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
           credentials: "include",
-          body: JSON.stringify(receiptIds),
+          body: JSON.stringify(selectedRowKeys),
         }
       );
 
@@ -251,8 +162,8 @@ const ReceiptListGrid: React.FC = () => {
         description: "Seçili fişler başarıyla faturalaştırıldı",
       });
 
-      // Listeyi yenile
-      dataSource.load({ skip: 0, take: 20 });
+      // Grid'i yenile
+      await dataSource.reload();
       // Seçimleri temizle
       setSelectedRowKeys([]);
     } catch (error) {
@@ -267,33 +178,7 @@ const ReceiptListGrid: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedRowKeys, receipts, toast, dataSource]);
-
-  // İlk yükleme için useEffect
-  useEffect(() => {
-    dataSource.load({ skip: 0, take: 20, isInitialLoad: true });
-  }, [dataSource]);
-
-  // Debug için useEffect - gerekirse kaldırılabilir
-  useEffect(() => {
-    if (receipts.length > 0) {
-      console.log("Current receipts state:", {
-        receiptsLength: receipts.length,
-        firstReceipt: receipts[0],
-        loading,
-        error,
-      });
-    }
-  }, [receipts, loading, error]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        <span>Loading receipts...</span>
-      </div>
-    );
-  }
+  }, [selectedRowKeys, toast, dataSource]);
 
   if (error) {
     return (
@@ -348,7 +233,7 @@ const ReceiptListGrid: React.FC = () => {
           type="localStorage"
           storageKey="receiptListGrid"
         />
-        <LoadPanel enabled={true} />
+        <LoadPanel enabled={loading} />
         <Selection mode="multiple" showCheckBoxesMode="always" />
         <FilterRow visible={true} />
         <HeaderFilter visible={true} />
