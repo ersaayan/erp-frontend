@@ -43,9 +43,14 @@ const ReceiptListGrid: React.FC = () => {
   );
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const loadData = useCallback(
     async (loadOptions: any) => {
+      if (!isInitialized && !loadOptions.isInitialLoad) {
+        return;
+      }
+
       try {
         setLoading(true);
 
@@ -102,6 +107,10 @@ const ReceiptListGrid: React.FC = () => {
         setTotalCount(result.total);
         setError(null);
 
+        if (!isInitialized) {
+          setIsInitialized(true);
+        }
+
         return {
           data: result.data,
           totalCount: result.total,
@@ -121,7 +130,7 @@ const ReceiptListGrid: React.FC = () => {
         setLoading(false);
       }
     },
-    [toast]
+    [toast, isInitialized]
   );
 
   const handleRowDblClick = useCallback((e: any) => {
@@ -261,20 +270,24 @@ const ReceiptListGrid: React.FC = () => {
     }
   }, [selectedRowKeys, receipts, toast, loadData]);
 
+  // İlk yükleme için useEffect
   useEffect(() => {
-    // İlk yükleme için varsayılan parametrelerle çağır
-    loadData({ skip: 0, take: 20 });
-  }, [loadData]);
+    if (!isInitialized) {
+      loadData({ skip: 0, take: 20, isInitialLoad: true });
+    }
+  }, [isInitialized, loadData]);
 
-  // Debug için ayrı bir useEffect
+  // Debug için useEffect - gerekirse kaldırılabilir
   useEffect(() => {
-    console.log("Current receipts state:", {
-      receiptsLength: receipts.length,
-      firstReceipt: receipts[0],
-      loading,
-      error,
-    });
-  }, [receipts, loading, error]);
+    if (isInitialized) {
+      console.log("Current receipts state:", {
+        receiptsLength: receipts.length,
+        firstReceipt: receipts[0],
+        loading,
+        error,
+      });
+    }
+  }, [receipts, loading, error, isInitialized]);
 
   if (loading) {
     return (
@@ -310,6 +323,7 @@ const ReceiptListGrid: React.FC = () => {
       </div>
 
       <DataGrid
+        key={isInitialized ? "initialized" : "loading"}
         dataSource={{
           load: loadData,
           type: "custom",
