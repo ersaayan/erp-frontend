@@ -264,14 +264,17 @@ const ReceiptListGrid: React.FC = () => {
   useEffect(() => {
     // İlk yükleme için varsayılan parametrelerle çağır
     loadData({ skip: 0, take: 20 });
-    // Debug için eklendi
+  }, [loadData]);
+
+  // Debug için ayrı bir useEffect
+  useEffect(() => {
     console.log("Current receipts state:", {
       receiptsLength: receipts.length,
       firstReceipt: receipts[0],
       loading,
       error,
     });
-  }, [error, loadData, loading, receipts]);
+  }, [receipts, loading, error]);
 
   if (loading) {
     return (
