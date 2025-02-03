@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo, useRef } from "react";
 import DataGrid, {
   Column,
   FilterRow,
@@ -44,89 +44,87 @@ const ReceiptListGrid: React.FC = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
-  const dataSource = useMemo(
-    () =>
-      new CustomStore({
-        key: "id",
-        load: async (loadOptions: any) => {
-          try {
-            setLoading(true);
-            setError(null);
+  const dataSourceRef = useRef(null);
+  if (!dataSourceRef.current) {
+    dataSourceRef.current = new CustomStore({
+      key: "id",
+      load: async (loadOptions: any) => {
+        try {
+          setLoading(true);
+          setError(null);
 
-            // Sayfalama parametreleri
-            const page = loadOptions.skip
-              ? Math.floor(loadOptions.skip / loadOptions.take) + 1
-              : 1;
-            const limit = loadOptions.take || 20;
+          // Sayfalama parametreleri
+          const page = loadOptions.skip
+            ? Math.floor(loadOptions.skip / loadOptions.take) + 1
+            : 1;
+          const limit = loadOptions.take || 20;
 
-            // Filtreleme parametreleri
-            const filter: any = {};
-            if (loadOptions.filter) {
-              loadOptions.filter.forEach((f: any) => {
-                if (f[1] === "contains") {
-                  filter[f[0]] = f[2];
-                } else if (f[1] === "=") {
-                  filter[f[0]] = f[2];
-                }
-              });
-            }
-
-            // Tarih filtresi varsa
-            if (filter.receiptDate) {
-              const date = new Date(filter.receiptDate);
-              filter.startDate = date.toISOString().split("T")[0];
-              filter.endDate = date.toISOString().split("T")[0];
-              delete filter.receiptDate;
-            }
-
-            // URL parametrelerini oluştur
-            const params = new URLSearchParams({
-              page: page.toString(),
-              limit: limit.toString(),
-              ...filter,
-            });
-
-            const response = await fetch(
-              `${
-                process.env.BASE_URL
-              }/warehouses/receipts?${params.toString()}`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                },
-                credentials: "include",
+          // Filtreleme parametreleri
+          const filter: any = {};
+          if (loadOptions.filter) {
+            loadOptions.filter.forEach((f: any) => {
+              if (f[1] === "contains") {
+                filter[f[0]] = f[2];
+              } else if (f[1] === "=") {
+                filter[f[0]] = f[2];
               }
-            );
-
-            if (!response.ok) {
-              throw new Error("Failed to fetch receipts");
-            }
-
-            const result = await response.json();
-            return {
-              data: result.data,
-              totalCount: result.total,
-            };
-          } catch (err) {
-            setError(
-              err instanceof Error
-                ? err.message
-                : "An error occurred while fetching data"
-            );
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to fetch receipts. Please try again.",
             });
-            throw new Error("Data Loading Error");
-          } finally {
-            setLoading(false);
           }
-        },
-      }),
-    [toast]
-  );
+
+          // Tarih filtresi varsa
+          if (filter.receiptDate) {
+            const date = new Date(filter.receiptDate);
+            filter.startDate = date.toISOString().split("T")[0];
+            filter.endDate = date.toISOString().split("T")[0];
+            delete filter.receiptDate;
+          }
+
+          // URL parametrelerini oluştur
+          const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+            ...filter,
+          });
+
+          const response = await fetch(
+            `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch receipts");
+          }
+
+          const result = await response.json();
+          return {
+            data: result.data,
+            totalCount: result.total,
+          };
+        } catch (err) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "An error occurred while fetching data"
+          );
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch receipts. Please try again.",
+          });
+          throw new Error("Data Loading Error");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  }
+  const dataSource = dataSourceRef.current;
 
   const handleRowDblClick = useCallback((e: any) => {
     setSelectedReceiptId(e.data.id);
