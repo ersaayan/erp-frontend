@@ -26,14 +26,8 @@ import { AlertCircle } from "lucide-react";
 import { Receipt } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { FileText, Printer, Trash2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import ReceiptDetailDialog from "./ReceiptDetailDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 const receiptTypes = [
   { id: "Giris", name: "Giriş Fişi" },
@@ -49,7 +43,6 @@ const ReceiptListGrid: React.FC = () => {
   );
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const createCustomStore = useCallback(() => {
     return new CustomStore({
@@ -164,10 +157,6 @@ const ReceiptListGrid: React.FC = () => {
     }
   }, [selectedRowKeys, toast, dataSource]);
 
-  const handlePrint = useCallback(() => {
-    // Implementation for printing the receipt
-  }, []);
-
   if (error) {
     return (
       <Alert variant="destructive">
@@ -192,112 +181,74 @@ const ReceiptListGrid: React.FC = () => {
         </Button>
       </div>
 
-      <Dialog
-        open={detailDialogOpen}
-        onOpenChange={() => setDetailDialogOpen(false)}
+      <DataGrid
+        dataSource={dataSource}
+        remoteOperations={{
+          paging: true,
+          filtering: true,
+          sorting: false,
+          grouping: false,
+          summary: false,
+          groupPaging: false,
+        }}
+        showBorders={true}
+        showRowLines={true}
+        showColumnLines={true}
+        rowAlternationEnabled={true}
+        allowColumnReordering={true}
+        allowColumnResizing={true}
+        columnResizingMode="widget"
+        columnAutoWidth={true}
+        wordWrapEnabled={true}
+        onRowDblClick={handleRowDblClick}
+        height="calc(100vh - 300px)"
+        selectedRowKeys={selectedRowKeys}
+        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
       >
-        <DialogContent
-          className="max-w-4xl max-h-[90vh] flex flex-col"
-          aria-describedby="receipt-list-description"
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Fiş Detayı</span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handlePrint}
-                  disabled={!selectedReceiptId}
-                >
-                  <Printer className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowDeleteAlert(true)}
-                  disabled={!selectedReceiptId}
-                  className="bg-red-500 hover:bg-red-600 text-white"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </DialogTitle>
-            <p id="receipt-list-description" className="sr-only">
-              Fiş listesi görüntüleme ve yönetim modalı
-            </p>
-          </DialogHeader>
+        <StateStoring
+          enabled={true}
+          type="localStorage"
+          storageKey="receiptListGrid"
+        />
+        <LoadPanel enabled={loading} />
+        <Selection mode="multiple" showCheckBoxesMode="always" />
+        <FilterRow visible={true} />
+        <HeaderFilter visible={true} />
+        <GroupPanel visible={true} />
+        <Grouping autoExpandAll={false} />
+        <ColumnChooser enabled={true} mode="select" />
+        <ColumnFixing enabled={true} />
+        <Scrolling mode="virtual" rowRenderingMode="virtual" />
+        <Paging defaultPageSize={20} />
+        <SearchPanel visible={true} width={240} placeholder="Ara..." />
 
-          <DataGrid
-            dataSource={dataSource}
-            remoteOperations={{
-              paging: true,
-              filtering: true,
-              sorting: false,
-              grouping: false,
-              summary: false,
-              groupPaging: false,
-            }}
-            showBorders={true}
-            showRowLines={true}
-            showColumnLines={true}
-            rowAlternationEnabled={true}
-            allowColumnReordering={true}
-            allowColumnResizing={true}
-            columnResizingMode="widget"
-            columnAutoWidth={true}
-            wordWrapEnabled={true}
-            onRowDblClick={handleRowDblClick}
-            height="calc(100vh - 300px)"
-            selectedRowKeys={selectedRowKeys}
-            onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
-          >
-            <StateStoring
-              enabled={true}
-              type="localStorage"
-              storageKey="receiptListGrid"
-            />
-            <LoadPanel enabled={loading} />
-            <Selection mode="multiple" showCheckBoxesMode="always" />
-            <FilterRow visible={true} />
-            <HeaderFilter visible={true} />
-            <GroupPanel visible={true} />
-            <Grouping autoExpandAll={false} />
-            <ColumnChooser enabled={true} mode="select" />
-            <ColumnFixing enabled={true} />
-            <Scrolling mode="virtual" rowRenderingMode="virtual" />
-            <Paging defaultPageSize={20} />
-            <SearchPanel visible={true} width={240} placeholder="Ara..." />
+        <Column dataField="documentNo" caption="Fiş No" />
+        <Column dataField="receiptType" caption="Fiş Tipi">
+          <Lookup dataSource={receiptTypes} valueExpr="id" displayExpr="name" />
+        </Column>
+        <Column
+          dataField="createdAt"
+          caption="Fiş Tarihi"
+          dataType="datetime"
+          format="dd.MM.yyyy HH:mm"
+        />
+        <Column dataField="current.currentCode" caption="Cari Kodu" />
+        <Column dataField="current.currentName" caption="Cari Adı" />
+        <Column dataField="branchCode" caption="Şube Kodu" />
+        <Column dataField="description" caption="Açıklama" />
+        <Column dataField="createdByUser.username" caption="Oluşturan" />
 
-            <Column dataField="documentNo" caption="Fiş No" />
-            <Column dataField="receiptType" caption="Fiş Tipi">
-              <Lookup
-                dataSource={receiptTypes}
-                valueExpr="id"
-                displayExpr="name"
-              />
-            </Column>
-            <Column
-              dataField="createdAt"
-              name="receiptDate"
-              caption="Fiş Tarihi"
-              dataType="datetime"
-              format="dd.MM.yyyy HH:mm"
-            />
-            <Column dataField="current.currentCode" caption="Cari Kodu" />
-            <Column dataField="current.currentName" caption="Cari Adı" />
-            <Column dataField="branchCode" caption="Şube Kodu" />
-            <Column dataField="description" caption="Açıklama" />
-            <Column dataField="createdByUser.username" caption="Oluşturan" />
-
-            <Toolbar>
-              <Item name="groupPanel" />
-              <Item name="searchPanel" />
-              <Item name="columnChooserButton" />
-            </Toolbar>
-          </DataGrid>
-        </DialogContent>
-      </Dialog>
+        <Toolbar>
+          <Item name="groupPanel" />
+          <Item name="searchPanel" />
+          <Item name="columnChooserButton" />
+        </Toolbar>
+      </DataGrid>
+      <ReceiptDetailDialog
+        receiptId={selectedReceiptId}
+        isOpen={detailDialogOpen}
+        onClose={() => setDetailDialogOpen(false)}
+      />
     </div>
   );
 };
