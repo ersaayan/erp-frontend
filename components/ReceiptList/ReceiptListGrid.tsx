@@ -64,39 +64,37 @@ const ReceiptListGrid: React.FC = () => {
           });
         }
 
-        if (filter.receiptDate) {
-          const date = new Date(filter.receiptDate);
-          filter.startDate = date.toISOString().split("T")[0];
-          filter.endDate = date.toISOString().split("T")[0];
-          delete filter.receiptDate;
-        }
-
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
           ...filter,
         });
 
-        const response = await fetch(
-          `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            },
-            credentials: "include",
+        try {
+          const response = await fetch(
+            `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch receipts");
           }
-        );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch receipts");
+          const result = await response.json();
+          return {
+            data: result.data,
+            totalCount: result.total,
+          };
+        } catch (error) {
+          console.error("Error fetching receipts:", error);
+          throw error;
         }
-
-        const result = await response.json();
-        return {
-          data: result.data,
-          totalCount: result.total,
-        };
       },
     });
   }, []);
@@ -229,7 +227,7 @@ const ReceiptListGrid: React.FC = () => {
           <Lookup dataSource={receiptTypes} valueExpr="id" displayExpr="name" />
         </Column>
         <Column
-          dataField="receiptDate"
+          dataField="createdAt"
           caption="Fiş Tarihi"
           dataType="datetime"
           format="dd.MM.yyyy HH:mm"
@@ -238,10 +236,7 @@ const ReceiptListGrid: React.FC = () => {
         <Column dataField="current.currentName" caption="Cari Adı" />
         <Column dataField="branchCode" caption="Şube Kodu" />
         <Column dataField="description" caption="Açıklama" />
-        <Column dataField="isTransfer" caption="Transfer" dataType="boolean" />
-        <Column dataField="outWarehouse" caption="Çıkış Deposu" />
-        <Column dataField="inWarehouse" caption="Giriş Deposu" />
-        <Column dataField="createdBy" caption="Oluşturan" />
+        <Column dataField="createdByUser.username" caption="Oluşturan" />
         <Column
           dataField="createdAt"
           caption="Oluşturma Tarihi"

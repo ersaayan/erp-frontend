@@ -10,7 +10,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2, Printer, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ReceiptDetail } from "./types";
+import { ReceiptDetailType } from "./types";
 import {
   Table,
   TableBody,
@@ -48,13 +48,15 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
   onClose,
   onDelete,
 }) => {
-  const [receipt, setReceipt] = useState<ReceiptDetail | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptDetailType | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const { toast } = useToast();
 
   const handlePrint = useCallback(() => {
+    if (!receipt) return;
+
     try {
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
@@ -63,12 +65,12 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
 
       // Format the receipt details for printing
       const totalAmount = receipt.receiptDetail.reduce(
-        (sum, detail) => sum + parseFloat(detail.totalPrice),
+        (sum, detail) => sum + detail.totalPrice,
         0
       );
 
       const totalQuantity = receipt.receiptDetail.reduce(
-        (sum, detail) => sum + parseFloat(detail.quantity),
+        (sum, detail) => sum + detail.quantity,
         0
       );
 
@@ -244,16 +246,22 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   <div class="info-grid">
                     <span class="label">Fiş Tarihi:</span>
                     <span class="value">${format(
-                      new Date(receipt.receiptDate),
+                      new Date(receipt.createdAt),
                       "dd.MM.yyyy HH:mm"
                     )}</span>
                     <span class="label">Şube:</span>
                     <span class="value">${receipt.branchCode}</span>
-                    <span class="label">Açıklama:</span>
-                    <span class="value">${receipt.description}</span>
+                    ${
+                      receipt.description
+                        ? `<span class="label">Açıklama:</span>
+                           <span class="value">${receipt.description}</span>`
+                        : ""
+                    }
                   </div>
                 </div>
-                
+                ${
+                  receipt.current
+                    ? `
                 <div class="info-block">
                   <h3>Cari Bilgileri</h3>
                   <div class="info-grid">
@@ -261,10 +269,20 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     <span class="value">${receipt.current.currentCode}</span>
                     <span class="label">Cari Adı:</span>
                     <span class="value">${receipt.current.currentName}</span>
-                    <span class="label">Cari Tipi:</span>
-                    <span class="value">${receipt.current.currentType}</span>
+                    ${
+                      receipt.current.priceList
+                        ? `
+                    <span class="label">Fiyat Listesi:</span>
+                    <span class="value">${receipt.current.priceList.priceListName}</span>
+                    <span class="label">Para Birimi:</span>
+                    <span class="value">${receipt.current.priceList.currency}</span>
+                    `
+                        : ""
+                    }
                   </div>
-                </div>
+                </div>`
+                    : ""
+                }
               </div>
 
               <table>
@@ -272,9 +290,12 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   <tr>
                     <th>Ürün Kodu</th>
                     <th>Ürün Adı</th>
-                    <th class="text-right">Miktar</th>
                     <th>Birim</th>
-                    <th class="text-right">B.Fiyat</th>
+                    <th class="text-right">Miktar</th>
+                    <th class="text-right">Birim Fiyat</th>
+                    <th class="text-right">KDV %</th>
+                    <th class="text-right">İskonto</th>
+                    <th class="text-right">Net Tutar</th>
                     <th class="text-right">Toplam</th>
                   </tr>
                 </thead>
@@ -285,55 +306,116 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     <tr>
                       <td>${detail.stockCard.productCode}</td>
                       <td>${detail.stockCard.productName}</td>
-                      <td class="text-right">${detail.quantity}</td>
                       <td>${detail.stockCard.unit}</td>
-                      <td class="text-right">${parseFloat(
-                        detail.unitPrice
-                      ).toFixed(2)}</td>
-                      <td class="text-right">${parseFloat(
-                        detail.totalPrice
-                      ).toFixed(2)}</td>
+                      <td class="text-right">${detail.quantity.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.unitPrice.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.vatRate.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.discount.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.netPrice.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.totalPrice.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
                     </tr>
                   `
                     )
                     .join("")}
                   <tr class="total-row">
-                    <td colspan="5" class="text-right">Genel Toplam:</td>
-                    <td class="text-right">${totalAmount.toLocaleString(
+                    <td colspan="3">Toplam</td>
+                    <td class="text-right">${totalQuantity.toLocaleString(
                       "tr-TR",
                       { minimumFractionDigits: 2 }
-                    )} ${receipt.current.priceList.currency}</td>
+                    )}</td>
+                    <td colspan="4"></td>
+                    <td class="text-right">${totalAmount.toLocaleString(
+                      "tr-TR",
+                      {
+                        minimumFractionDigits: 2,
+                      }
+                    )}</td>
                   </tr>
                 </tbody>
               </table>
 
-              <div class="summary-section">
-                <div class="summary-item">
-                  <span class="summary-label">Toplam Ürün Kalemi:</span>
-                  <span class="summary-value">${
-                    receipt.receiptDetail.length
-                  }</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">Toplam Ürün Adedi:</span>
-                  <span class="summary-value">${totalQuantity.toLocaleString(
-                    "tr-TR",
-                    { maximumFractionDigits: 2 }
-                  )}</span>
+              ${
+                receipt.currentMovement
+                  ? `
+              <div class="info-section">
+                <div class="info-block">
+                  <h3>Hareket Bilgileri</h3>
+                  <div class="info-grid">
+                    <span class="label">Hareket Tipi:</span>
+                    <span class="value">${
+                      receipt.currentMovement.movementType
+                    }</span>
+                    ${
+                      receipt.currentMovement.documentType
+                        ? `
+                    <span class="label">Belge Tipi:</span>
+                    <span class="value">${receipt.currentMovement.documentType}</span>`
+                        : ""
+                    }
+                    ${
+                      receipt.currentMovement.description
+                        ? `
+                    <span class="label">Açıklama:</span>
+                    <span class="value">${receipt.currentMovement.description}</span>`
+                        : ""
+                    }
+                    ${
+                      receipt.currentMovement.debtAmount
+                        ? `
+                    <span class="label">Borç:</span>
+                    <span class="value">${receipt.currentMovement.debtAmount.toLocaleString(
+                      "tr-TR",
+                      { minimumFractionDigits: 2 }
+                    )}</span>`
+                        : ""
+                    }
+                    ${
+                      receipt.currentMovement.creditAmount
+                        ? `
+                    <span class="label">Alacak:</span>
+                    <span class="value">${receipt.currentMovement.creditAmount.toLocaleString(
+                      "tr-TR",
+                      { minimumFractionDigits: 2 }
+                    )}</span>`
+                        : ""
+                    }
+                  </div>
                 </div>
               </div>
+              `
+                  : ""
+              }
 
               <div class="footer">
-                <p>
-                  Oluşturan: ${receipt.createdByUser.firstName} ${
-        receipt.createdByUser.lastName
-      } | 
-                  Tarih: ${format(
-                    new Date(receipt.createdAt),
-                    "dd.MM.yyyy HH:mm"
-                  )} | 
-                  Belge No: ${receipt.documentNo}
-                </p>
+                <p>Oluşturan: ${
+                  receipt.createdByUser
+                    ? `${receipt.createdByUser.username} (${
+                        receipt.createdByUser.firstName
+                      } ${receipt.createdByUser.lastName || ""})`
+                    : "Bilinmiyor"
+                }</p>
+                <p>Oluşturma Tarihi: ${format(
+                  new Date(receipt.createdAt),
+                  "dd.MM.yyyy HH:mm"
+                )}</p>
               </div>
             </div>
           </body>
@@ -341,33 +423,26 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
       `);
 
       printWindow.document.close();
+      printWindow.focus();
       printWindow.print();
       printWindow.close();
-
-      toast({
-        title: "Başarılı",
-        description: "Yazdırma işlemi başlatıldı",
-      });
     } catch (error) {
-      console.error("Print error:", error);
+      console.error("Yazdırma hatası:", error);
       toast({
         variant: "destructive",
         title: "Hata",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Yazdırma işlemi başarısız oldu",
+        description: "Yazdırma işlemi sırasında bir hata oluştu",
       });
     }
   }, [receipt, toast]);
 
   const handleDelete = async () => {
-    if (!receipt) return;
+    if (!receiptId) return;
 
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL}/warehouses/receipts/${receipt.id}`,
+        `${process.env.BASE_URL}/warehouses/receipts/${receiptId}`,
         {
           method: "DELETE",
           headers: {
@@ -393,7 +468,10 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error instanceof Error ? error.message : "Fiş silinemedi",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Fiş silinirken bir hata oluştu",
       });
     } finally {
       setLoading(false);
@@ -407,6 +485,8 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
 
       try {
         setLoading(true);
+        setError(null);
+
         const response = await fetch(
           `${process.env.BASE_URL}/warehouses/receipts/${receiptId}`,
           {
@@ -418,23 +498,18 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch receipt details");
+          throw new Error("Fiş detayları alınırken bir hata oluştu");
         }
 
         const data = await response.json();
         setReceipt(data);
-        setError(null);
-      } catch (err) {
+      } catch (error) {
+        console.error("Fetch error:", error);
         setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred while fetching receipt details"
+          error instanceof Error
+            ? error.message
+            : "Fiş detayları alınırken bir hata oluştu"
         );
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch receipt details",
-        });
       } finally {
         setLoading(false);
       }
@@ -443,308 +518,339 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
     if (isOpen && receiptId) {
       fetchReceiptDetail();
     }
-  }, [isOpen, receiptId, toast]);
-
-  if (loading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Fiş Detayı</DialogTitle>
-          </DialogHeader>
-          <div className="flex items-center justify-center h-32">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Loading receipt details...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (error) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Fiş Detayı</DialogTitle>
-          </DialogHeader>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (!receipt) return null;
+  }, [receiptId, isOpen]);
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle className="text-xl font-semibold">
-              Fiş Detayı - {receipt?.documentNo}
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Fiş Detayı</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrint}
+                  disabled={!receipt}
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowDeleteAlert(true)}
+                  disabled={!receipt}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </DialogTitle>
           </DialogHeader>
 
-          {loading ? (
-            <div className="flex items-center justify-center flex-1">
-              <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>Yükleniyor...</span>
-            </div>
-          ) : error ? (
-            <div className="p-6">
+          <ScrollArea className="flex-1">
+            {loading && (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            )}
+
+            {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
-            </div>
-          ) : receipt ? (
-            <ScrollArea className="flex-1">
-              <div className="p-6 space-y-6">
-                {/* Üst Bilgiler */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            )}
+
+            {receipt && (
+              <div className="space-y-4 p-4">
+                <div className="grid grid-cols-2 gap-4">
                   <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-medium">
-                        Fiş Bilgileri
-                      </CardTitle>
+                    <CardHeader>
+                      <CardTitle>Fiş Bilgileri</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Fiş Tipi:</span>
-                        <Badge
-                          variant={
-                            receipt.receiptType === "Giris"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {receipt.receiptType === "Giris"
-                            ? "Giriş Fişi"
-                            : "Çıkış Fişi"}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Fiş Tarihi:
-                        </span>
-                        <span>
-                          {format(
-                            new Date(receipt.receiptDate),
-                            "dd.MM.yyyy HH:mm"
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Şube:</span>
-                        <span>{receipt.branchCode}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Açıklama:</span>
-                        <span>{receipt.description}</span>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Fiş No:</span>
+                          <span>{receipt.documentNo}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Fiş Tipi:</span>
+                          <Badge>
+                            {receipt.receiptType === "Giris"
+                              ? "Giriş Fişi"
+                              : "Çıkış Fişi"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Tarih:</span>
+                          <span>
+                            {format(
+                              new Date(receipt.createdAt),
+                              "dd.MM.yyyy HH:mm"
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Şube:</span>
+                          <span>{receipt.branchCode}</span>
+                        </div>
+                        {receipt.description && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Açıklama:</span>
+                            <span>{receipt.description}</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-medium">
-                        Cari Bilgileri
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Cari Kodu:
-                        </span>
-                        <span>{receipt.current.currentCode}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Cari Adı:</span>
-                        <span>{receipt.current.currentName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Vergi No:</span>
-                        <span>{receipt.current.taxNumber || "-"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Vergi Dairesi:
-                        </span>
-                        <span>{receipt.current.taxOffice || "-"}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {receipt.current && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Cari Bilgileri</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Cari Kodu:</span>
+                            <span>{receipt.current.currentCode}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Cari Adı:</span>
+                            <span>{receipt.current.currentName}</span>
+                          </div>
+                          {receipt.current.priceList && (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="font-medium">
+                                  Fiyat Listesi:
+                                </span>
+                                <span>
+                                  {receipt.current.priceList.priceListName}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="font-medium">
+                                  Para Birimi:
+                                </span>
+                                <span>
+                                  {receipt.current.priceList.currency}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="font-medium">KDV Dahil:</span>
+                                <span>
+                                  {receipt.current.priceList.isVatIncluded
+                                    ? "Evet"
+                                    : "Hayır"}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
 
-                {/* Ürün Tablosu */}
                 <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-base font-medium">
-                        Ürün Detayları
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowDeleteAlert(true)}
-                          disabled={loading}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Sil
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handlePrint}
-                        >
-                          <Printer className="h-4 w-4 mr-2" />
-                          Yazdır
-                        </Button>
-                      </div>
-                    </div>
+                  <CardHeader>
+                    <CardTitle>Ürün Detayları</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Ürün Kodu</TableHead>
-                            <TableHead>Ürün Adı</TableHead>
-                            <TableHead className="text-right">Miktar</TableHead>
-                            <TableHead>Birim</TableHead>
-                            <TableHead className="text-right">
-                              Birim Fiyat
-                            </TableHead>
-                            <TableHead className="text-right">KDV %</TableHead>
-                            <TableHead className="text-right">
-                              İskonto
-                            </TableHead>
-                            <TableHead className="text-right">
-                              Net Tutar
-                            </TableHead>
-                            <TableHead className="text-right">Toplam</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {receipt.receiptDetail.map((detail) => (
-                            <TableRow key={detail.id}>
-                              <TableCell>
-                                {detail.stockCard.productCode}
-                              </TableCell>
-                              <TableCell>
-                                {detail.stockCard.productName}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {detail.quantity}
-                              </TableCell>
-                              <TableCell>{detail.stockCard.unit}</TableCell>
-                              <TableCell className="text-right">
-                                {parseFloat(detail.unitPrice).toLocaleString(
-                                  "tr-TR",
-                                  { minimumFractionDigits: 2 }
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {detail.vatRate}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {detail.discount}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {parseFloat(detail.netPrice).toLocaleString(
-                                  "tr-TR",
-                                  { minimumFractionDigits: 2 }
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {parseFloat(detail.totalPrice).toLocaleString(
-                                  "tr-TR",
-                                  { minimumFractionDigits: 2 }
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          <TableRow className="bg-muted/50 font-medium">
-                            <TableCell colSpan={8} className="text-right">
-                              Genel Toplam:
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ürün Kodu</TableHead>
+                          <TableHead>Ürün Adı</TableHead>
+                          <TableHead>Birim</TableHead>
+                          <TableHead className="text-right">Miktar</TableHead>
+                          <TableHead className="text-right">
+                            Birim Fiyat
+                          </TableHead>
+                          <TableHead className="text-right">KDV %</TableHead>
+                          <TableHead className="text-right">İskonto</TableHead>
+                          <TableHead className="text-right">
+                            Net Tutar
+                          </TableHead>
+                          <TableHead className="text-right">Toplam</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {receipt.receiptDetail.map((detail) => (
+                          <TableRow key={detail.id}>
+                            <TableCell>
+                              {detail.stockCard.productCode}
+                            </TableCell>
+                            <TableCell>
+                              {detail.stockCard.productName}
+                            </TableCell>
+                            <TableCell>{detail.stockCard.unit}</TableCell>
+                            <TableCell className="text-right">
+                              {detail.quantity.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
                             </TableCell>
                             <TableCell className="text-right">
-                              {receipt.receiptDetail
-                                .reduce(
-                                  (sum, detail) =>
-                                    sum + parseFloat(detail.totalPrice),
-                                  0
-                                )
-                                .toLocaleString("tr-TR", {
-                                  minimumFractionDigits: 2,
-                                })}
+                              {detail.unitPrice.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {detail.vatRate.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {detail.discount.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {detail.netPrice.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {detail.totalPrice.toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
                             </TableCell>
                           </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                    <div className="mt-4 flex justify-end gap-6 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <span>Toplam Ürün Kalemi:</span>
-                        <span className="font-medium text-foreground">
-                          {receipt.receiptDetail.length}
-                        </span>
+                        ))}
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="font-medium text-right"
+                          >
+                            Toplam:
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {receipt.receiptDetail
+                              .reduce((sum, detail) => sum + detail.quantity, 0)
+                              .toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                          </TableCell>
+                          <TableCell colSpan={4}></TableCell>
+                          <TableCell className="text-right font-medium">
+                            {receipt.receiptDetail
+                              .reduce(
+                                (sum, detail) => sum + detail.totalPrice,
+                                0
+                              )
+                              .toLocaleString("tr-TR", {
+                                minimumFractionDigits: 2,
+                              })}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {receipt.currentMovement && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Hareket Bilgileri</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Hareket Tipi:</span>
+                          <span>{receipt.currentMovement.movementType}</span>
+                        </div>
+                        {receipt.currentMovement.documentType && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Belge Tipi:</span>
+                            <span>{receipt.currentMovement.documentType}</span>
+                          </div>
+                        )}
+                        {receipt.currentMovement.description && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Açıklama:</span>
+                            <span>{receipt.currentMovement.description}</span>
+                          </div>
+                        )}
+                        {receipt.currentMovement.debtAmount && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Borç:</span>
+                            <span>
+                              {receipt.currentMovement.debtAmount.toLocaleString(
+                                "tr-TR",
+                                { minimumFractionDigits: 2 }
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {receipt.currentMovement.creditAmount && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Alacak:</span>
+                            <span>
+                              {receipt.currentMovement.creditAmount.toLocaleString(
+                                "tr-TR",
+                                { minimumFractionDigits: 2 }
+                              )}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span>Toplam Ürün Adedi:</span>
-                        <span className="font-medium text-foreground">
-                          {receipt.receiptDetail
-                            .reduce(
-                              (sum, detail) =>
-                                sum + parseFloat(detail.quantity),
-                              0
-                            )
-                            .toLocaleString("tr-TR", {
-                              maximumFractionDigits: 2,
-                            })}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Oluşturma Bilgileri</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {receipt.createdByUser && (
+                        <div className="flex justify-between">
+                          <span className="font-medium">Oluşturan:</span>
+                          <span>
+                            {receipt.createdByUser.username} (
+                            {receipt.createdByUser.firstName}{" "}
+                            {receipt.createdByUser.lastName})
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="font-medium">Oluşturma Tarihi:</span>
+                        <span>
+                          {format(
+                            new Date(receipt.createdAt),
+                            "dd.MM.yyyy HH:mm"
+                          )}
                         </span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </ScrollArea>
-          ) : null}
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Fişi Silmek İstediğinize Emin misiniz?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu işlem geri alınamaz. Fiş ve ilgili tüm veriler kalıcı olarak
-              silinecektir.
+              Bu fiş kalıcı olarak silinecektir. Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>İptal</AlertDialogCancel>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={loading}
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-red-500 hover:bg-red-600"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Siliniyor...
-                </>
-              ) : (
-                "Evet, Sil"
-              )}
+              Sil
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
