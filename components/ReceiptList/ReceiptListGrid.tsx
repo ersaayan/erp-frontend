@@ -35,6 +35,7 @@ const receiptTypes = [
 const ReceiptListGrid: React.FC = () => {
   const { toast } = useToast();
   const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(
@@ -43,43 +44,85 @@ const ReceiptListGrid: React.FC = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
-  const fetchReceipts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `${process.env.BASE_URL}/warehouses/receipts`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          credentials: "include",
+  const loadData = useCallback(
+    async (loadOptions: any) => {
+      try {
+        setLoading(true);
+
+        // Sayfalama parametreleri
+        const page = loadOptions.skip
+          ? Math.floor(loadOptions.skip / loadOptions.take) + 1
+          : 1;
+        const limit = loadOptions.take || 20;
+
+        // Filtreleme parametreleri
+        const filter: any = {};
+        if (loadOptions.filter) {
+          loadOptions.filter.forEach((f: any) => {
+            if (f[1] === "contains") {
+              filter[f[0]] = f[2];
+            } else if (f[1] === "=") {
+              filter[f[0]] = f[2];
+            }
+          });
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch receipts");
+        // Tarih filtresi varsa
+        if (filter.receiptDate) {
+          const date = new Date(filter.receiptDate);
+          filter.startDate = date.toISOString().split("T")[0];
+          filter.endDate = date.toISOString().split("T")[0];
+          delete filter.receiptDate;
+        }
+
+        // URL parametrelerini oluştur
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+          ...filter,
+        });
+
+        const response = await fetch(
+          `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch receipts");
+        }
+
+        const result = await response.json();
+        setReceipts(result.data);
+        setTotalCount(result.total);
+        setError(null);
+
+        return {
+          data: result.data,
+          totalCount: result.total,
+        };
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while fetching data"
+        );
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch receipts. Please try again.",
+        });
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      console.log("Fetched receipts:", data);
-      setReceipts(data);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An error occurred while fetching data"
-      );
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch receipts. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   const handleRowDblClick = useCallback((e: any) => {
     setSelectedReceiptId(e.data.id);
@@ -201,7 +244,7 @@ const ReceiptListGrid: React.FC = () => {
       });
 
       // Listeyi yenile
-      fetchReceipts();
+      loadData({ skip: 0, take: 20 });
       // Seçimleri temizle
       setSelectedRowKeys([]);
     } catch (error) {
@@ -216,10 +259,11 @@ const ReceiptListGrid: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedRowKeys, receipts, toast, fetchReceipts]);
+  }, [selectedRowKeys, receipts, toast, loadData]);
 
   useEffect(() => {
-    fetchReceipts();
+    // İlk yükleme için varsayılan parametrelerle çağır
+    loadData({ skip: 0, take: 20 });
     // Debug için eklendi
     console.log("Current receipts state:", {
       receiptsLength: receipts.length,
@@ -227,7 +271,7 @@ const ReceiptListGrid: React.FC = () => {
       loading,
       error,
     });
-  }, [fetchReceipts]);
+  }, [error, loadData, loading, receipts]);
 
   if (loading) {
     return (
@@ -263,7 +307,12 @@ const ReceiptListGrid: React.FC = () => {
       </div>
 
       <DataGrid
-        dataSource={receipts}
+        dataSource={{
+          load: loadData,
+          type: "custom",
+          totalCount: totalCount,
+        }}
+        remoteOperations={true}
         showBorders={true}
         showRowLines={true}
         showColumnLines={true}
@@ -276,13 +325,7 @@ const ReceiptListGrid: React.FC = () => {
         onRowDblClick={handleRowDblClick}
         height="calc(100vh - 300px)"
         selectedRowKeys={selectedRowKeys}
-        onSelectionChanged={(e) => {
-          console.log("DataGrid props:", {
-            dataSource: receipts,
-            selectedRowKeys: e.selectedRowKeys,
-          });
-          setSelectedRowKeys(e.selectedRowKeys);
-        }}
+        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
       >
         <StateStoring
           enabled={true}
@@ -297,7 +340,7 @@ const ReceiptListGrid: React.FC = () => {
         <Grouping autoExpandAll={false} />
         <ColumnChooser enabled={true} mode="select" />
         <ColumnFixing enabled={true} />
-        <Scrolling mode="standard" />
+        <Scrolling mode="virtual" />
         <Paging defaultPageSize={20} />
         <SearchPanel visible={true} width={240} placeholder="Ara..." />
 
