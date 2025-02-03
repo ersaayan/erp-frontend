@@ -20,6 +20,7 @@ import DataGrid, {
   LoadPanel,
   Lookup,
 } from "devextreme-react/data-grid";
+import CustomStore from "devextreme/data/custom_store";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Receipt } from "./types";
@@ -45,96 +46,91 @@ const ReceiptListGrid: React.FC = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
-  const dataSource = useMemo(
-    () => ({
-      store: {
-        type: "custom",
-        load: async (loadOptions: any) => {
-          try {
-            setLoading(true);
+  const dataSource = useMemo(() => {
+    return new CustomStore({
+      key: "id",
+      load: async (loadOptions: any) => {
+        try {
+          setLoading(true);
 
-            // Sayfalama parametreleri
-            const page = loadOptions.skip
-              ? Math.floor(loadOptions.skip / loadOptions.take) + 1
-              : 1;
-            const limit = loadOptions.take || 20;
+          // Sayfalama parametreleri
+          const page = loadOptions.skip
+            ? Math.floor(loadOptions.skip / loadOptions.take) + 1
+            : 1;
+          const limit = loadOptions.take || 20;
 
-            // Filtreleme parametreleri
-            const filter: any = {};
-            if (loadOptions.filter) {
-              loadOptions.filter.forEach((f: any) => {
-                if (f[1] === "contains") {
-                  filter[f[0]] = f[2];
-                } else if (f[1] === "=") {
-                  filter[f[0]] = f[2];
-                }
-              });
-            }
-
-            // Tarih filtresi varsa
-            if (filter.receiptDate) {
-              const date = new Date(filter.receiptDate);
-              filter.startDate = date.toISOString().split("T")[0];
-              filter.endDate = date.toISOString().split("T")[0];
-              delete filter.receiptDate;
-            }
-
-            // URL parametrelerini oluştur
-            const params = new URLSearchParams({
-              page: page.toString(),
-              limit: limit.toString(),
-              ...filter,
-            });
-
-            const response = await fetch(
-              `${
-                process.env.BASE_URL
-              }/warehouses/receipts?${params.toString()}`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                },
-                credentials: "include",
+          // Filtreleme parametreleri
+          const filter: any = {};
+          if (loadOptions.filter) {
+            loadOptions.filter.forEach((f: any) => {
+              if (f[1] === "contains") {
+                filter[f[0]] = f[2];
+              } else if (f[1] === "=") {
+                filter[f[0]] = f[2];
               }
-            );
-
-            if (!response.ok) {
-              throw new Error("Failed to fetch receipts");
-            }
-
-            const result = await response.json();
-            setReceipts(result.data);
-            setTotalCount(result.total);
-            setError(null);
-
-            return {
-              data: result.data,
-              totalCount: result.total,
-            };
-          } catch (err) {
-            setError(
-              err instanceof Error
-                ? err.message
-                : "An error occurred while fetching data"
-            );
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to fetch receipts. Please try again.",
             });
-            return {
-              data: [],
-              totalCount: 0,
-            };
-          } finally {
-            setLoading(false);
           }
-        },
+
+          // Tarih filtresi varsa
+          if (filter.receiptDate) {
+            const date = new Date(filter.receiptDate);
+            filter.startDate = date.toISOString().split("T")[0];
+            filter.endDate = date.toISOString().split("T")[0];
+            delete filter.receiptDate;
+          }
+
+          // URL parametrelerini oluştur
+          const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+            ...filter,
+          });
+
+          const response = await fetch(
+            `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch receipts");
+          }
+
+          const result = await response.json();
+          setReceipts(result.data);
+          setTotalCount(result.total);
+          setError(null);
+
+          return {
+            data: result.data,
+            totalCount: result.total,
+          };
+        } catch (err) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "An error occurred while fetching data"
+          );
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch receipts. Please try again.",
+          });
+          return {
+            data: [],
+            totalCount: 0,
+          };
+        } finally {
+          setLoading(false);
+        }
       },
-    }),
-    [toast]
-  );
+    });
+  }, [toast]);
 
   const handleRowDblClick = useCallback((e: any) => {
     setSelectedReceiptId(e.data.id);
@@ -256,7 +252,7 @@ const ReceiptListGrid: React.FC = () => {
       });
 
       // Listeyi yenile
-      dataSource.store.load({ skip: 0, take: 20 });
+      dataSource.load({ skip: 0, take: 20 });
       // Seçimleri temizle
       setSelectedRowKeys([]);
     } catch (error) {
@@ -275,8 +271,8 @@ const ReceiptListGrid: React.FC = () => {
 
   // İlk yükleme için useEffect
   useEffect(() => {
-    dataSource.store.load({ skip: 0, take: 20, isInitialLoad: true });
-  }, [dataSource.store]);
+    dataSource.load({ skip: 0, take: 20, isInitialLoad: true });
+  }, [dataSource]);
 
   // Debug için useEffect - gerekirse kaldırılabilir
   useEffect(() => {
@@ -360,7 +356,7 @@ const ReceiptListGrid: React.FC = () => {
         <Grouping autoExpandAll={false} />
         <ColumnChooser enabled={true} mode="select" />
         <ColumnFixing enabled={true} />
-        <Scrolling mode="virtual" />
+        <Scrolling mode="virtual" rowRenderingMode="virtual" />
         <Paging defaultPageSize={20} />
         <SearchPanel visible={true} width={240} placeholder="Ara..." />
 
