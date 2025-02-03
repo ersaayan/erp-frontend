@@ -13,9 +13,10 @@ import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, Maximize2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { printInvoice } from "@/lib/services/print/invoice";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -36,6 +37,8 @@ const SalesInvoice: React.FC = () => {
   const [payments, setPayments] = useState<PaymentDetails[]>([]);
   const { loading, handleSubmit, handleDelete } = useSalesInvoice();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
+  const [isExpensesModalOpen, setIsExpensesModalOpen] = useState(false);
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
@@ -153,6 +156,78 @@ const SalesInvoice: React.FC = () => {
     }
   }, []);
 
+  // Form verilerini localStorage'a kaydetme
+  useEffect(() => {
+    if (
+      invoiceData.current ||
+      products.length > 0 ||
+      expenses.length > 0 ||
+      payments.length > 0
+    ) {
+      const formData = {
+        invoiceData,
+        products,
+        expenses,
+        payments,
+      };
+      localStorage.setItem("salesInvoiceFormData", JSON.stringify(formData));
+    }
+  }, [invoiceData, products, expenses, payments]);
+
+  // Form verilerini localStorage'dan yükleme
+  useEffect(() => {
+    const savedFormData = localStorage.getItem("salesInvoiceFormData");
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+
+        // Tarihleri Date objelerine çevirme
+        if (parsedData.invoiceData) {
+          parsedData.invoiceData.invoiceDate = new Date(
+            parsedData.invoiceData.invoiceDate
+          );
+          parsedData.invoiceData.paymentDate = new Date(
+            parsedData.invoiceData.paymentDate
+          );
+          setInvoiceData(parsedData.invoiceData);
+        }
+
+        if (parsedData.products) {
+          setProducts(parsedData.products);
+        }
+
+        if (parsedData.expenses) {
+          setExpenses(parsedData.expenses);
+        }
+
+        if (parsedData.payments) {
+          setPayments(parsedData.payments);
+        }
+      } catch (error) {
+        console.error("Form verilerini yüklerken hata oluştu:", error);
+      }
+    }
+  }, []);
+
+  // Form gönderildiğinde veya silindiğinde localStorage'ı temizleme
+  const handleFormSubmit = async () => {
+    try {
+      await handleSubmit(invoiceData, products, expenses, payments);
+      localStorage.removeItem("salesInvoiceFormData");
+    } catch (error) {
+      console.error("Form gönderilirken hata oluştu:", error);
+    }
+  };
+
+  const handleFormDelete = async () => {
+    try {
+      await handleDelete();
+      localStorage.removeItem("salesInvoiceFormData");
+    } catch (error) {
+      console.error("Form silinirken hata oluştu:", error);
+    }
+  };
+
   const handleSave = async () => {
     const result = await handleSubmit(
       invoiceData,
@@ -162,6 +237,7 @@ const SalesInvoice: React.FC = () => {
       isEditMode
     );
     if (result.success) {
+      // Handle successful save
       console.log("Invoice saved successfully");
     }
   };
@@ -235,7 +311,7 @@ const SalesInvoice: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <h2 className="text-2xl font-bold">
           {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
         </h2>
@@ -285,58 +361,126 @@ const SalesInvoice: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden">
-        <div className="flex flex-col flex-1 gap-4 overflow-auto">
-          <Card className="p-4">
-            <CustomerSection
-              customer={invoiceData.current}
-              onCustomerChange={(customer) =>
-                setInvoiceData((prev) => ({ ...prev, current: customer }))
-              }
-              isEditMode={isEditMode}
-            />
-          </Card>
+      <div className="grid grid-cols-[1fr_400px] gap-4 flex-1 min-h-0">
+        <div className="flex flex-col gap-4 overflow-hidden">
+          <div className="grid grid-cols-2 gap-4 shrink-0">
+            <Card className="p-4">
+              <CustomerSection
+                customer={invoiceData.current}
+                onCustomerChange={(customer) =>
+                  setInvoiceData((prev) => ({ ...prev, current: customer }))
+                }
+                isEditMode={isEditMode}
+              />
+            </Card>
 
-          <Card className="p-4">
-            <InvoiceForm
-              data={invoiceData}
-              onChange={(data) => setInvoiceData(data)}
-              isEditMode={isEditMode}
-            />
-          </Card>
+            <Card className="p-4">
+              <InvoiceForm
+                data={invoiceData}
+                onChange={(data) => setInvoiceData(data)}
+                isEditMode={isEditMode}
+              />
+            </Card>
+          </div>
 
-          <Card className="flex-1 p-4 mt-4">
-            <ExpenseSection
+          <div className="grid grid-rows-2 gap-4 flex-1">
+            <Card className="p-4 overflow-hidden flex flex-col h-[calc(25vh)]">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Ürünler</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsProductsModalOpen(true)}
+                >
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                  Tam Ekran
+                </Button>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <ProductsSection
+                  products={products}
+                  onProductsChange={setProducts}
+                  current={invoiceData.current}
+                  warehouseId={invoiceData.warehouseId}
+                />
+              </div>
+            </Card>
+
+            <Card className="p-4 overflow-hidden flex flex-col h-[calc(25vh)]">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Masraflar</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsExpensesModalOpen(true)}
+                >
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                  Tam Ekran
+                </Button>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <ExpenseSection
+                  expenses={expenses}
+                  onExpensesChange={setExpenses}
+                  current={invoiceData.current}
+                />
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Card className="flex-1 p-4">
+            <PaymentSection
+              products={products}
               expenses={expenses}
-              onExpensesChange={setExpenses}
+              payments={payments}
+              onPaymentsChange={setPayments}
+              onSave={handleSave}
+              onDelete={isEditMode ? handleInvoiceDelete : undefined}
+              loading={loading}
+              isEditMode={isEditMode}
               current={invoiceData.current}
             />
           </Card>
 
-          <Card className="flex-1 p-4 overflow-hidden">
+          <div className="flex justify-end gap-2 shrink-0">
+            <Button onClick={handleFormSubmit}>Kaydet</Button>
+            <Button onClick={handleFormDelete}>Sil</Button>
+          </div>
+        </div>
+      </div>
+
+      <Dialog open={isProductsModalOpen} onOpenChange={setIsProductsModalOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <DialogTitle className="text-2xl font-bold">Ürünler</DialogTitle>
+          </div>
+          <div className="flex-1 overflow-hidden">
             <ProductsSection
               products={products}
               onProductsChange={setProducts}
               current={invoiceData.current}
               warehouseId={invoiceData.warehouseId}
             />
-          </Card>
-        </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        <Card className="w-[400px] p-4">
-          <PaymentSection
-            products={products}
-            expenses={expenses}
-            payments={payments}
-            onPaymentsChange={setPayments}
-            onSave={handleSave}
-            onDelete={isEditMode ? handleInvoiceDelete : undefined}
-            loading={loading}
-            isEditMode={isEditMode}
-            current={invoiceData.current}
-          />
-        </Card>
-      </div>
+      <Dialog open={isExpensesModalOpen} onOpenChange={setIsExpensesModalOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <DialogTitle className="text-2xl font-bold">Masraflar</DialogTitle>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ExpenseSection
+              expenses={expenses}
+              onExpensesChange={setExpenses}
+              current={invoiceData.current}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
