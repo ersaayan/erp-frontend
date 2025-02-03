@@ -8,7 +8,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, Printer, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Loader2,
+  Printer,
+  Trash2,
+  FileText,
+  User,
+  Package,
+  ArrowLeftRight,
+  Info,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ReceiptDetailType } from "./types";
 import {
@@ -34,6 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface ReceiptDetailDialogProps {
   receiptId: string | null;
@@ -523,27 +534,48 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle className="flex items-center justify-between">
-              <span>Fiş Detayı</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-semibold">
+                  Fiş Detayı - {receipt?.documentNo}
+                </span>
+                {receipt && (
+                  <Badge
+                    className={cn(
+                      "text-sm px-3 py-1",
+                      receipt.receiptType === "Giris"
+                        ? "bg-green-100 text-green-700 hover:bg-green-100"
+                        : "bg-amber-100 text-amber-700 hover:bg-amber-100"
+                    )}
+                  >
+                    {receipt.receiptType === "Giris"
+                      ? "Giriş Fişi"
+                      : "Çıkış Fişi"}
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={handlePrint}
                   disabled={!receipt}
+                  className="gap-2"
                 >
                   <Printer className="h-4 w-4" />
+                  Yazdır
                 </Button>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={() => setShowDeleteAlert(true)}
                   disabled={!receipt}
-                  className="bg-red-500 hover:bg-red-600 text-white"
+                  className="bg-red-500 hover:bg-red-600 text-white gap-2"
                 >
                   <Trash2 className="h-4 w-4" />
+                  Sil
                 </Button>
               </div>
             </DialogTitle>
@@ -551,250 +583,306 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
 
           <ScrollArea className="flex-1">
             {loading && (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="flex items-center justify-center p-8">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    Yükleniyor...
+                  </span>
+                </div>
               </div>
             )}
 
             {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="p-6">
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </div>
             )}
 
             {receipt && (
-              <div className="space-y-4 p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Fiş Bilgileri</CardTitle>
+              <div className="space-y-6 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        Fiş Bilgileri
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">Fiş No:</span>
-                          <span>{receipt.documentNo}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Fiş Tipi:</span>
-                          <Badge>
-                            {receipt.receiptType === "Giris"
-                              ? "Giriş Fişi"
-                              : "Çıkış Fişi"}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Tarih:</span>
-                          <span>
-                            {format(
-                              new Date(receipt.createdAt),
-                              "dd.MM.yyyy HH:mm"
-                            )}
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center py-1 border-b">
+                        <span className="text-muted-foreground">Fiş No:</span>
+                        <span className="font-medium">
+                          {receipt.documentNo}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b">
+                        <span className="text-muted-foreground">Tarih:</span>
+                        <span className="font-medium">
+                          {format(
+                            new Date(receipt.createdAt),
+                            "dd.MM.yyyy HH:mm"
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b">
+                        <span className="text-muted-foreground">Şube:</span>
+                        <span className="font-medium">
+                          {receipt.branchCode}
+                        </span>
+                      </div>
+                      {receipt.description && (
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">
+                            Açıklama:
+                          </span>
+                          <span className="font-medium">
+                            {receipt.description}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Şube:</span>
-                          <span>{receipt.branchCode}</span>
-                        </div>
-                        {receipt.description && (
-                          <div className="flex justify-between">
-                            <span className="font-medium">Açıklama:</span>
-                            <span>{receipt.description}</span>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </CardContent>
                   </Card>
 
                   {receipt.current && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Cari Bilgileri</CardTitle>
+                    <Card className="shadow-sm">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          Cari Bilgileri
+                        </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="font-medium">Cari Kodu:</span>
-                            <span>{receipt.current.currentCode}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium">Cari Adı:</span>
-                            <span>{receipt.current.currentName}</span>
-                          </div>
-                          {receipt.current.priceList && (
-                            <>
-                              <div className="flex justify-between">
-                                <span className="font-medium">
-                                  Fiyat Listesi:
-                                </span>
-                                <span>
-                                  {receipt.current.priceList.priceListName}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">
-                                  Para Birimi:
-                                </span>
-                                <span>
-                                  {receipt.current.priceList.currency}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="font-medium">KDV Dahil:</span>
-                                <span>
-                                  {receipt.current.priceList.isVatIncluded
-                                    ? "Evet"
-                                    : "Hayır"}
-                                </span>
-                              </div>
-                            </>
-                          )}
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">
+                            Cari Kodu:
+                          </span>
+                          <span className="font-medium">
+                            {receipt.current.currentCode}
+                          </span>
                         </div>
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">
+                            Cari Adı:
+                          </span>
+                          <span className="font-medium">
+                            {receipt.current.currentName}
+                          </span>
+                        </div>
+                        {receipt.current.priceList && (
+                          <>
+                            <div className="flex justify-between items-center py-1 border-b">
+                              <span className="text-muted-foreground">
+                                Fiyat Listesi:
+                              </span>
+                              <span className="font-medium">
+                                {receipt.current.priceList.priceListName}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-1 border-b">
+                              <span className="text-muted-foreground">
+                                Para Birimi:
+                              </span>
+                              <span className="font-medium">
+                                {receipt.current.priceList.currency}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-1 border-b">
+                              <span className="text-muted-foreground">
+                                KDV Dahil:
+                              </span>
+                              <Badge
+                                variant={
+                                  receipt.current.priceList.isVatIncluded
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {receipt.current.priceList.isVatIncluded
+                                  ? "Evet"
+                                  : "Hayır"}
+                              </Badge>
+                            </div>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
                   )}
                 </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Ürün Detayları</CardTitle>
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      Ürün Detayları
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ürün Kodu</TableHead>
-                          <TableHead>Ürün Adı</TableHead>
-                          <TableHead>Birim</TableHead>
-                          <TableHead className="text-right">Miktar</TableHead>
-                          <TableHead className="text-right">
-                            Birim Fiyat
-                          </TableHead>
-                          <TableHead className="text-right">KDV %</TableHead>
-                          <TableHead className="text-right">İskonto</TableHead>
-                          <TableHead className="text-right">
-                            Net Tutar
-                          </TableHead>
-                          <TableHead className="text-right">Toplam</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {receipt.receiptDetail.map((detail) => (
-                          <TableRow key={detail.id}>
-                            <TableCell>
-                              {detail.stockCard.productCode}
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead>Ürün Kodu</TableHead>
+                            <TableHead>Ürün Adı</TableHead>
+                            <TableHead>Birim</TableHead>
+                            <TableHead className="text-right">Miktar</TableHead>
+                            <TableHead className="text-right">
+                              Birim Fiyat
+                            </TableHead>
+                            <TableHead className="text-right">KDV %</TableHead>
+                            <TableHead className="text-right">
+                              İskonto
+                            </TableHead>
+                            <TableHead className="text-right">
+                              Net Tutar
+                            </TableHead>
+                            <TableHead className="text-right">Toplam</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {receipt.receiptDetail.map((detail) => (
+                            <TableRow
+                              key={detail.id}
+                              className="hover:bg-muted/50"
+                            >
+                              <TableCell className="font-medium">
+                                {detail.stockCard.productCode}
+                              </TableCell>
+                              <TableCell>
+                                {detail.stockCard.productName}
+                              </TableCell>
+                              <TableCell>{detail.stockCard.unit}</TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {detail.quantity.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {detail.unitPrice.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {detail.vatRate.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {detail.discount.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {detail.netPrice.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right font-medium tabular-nums">
+                                {detail.totalPrice.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/50 font-medium">
+                            <TableCell colSpan={3} className="text-right">
+                              Toplam:
                             </TableCell>
-                            <TableCell>
-                              {detail.stockCard.productName}
+                            <TableCell className="text-right tabular-nums">
+                              {receipt.receiptDetail
+                                .reduce(
+                                  (sum, detail) => sum + detail.quantity,
+                                  0
+                                )
+                                .toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
                             </TableCell>
-                            <TableCell>{detail.stockCard.unit}</TableCell>
-                            <TableCell className="text-right">
-                              {detail.quantity.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {detail.unitPrice.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {detail.vatRate.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {detail.discount.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {detail.netPrice.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {detail.totalPrice.toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
+                            <TableCell colSpan={4}></TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {receipt.receiptDetail
+                                .reduce(
+                                  (sum, detail) => sum + detail.totalPrice,
+                                  0
+                                )
+                                .toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
                             </TableCell>
                           </TableRow>
-                        ))}
-                        <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="font-medium text-right"
-                          >
-                            Toplam:
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {receipt.receiptDetail
-                              .reduce((sum, detail) => sum + detail.quantity, 0)
-                              .toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                          </TableCell>
-                          <TableCell colSpan={4}></TableCell>
-                          <TableCell className="text-right font-medium">
-                            {receipt.receiptDetail
-                              .reduce(
-                                (sum, detail) => sum + detail.totalPrice,
-                                0
-                              )
-                              .toLocaleString("tr-TR", {
-                                minimumFractionDigits: 2,
-                              })}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                        </TableBody>
+                      </Table>
+                    </div>
                   </CardContent>
                 </Card>
 
                 {receipt.currentMovement && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Hareket Bilgileri</CardTitle>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                        Hareket Bilgileri
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="font-medium">Hareket Tipi:</span>
-                          <span>{receipt.currentMovement.movementType}</span>
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center py-1 border-b">
+                        <span className="text-muted-foreground">
+                          Hareket Tipi:
+                        </span>
+                        <Badge variant="outline">
+                          {receipt.currentMovement.movementType}
+                        </Badge>
+                      </div>
+                      {receipt.currentMovement.documentType && (
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">
+                            Belge Tipi:
+                          </span>
+                          <span className="font-medium">
+                            {receipt.currentMovement.documentType}
+                          </span>
                         </div>
-                        {receipt.currentMovement.documentType && (
-                          <div className="flex justify-between">
-                            <span className="font-medium">Belge Tipi:</span>
-                            <span>{receipt.currentMovement.documentType}</span>
-                          </div>
-                        )}
-                        {receipt.currentMovement.description && (
-                          <div className="flex justify-between">
-                            <span className="font-medium">Açıklama:</span>
-                            <span>{receipt.currentMovement.description}</span>
-                          </div>
-                        )}
+                      )}
+                      {receipt.currentMovement.description && (
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">
+                            Açıklama:
+                          </span>
+                          <span className="font-medium">
+                            {receipt.currentMovement.description}
+                          </span>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-4 mt-4">
                         {receipt.currentMovement.debtAmount && (
-                          <div className="flex justify-between">
-                            <span className="font-medium">Borç:</span>
-                            <span>
+                          <div className="p-4 rounded-lg bg-red-50">
+                            <div className="text-sm text-red-600 mb-1">
+                              Borç
+                            </div>
+                            <div className="text-lg font-semibold text-red-700 tabular-nums">
                               {receipt.currentMovement.debtAmount.toLocaleString(
                                 "tr-TR",
-                                { minimumFractionDigits: 2 }
+                                {
+                                  minimumFractionDigits: 2,
+                                }
                               )}
-                            </span>
+                            </div>
                           </div>
                         )}
                         {receipt.currentMovement.creditAmount && (
-                          <div className="flex justify-between">
-                            <span className="font-medium">Alacak:</span>
-                            <span>
+                          <div className="p-4 rounded-lg bg-green-50">
+                            <div className="text-sm text-green-600 mb-1">
+                              Alacak
+                            </div>
+                            <div className="text-lg font-semibold text-green-700 tabular-nums">
                               {receipt.currentMovement.creditAmount.toLocaleString(
                                 "tr-TR",
                                 { minimumFractionDigits: 2 }
                               )}
-                            </span>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -802,31 +890,40 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   </Card>
                 )}
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Oluşturma Bilgileri</CardTitle>
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      Oluşturma Bilgileri
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {receipt.createdByUser && (
-                        <div className="flex justify-between">
-                          <span className="font-medium">Oluşturan:</span>
-                          <span>
-                            {receipt.createdByUser.username} (
-                            {receipt.createdByUser.firstName}{" "}
+                  <CardContent className="space-y-2 text-sm">
+                    {receipt.createdByUser && (
+                      <div className="flex justify-between items-center py-1 border-b">
+                        <span className="text-muted-foreground">
+                          Oluşturan:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-normal">
+                            {receipt.createdByUser.username}
+                          </Badge>
+                          <span className="font-medium">
+                            ({receipt.createdByUser.firstName}{" "}
                             {receipt.createdByUser.lastName})
                           </span>
                         </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="font-medium">Oluşturma Tarihi:</span>
-                        <span>
-                          {format(
-                            new Date(receipt.createdAt),
-                            "dd.MM.yyyy HH:mm"
-                          )}
-                        </span>
                       </div>
+                    )}
+                    <div className="flex justify-between items-center py-1 border-b">
+                      <span className="text-muted-foreground">
+                        Oluşturma Tarihi:
+                      </span>
+                      <span className="font-medium">
+                        {format(
+                          new Date(receipt.createdAt),
+                          "dd.MM.yyyy HH:mm"
+                        )}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -839,18 +936,21 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu fiş kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+            <AlertDialogTitle className="text-lg font-semibold text-red-600">
+              Fişi Silmek İstediğinize Emin misiniz?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Bu işlem geri alınamaz. Fiş ve ilgili tüm veriler kalıcı olarak
+              silinecektir.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-red-500 hover:bg-red-600 text-white"
             >
-              Sil
+              Evet, Sil
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
