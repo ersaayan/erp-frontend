@@ -534,7 +534,10 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col p-0">
+        <DialogContent
+          className="max-w-7xl max-h-[90vh] flex flex-col p-0 overflow-hidden"
+          aria-describedby="receipt-detail-description"
+        >
           <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -560,16 +563,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handlePrint}
-                  disabled={!receipt}
-                  className="gap-2"
-                >
-                  <Printer className="h-4 w-4" />
-                  Yazdır
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() => setShowDeleteAlert(true)}
                   disabled={!receipt}
                   className="bg-red-500 hover:bg-red-600 text-white gap-2"
@@ -577,11 +570,24 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   <Trash2 className="h-4 w-4" />
                   Sil
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrint}
+                  disabled={!receipt}
+                  className="gap-2"
+                >
+                  <Printer className="h-4 w-4" />
+                  Yazdır
+                </Button>
               </div>
             </DialogTitle>
+            <p id="receipt-detail-description" className="sr-only">
+              Fiş detaylarını görüntüleme ve düzenleme modalı
+            </p>
           </DialogHeader>
 
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-auto">
             {loading && (
               <div className="flex items-center justify-center p-8">
                 <div className="flex flex-col items-center gap-2">
@@ -794,22 +800,26 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                             <TableCell className="text-right tabular-nums">
                               {receipt.receiptDetail
                                 .reduce(
-                                  (sum, detail) => sum + detail.quantity,
+                                  (sum, detail) =>
+                                    sum + Number(detail.quantity),
                                   0
                                 )
                                 .toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
                                 })}
                             </TableCell>
                             <TableCell colSpan={4}></TableCell>
                             <TableCell className="text-right tabular-nums">
                               {receipt.receiptDetail
                                 .reduce(
-                                  (sum, detail) => sum + detail.totalPrice,
+                                  (sum, detail) =>
+                                    sum + Number(detail.totalPrice),
                                   0
                                 )
                                 .toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
                                 })}
                             </TableCell>
                           </TableRow>
