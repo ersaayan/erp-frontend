@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import DataGrid, {
   Column,
   FilterRow,
@@ -43,94 +44,96 @@ const ReceiptListGrid: React.FC = () => {
   );
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  const loadData = useCallback(
-    async (loadOptions: any) => {
-      if (!isInitialized && !loadOptions.isInitialLoad) {
-        return;
-      }
+  const dataSource = useMemo(
+    () => ({
+      store: {
+        type: "custom",
+        load: async (loadOptions: any) => {
+          try {
+            setLoading(true);
 
-      try {
-        setLoading(true);
+            // Sayfalama parametreleri
+            const page = loadOptions.skip
+              ? Math.floor(loadOptions.skip / loadOptions.take) + 1
+              : 1;
+            const limit = loadOptions.take || 20;
 
-        // Sayfalama parametreleri
-        const page = loadOptions.skip
-          ? Math.floor(loadOptions.skip / loadOptions.take) + 1
-          : 1;
-        const limit = loadOptions.take || 20;
-
-        // Filtreleme parametreleri
-        const filter: any = {};
-        if (loadOptions.filter) {
-          loadOptions.filter.forEach((f: any) => {
-            if (f[1] === "contains") {
-              filter[f[0]] = f[2];
-            } else if (f[1] === "=") {
-              filter[f[0]] = f[2];
+            // Filtreleme parametreleri
+            const filter: any = {};
+            if (loadOptions.filter) {
+              loadOptions.filter.forEach((f: any) => {
+                if (f[1] === "contains") {
+                  filter[f[0]] = f[2];
+                } else if (f[1] === "=") {
+                  filter[f[0]] = f[2];
+                }
+              });
             }
-          });
-        }
 
-        // Tarih filtresi varsa
-        if (filter.receiptDate) {
-          const date = new Date(filter.receiptDate);
-          filter.startDate = date.toISOString().split("T")[0];
-          filter.endDate = date.toISOString().split("T")[0];
-          delete filter.receiptDate;
-        }
+            // Tarih filtresi varsa
+            if (filter.receiptDate) {
+              const date = new Date(filter.receiptDate);
+              filter.startDate = date.toISOString().split("T")[0];
+              filter.endDate = date.toISOString().split("T")[0];
+              delete filter.receiptDate;
+            }
 
-        // URL parametrelerini oluştur
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: limit.toString(),
-          ...filter,
-        });
+            // URL parametrelerini oluştur
+            const params = new URLSearchParams({
+              page: page.toString(),
+              limit: limit.toString(),
+              ...filter,
+            });
 
-        const response = await fetch(
-          `${process.env.BASE_URL}/warehouses/receipts?${params.toString()}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            },
-            credentials: "include",
+            const response = await fetch(
+              `${
+                process.env.BASE_URL
+              }/warehouses/receipts?${params.toString()}`,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                },
+                credentials: "include",
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch receipts");
+            }
+
+            const result = await response.json();
+            setReceipts(result.data);
+            setTotalCount(result.total);
+            setError(null);
+
+            return {
+              data: result.data,
+              totalCount: result.total,
+            };
+          } catch (err) {
+            setError(
+              err instanceof Error
+                ? err.message
+                : "An error occurred while fetching data"
+            );
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to fetch receipts. Please try again.",
+            });
+            return {
+              data: [],
+              totalCount: 0,
+            };
+          } finally {
+            setLoading(false);
           }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch receipts");
-        }
-
-        const result = await response.json();
-        setReceipts(result.data);
-        setTotalCount(result.total);
-        setError(null);
-
-        if (!isInitialized) {
-          setIsInitialized(true);
-        }
-
-        return {
-          data: result.data,
-          totalCount: result.total,
-        };
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred while fetching data"
-        );
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch receipts. Please try again.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [toast, isInitialized]
+        },
+      },
+    }),
+    [toast]
   );
 
   const handleRowDblClick = useCallback((e: any) => {
@@ -253,7 +256,7 @@ const ReceiptListGrid: React.FC = () => {
       });
 
       // Listeyi yenile
-      loadData({ skip: 0, take: 20 });
+      dataSource.store.load({ skip: 0, take: 20 });
       // Seçimleri temizle
       setSelectedRowKeys([]);
     } catch (error) {
@@ -268,18 +271,16 @@ const ReceiptListGrid: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedRowKeys, receipts, toast, loadData]);
+  }, [selectedRowKeys, receipts, toast, dataSource]);
 
   // İlk yükleme için useEffect
   useEffect(() => {
-    if (!isInitialized) {
-      loadData({ skip: 0, take: 20, isInitialLoad: true });
-    }
-  }, [isInitialized, loadData]);
+    dataSource.store.load({ skip: 0, take: 20, isInitialLoad: true });
+  }, [dataSource.store]);
 
   // Debug için useEffect - gerekirse kaldırılabilir
   useEffect(() => {
-    if (isInitialized) {
+    if (receipts.length > 0) {
       console.log("Current receipts state:", {
         receiptsLength: receipts.length,
         firstReceipt: receipts[0],
@@ -287,7 +288,7 @@ const ReceiptListGrid: React.FC = () => {
         error,
       });
     }
-  }, [receipts, loading, error, isInitialized]);
+  }, [receipts, loading, error]);
 
   if (loading) {
     return (
@@ -323,13 +324,15 @@ const ReceiptListGrid: React.FC = () => {
       </div>
 
       <DataGrid
-        key={isInitialized ? "initialized" : "loading"}
-        dataSource={{
-          load: loadData,
-          type: "custom",
-          totalCount: totalCount,
+        dataSource={dataSource}
+        remoteOperations={{
+          paging: true,
+          filtering: true,
+          sorting: false,
+          grouping: false,
+          summary: false,
+          groupPaging: false,
         }}
-        remoteOperations={true}
         showBorders={true}
         showRowLines={true}
         showColumnLines={true}
