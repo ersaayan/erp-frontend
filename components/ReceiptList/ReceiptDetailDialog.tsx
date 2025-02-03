@@ -74,14 +74,13 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
         throw new Error("Yazdırma penceresi açılamadı");
       }
 
-      // Format the receipt details for printing
       const totalAmount = receipt.receiptDetail.reduce(
-        (sum, detail) => sum + detail.totalPrice,
+        (sum, detail) => sum + Number(detail.totalPrice),
         0
       );
 
       const totalQuantity = receipt.receiptDetail.reduce(
-        (sum, detail) => sum + detail.quantity,
+        (sum, detail) => sum + Number(detail.quantity),
         0
       );
 
@@ -89,209 +88,196 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
         <html>
           <head>
             <title>Fiş - ${receipt.documentNo}</title>
+            <meta charset="UTF-8">
             <style>
-              @page {
-                size: A4;
-                margin: 10mm;
+              @media print {
+                @page {
+                  size: A4;
+                  margin: 10mm;
+                }
               }
               
               body {
-                font-family: 'Segoe UI', Arial, sans-serif;
+                font-family: system-ui, -apple-system, sans-serif;
                 margin: 0;
-                padding: 0;
-                font-size: 9pt;
+                padding: 20px;
+                font-size: 11px;
                 line-height: 1.3;
                 color: #333;
+                font-weight: 500;
               }
               
               .container {
-                max-width: 190mm;
+                max-width: 210mm;
                 margin: 0 auto;
               }
               
               .header {
                 text-align: center;
-                padding: 10px 0;
-                border-bottom: 2px solid #333;
-                margin-bottom: 10px;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #333;
               }
               
-              .header h2 {
+              .header h1 {
                 margin: 0;
-                font-size: 14pt;
-                font-weight: bold;
+                font-size: 18px;
+                font-weight: 700;
               }
               
-              .header p {
-                margin: 5px 0 0;
-                font-size: 10pt;
-                color: #666;
-              }
-              
-              .info-section {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10px;
-                padding: 5px;
-                background: #f8f8f8;
+              .header .badge {
+                display: inline-block;
+                padding: 3px 8px;
                 border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-top: 6px;
               }
               
-              .info-block {
-                flex: 1;
-                padding: 0 10px;
+              .badge.in {
+                background: #dcfce7;
+                color: #166534;
               }
               
-              .info-block h3 {
-                margin: 0 0 5px;
-                font-size: 10pt;
-                color: #444;
-                border-bottom: 1px solid #ddd;
-                padding-bottom: 3px;
+              .badge.out {
+                background: #fef3c7;
+                color: #92400e;
               }
               
               .info-grid {
                 display: grid;
-                grid-template-columns: auto 1fr;
-                gap: 3px 10px;
-                font-size: 9pt;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin-bottom: 15px;
               }
               
-              .info-grid .label {
-                font-weight: 500;
+              .info-card {
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 12px;
+              }
+              
+              .info-card h2 {
+                font-size: 14px;
+                font-weight: 700;
+                margin: 0 0 8px 0;
+                padding-bottom: 6px;
+                border-bottom: 1px solid #e5e7eb;
+              }
+              
+              .info-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 3px 0;
+              }
+              
+              .info-label {
                 color: #666;
+                font-weight: 500;
               }
               
-              .info-grid .value {
-                color: #333;
+              .info-value {
+                font-weight: 600;
               }
               
               table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 10px 0;
-                font-size: 9pt;
+                margin: 15px 0;
+                font-size: 10px;
               }
               
               th {
                 background: #f3f4f6;
-                font-weight: 600;
                 text-align: left;
-                padding: 5px;
-                border-bottom: 2px solid #ddd;
-                white-space: nowrap;
+                padding: 6px;
+                font-weight: 700;
+                border-bottom: 1px solid #e5e7eb;
               }
               
               td {
-                padding: 4px 5px;
-                border-bottom: 1px solid #eee;
+                padding: 6px;
+                border-bottom: 1px solid #e5e7eb;
+                font-weight: 500;
               }
               
               .text-right {
                 text-align: right;
               }
               
-              .total-row {
-                font-weight: 600;
-                background: #f8f8f8;
-              }
-              
               .total-row td {
-                border-top: 2px solid #ddd;
-                border-bottom: none;
-                padding-top: 8px;
+                font-weight: 700;
+                background: #f9fafb;
+                border-top: 1px solid #e5e7eb;
               }
               
               .footer {
-                margin-top: 20px;
-                padding-top: 10px;
-                border-top: 1px solid #ddd;
-                font-size: 8pt;
+                margin-top: 30px;
+                padding-top: 15px;
+                border-top: 1px solid #e5e7eb;
+                font-size: 10px;
                 color: #666;
                 text-align: center;
-              }
-              
-              .summary-section {
-                display: flex;
-                justify-content: flex-end;
-                gap: 20px;
-                margin: 10px 0;
-                padding: 5px;
-                font-size: 9pt;
-              }
-              
-              .summary-item {
-                display: flex;
-                gap: 5px;
-              }
-              
-              .summary-label {
-                color: #666;
-              }
-              
-              .summary-value {
                 font-weight: 500;
-                color: #333;
-              }
-              
-              @media print {
-                button { display: none; }
-                body { -webkit-print-color-adjust: exact; }
-                .info-section { -webkit-print-color-adjust: exact; }
-                th { -webkit-print-color-adjust: exact; }
               }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h2>${receipt.documentNo}</h2>
-                <p>${
-                  receipt.receiptType === "Giris" ? "Giriş Fişi" : "Çıkış Fişi"
-                }</p>
+                <h1>${receipt.documentNo}</h1>
+                <div class="badge ${
+                  receipt.receiptType === "Giris" ? "in" : "out"
+                }">
+                  ${
+                    receipt.receiptType === "Giris"
+                      ? "Giriş Fişi"
+                      : "Çıkış Fişi"
+                  }
+                </div>
               </div>
 
-              <div class="info-section">
-                <div class="info-block">
-                  <h3>Fiş Bilgileri</h3>
-                  <div class="info-grid">
-                    <span class="label">Fiş Tarihi:</span>
-                    <span class="value">${format(
+              <div class="info-grid">
+                <div class="info-card">
+                  <h2>Fiş Bilgileri</h2>
+                  <div class="info-row">
+                    <span class="info-label">Fiş Tarihi:</span>
+                    <span class="info-value">${format(
                       new Date(receipt.createdAt),
                       "dd.MM.yyyy HH:mm"
                     )}</span>
-                    <span class="label">Şube:</span>
-                    <span class="value">${receipt.branchCode}</span>
-                    ${
-                      receipt.description
-                        ? `<span class="label">Açıklama:</span>
-                           <span class="value">${receipt.description}</span>`
-                        : ""
-                    }
                   </div>
+                  <div class="info-row">
+                    <span class="info-label">Şube:</span>
+                    <span class="info-value">${receipt.branchCode}</span>
+                  </div>
+                  ${
+                    receipt.description
+                      ? `
+                  <div class="info-row">
+                    <span class="info-label">Açıklama:</span>
+                    <span class="info-value">${receipt.description}</span>
+                  </div>
+                  `
+                      : ""
+                  }
                 </div>
+
                 ${
                   receipt.current
                     ? `
-                <div class="info-block">
-                  <h3>Cari Bilgileri</h3>
-                  <div class="info-grid">
-                    <span class="label">Cari Kodu:</span>
-                    <span class="value">${receipt.current.currentCode}</span>
-                    <span class="label">Cari Adı:</span>
-                    <span class="value">${receipt.current.currentName}</span>
-                    ${
-                      receipt.current.priceList
-                        ? `
-                    <span class="label">Fiyat Listesi:</span>
-                    <span class="value">${receipt.current.priceList.priceListName}</span>
-                    <span class="label">Para Birimi:</span>
-                    <span class="value">${receipt.current.priceList.currency}</span>
-                    `
-                        : ""
-                    }
+                <div class="info-card">
+                  <h2>Cari Bilgileri</h2>
+                  <div class="info-row">
+                    <span class="info-label">Cari Kodu:</span>
+                    <span class="info-value">${receipt.current.currentCode}</span>
                   </div>
-                </div>`
+                  <div class="info-row">
+                    <span class="info-label">Cari Adı:</span>
+                    <span class="info-value">${receipt.current.currentName}</span>
+                  </div>
+                </div>
+                `
                     : ""
                 }
               </div>
@@ -304,9 +290,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     <th>Birim</th>
                     <th class="text-right">Miktar</th>
                     <th class="text-right">Birim Fiyat</th>
-                    <th class="text-right">KDV %</th>
-                    <th class="text-right">İskonto</th>
-                    <th class="text-right">Net Tutar</th>
                     <th class="text-right">Toplam</th>
                   </tr>
                 </thead>
@@ -326,18 +309,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                         "tr-TR",
                         { minimumFractionDigits: 2 }
                       )}</td>
-                      <td class="text-right">${detail.vatRate.toLocaleString(
-                        "tr-TR",
-                        { minimumFractionDigits: 2 }
-                      )}</td>
-                      <td class="text-right">${detail.discount.toLocaleString(
-                        "tr-TR",
-                        { minimumFractionDigits: 2 }
-                      )}</td>
-                      <td class="text-right">${detail.netPrice.toLocaleString(
-                        "tr-TR",
-                        { minimumFractionDigits: 2 }
-                      )}</td>
                       <td class="text-right">${detail.totalPrice.toLocaleString(
                         "tr-TR",
                         { minimumFractionDigits: 2 }
@@ -347,12 +318,12 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     )
                     .join("")}
                   <tr class="total-row">
-                    <td colspan="3">Toplam</td>
+                    <td colspan="3" class="text-right">Toplam:</td>
                     <td class="text-right">${totalQuantity.toLocaleString(
                       "tr-TR",
                       { minimumFractionDigits: 2 }
                     )}</td>
-                    <td colspan="4"></td>
+                    <td></td>
                     <td class="text-right">${totalAmount.toLocaleString(
                       "tr-TR",
                       {
@@ -363,70 +334,20 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                 </tbody>
               </table>
 
-              ${
-                receipt.currentMovement
-                  ? `
-              <div class="info-section">
-                <div class="info-block">
-                  <h3>Hareket Bilgileri</h3>
-                  <div class="info-grid">
-                    <span class="label">Hareket Tipi:</span>
-                    <span class="value">${
-                      receipt.currentMovement.movementType
-                    }</span>
-                    ${
-                      receipt.currentMovement.documentType
-                        ? `
-                    <span class="label">Belge Tipi:</span>
-                    <span class="value">${receipt.currentMovement.documentType}</span>`
-                        : ""
-                    }
-                    ${
-                      receipt.currentMovement.description
-                        ? `
-                    <span class="label">Açıklama:</span>
-                    <span class="value">${receipt.currentMovement.description}</span>`
-                        : ""
-                    }
-                    ${
-                      receipt.currentMovement.debtAmount
-                        ? `
-                    <span class="label">Borç:</span>
-                    <span class="value">${receipt.currentMovement.debtAmount.toLocaleString(
-                      "tr-TR",
-                      { minimumFractionDigits: 2 }
-                    )}</span>`
-                        : ""
-                    }
-                    ${
-                      receipt.currentMovement.creditAmount
-                        ? `
-                    <span class="label">Alacak:</span>
-                    <span class="value">${receipt.currentMovement.creditAmount.toLocaleString(
-                      "tr-TR",
-                      { minimumFractionDigits: 2 }
-                    )}</span>`
-                        : ""
-                    }
-                  </div>
-                </div>
-              </div>
-              `
-                  : ""
-              }
-
               <div class="footer">
-                <p>Oluşturan: ${
-                  receipt.createdByUser
-                    ? `${receipt.createdByUser.username} (${
-                        receipt.createdByUser.firstName
-                      } ${receipt.createdByUser.lastName || ""})`
-                    : "Bilinmiyor"
-                }</p>
-                <p>Oluşturma Tarihi: ${format(
-                  new Date(receipt.createdAt),
-                  "dd.MM.yyyy HH:mm"
-                )}</p>
+                <p>
+                  Oluşturan: ${
+                    receipt.createdByUser
+                      ? `${receipt.createdByUser.username} (${
+                          receipt.createdByUser.firstName
+                        } ${receipt.createdByUser.lastName || ""})`
+                      : "Bilinmiyor"
+                  } | 
+                  Oluşturma Tarihi: ${format(
+                    new Date(receipt.createdAt),
+                    "dd.MM.yyyy HH:mm"
+                  )}
+                </p>
               </div>
             </div>
           </body>
@@ -434,9 +355,11 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
       `);
 
       printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 250);
     } catch (error) {
       console.error("Yazdırma hatası:", error);
       toast({
@@ -738,13 +661,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                             <TableHead className="text-right">
                               Birim Fiyat
                             </TableHead>
-                            <TableHead className="text-right">KDV %</TableHead>
-                            <TableHead className="text-right">
-                              İskonto
-                            </TableHead>
-                            <TableHead className="text-right">
-                              Net Tutar
-                            </TableHead>
                             <TableHead className="text-right">Toplam</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -768,21 +684,6 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                               </TableCell>
                               <TableCell className="text-right tabular-nums">
                                 {detail.unitPrice.toLocaleString("tr-TR", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums">
-                                {detail.vatRate.toLocaleString("tr-TR", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums">
-                                {detail.discount.toLocaleString("tr-TR", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums">
-                                {detail.netPrice.toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
                                 })}
                               </TableCell>
