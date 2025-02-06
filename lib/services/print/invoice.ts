@@ -1,51 +1,66 @@
-import { format } from 'date-fns';
-import { currencyService } from '../currency';
+import { format } from "date-fns";
+import { currencyService } from "../currency";
 
-interface PrintInvoiceOptions {
-    title: string;
-    type: 'purchase' | 'sales';
+export interface PrintInvoiceOptions {
+  title: string;
+  type: "purchase" | "sales";
+  hideProductsTable?: boolean;
+  hideExpensesTable?: boolean;
 }
 
-export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) => {
-    try {
-        // Get exchange rates for expense calculations
-        const exchangeRates = await currencyService.getExchangeRates();
+export const printInvoice = async (
+  invoice: any,
+  options: PrintInvoiceOptions
+) => {
+  try {
+    // Get exchange rates for expense calculations
+    const exchangeRates = await currencyService.getExchangeRates();
 
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            throw new Error('Yazdırma penceresi açılamadı');
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      throw new Error("Yazdırma penceresi açılamadı");
+    }
+
+    // Calculate product totals
+    const totalProducts =
+      invoice.items?.reduce((sum: number, item: any) => {
+        let amount = item.totalAmount;
+        if (item.currency === "TRY") {
+          amount = amount / exchangeRates.USD_TRY;
+        } else if (item.currency === "EUR") {
+          amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
         }
+        return sum + amount;
+      }, 0) || 0;
 
-        // Calculate product totals
-        const totalProducts = invoice.items.reduce((sum: number, item: any) => {
-            let amount = item.totalAmount;
-            if (item.currency === "TRY") {
-                amount = amount / exchangeRates.USD_TRY;
-            } else if (item.currency === "EUR") {
-                amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
-            }
-            return sum + amount;
-        }, 0);
+    // Calculate expense totals in USD
+    const totalExpenses =
+      invoice.expenses?.reduce((sum: number, expense: any) => {
+        let amount = expense.price;
+        if (expense.currency === "TRY") {
+          amount = amount / exchangeRates.USD_TRY;
+        } else if (expense.currency === "EUR") {
+          amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+        }
+        return sum + amount;
+      }, 0) || 0;
 
-        // Calculate expense totals in USD
-        const totalExpenses = invoice.expenses?.reduce((sum: number, expense: any) => {
-            let amount = expense.price;
-            if (expense.currency === "TRY") {
-                amount = amount / exchangeRates.USD_TRY;
-            } else if (expense.currency === "EUR") {
-                amount = (amount * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
-            }
-            return sum + amount;
-        }, 0) || 0;
+    // Calculate VAT and discount totals
+    const totalVat =
+      invoice.items?.reduce(
+        (sum: number, item: any) => sum + item.vatAmount,
+        0
+      ) || 0;
+    const totalDiscount =
+      invoice.items?.reduce(
+        (sum: number, item: any) => sum + (item.discountAmount || 0),
+        0
+      ) || 0;
 
-        // Calculate VAT and discount totals
-        const totalVat = invoice.items.reduce((sum: number, item: any) => sum + item.vatAmount, 0);
-        const totalDiscount = invoice.items.reduce((sum: number, item: any) => sum + (item.discountAmount || 0), 0);
+    // Calculate final total
+    const totalAmount = totalProducts + totalExpenses;
 
-        // Calculate final total
-        const totalAmount = totalProducts + totalExpenses;
-
-        printWindow.document.write(`
+    printWindow.document.write(`
       <html>
         <head>
           <title>${options.title} - ${invoice.invoiceNo}</title>
@@ -213,9 +228,11 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
         <body>
           <div class="container">
             <div class="header">
-              <h1>${options.type === 'purchase' ? 'ALIŞ FATURASI' : 'SATIŞ FATURASI'}</h1>
+              <h1>${
+                options.type === "purchase" ? "ALIŞ FATURASI" : "SATIŞ FATURASI"
+              }</h1>
               <h2>${invoice.invoiceNo}</h2>
-              <p>GİB No: ${invoice.gibInvoiceNo || '-'}</p>
+              <p>GİB No: ${invoice.gibInvoiceNo || "-"}</p>
             </div>
 
             <div class="info-section">
@@ -223,13 +240,19 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
                 <h3>Fatura Bilgileri</h3>
                 <div class="info-grid">
                   <span class="label">Fatura Tarihi:</span>
-                  <span class="value">${format(new Date(invoice.invoiceDate), "dd.MM.yyyy HH:mm")}</span>
+                  <span class="value">${format(
+                    new Date(invoice.invoiceDate),
+                    "dd.MM.yyyy HH:mm"
+                  )}</span>
                   <span class="label">Vade Tarihi:</span>
-                  <span class="value">${format(new Date(invoice.paymentDate), "dd.MM.yyyy")}</span>
+                  <span class="value">${format(
+                    new Date(invoice.paymentDate),
+                    "dd.MM.yyyy"
+                  )}</span>
                   <span class="label">Şube:</span>
                   <span class="value">${invoice.branchCode}</span>
                   <span class="label">Açıklama:</span>
-                  <span class="value">${invoice.description || '-'}</span>
+                  <span class="value">${invoice.description || "-"}</span>
                 </div>
               </div>
               
@@ -241,101 +264,139 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
                   <span class="label">Cari Adı:</span>
                   <span class="value">${invoice.current.currentName}</span>
                   <span class="label">Vergi No:</span>
-                  <span class="value">${invoice.current.taxNumber || '-'}</span>
+                  <span class="value">${invoice.current.taxNumber || "-"}</span>
                   <span class="label">Vergi Dairesi:</span>
-                  <span class="value">${invoice.current.taxOffice || '-'}</span>
+                  <span class="value">${invoice.current.taxOffice || "-"}</span>
                 </div>
               </div>
             </div>
 
+            ${
+              !options.hideProductsTable
+                ? `
             <table>
               <thead>
                 <tr>
                   <th>Ürün Kodu</th>
                   <th>Ürün Adı</th>
-                  <th class="text-right">Miktar</th>
+                  <th>Miktar</th>
                   <th>Birim</th>
-                  <th class="text-right">B.Fiyat</th>
-                  <th class="text-right">KDV%</th>
+                  <th class="text-right">Birim Fiyat</th>
+                  <th class="text-right">KDV %</th>
                   <th class="text-right">KDV Tutarı</th>
                   <th class="text-right">Toplam</th>
                 </tr>
               </thead>
               <tbody>
-                ${invoice.items.map((item: any) => `
+                ${invoice.items
+                  .map(
+                    (item: any) => `
                   <tr>
                     <td>${item.stockCode}</td>
                     <td>${item.stockName}</td>
-                    <td class="text-right">${item.quantity}</td>
+                    <td>${item.quantity}</td>
                     <td>${item.unit}</td>
                     <td class="text-right">${item.unitPrice.toFixed(2)}</td>
                     <td class="text-right">${item.vatRate.toFixed(2)}</td>
                     <td class="text-right">${item.vatAmount.toFixed(2)}</td>
-                    <td class="text-right">${item.totalAmount.toFixed(2)} ${item.currency}</td>
+                    <td class="text-right">${item.totalAmount.toFixed(2)} ${
+                      item.currency
+                    }</td>
                   </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </tbody>
             </table>
-
-            ${invoice.expenses && invoice.expenses.length > 0 ? `
-              <table>
-                <thead>
-                  <tr>
-                    <th>Masraf Kodu</th>
-                    <th>Masraf Adı</th>
-                    <th class="text-right">Tutar</th>
-                    <th>Para Birimi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${invoice.expenses.map((expense: any) => {
-            // Convert expense amount to USD for display
-            let usdAmount = expense.price;
-            if (expense.currency === "TRY") {
-                usdAmount = expense.price / exchangeRates.USD_TRY;
-            } else if (expense.currency === "EUR") {
-                usdAmount = (expense.price * exchangeRates.EUR_TRY) / exchangeRates.USD_TRY;
+            `
+                : ""
             }
-            return `
-                      <tr>
-                        <td>${expense.expenseCode}</td>
-                        <td>${expense.expenseName}</td>
-                        <td class="text-right">${expense.price.toFixed(2)} ${expense.currency}</td>
-                        <td class="text-right">${usdAmount.toFixed(2)} USD</td>
-                      </tr>
-                    `;
-        }).join('')}
-                  <tr class="total-row">
-                    <td colspan="2" class="text-right">Toplam Masraf:</td>
-                    <td colspan="2" class="text-right">${totalExpenses.toFixed(2)} USD</td>
+
+            ${
+              !options.hideExpensesTable &&
+              invoice.expenses &&
+              invoice.expenses.length > 0
+                ? `
+            <table>
+              <thead>
+                <tr>
+                  <th>Masraf Kodu</th>
+                  <th>Masraf Adı</th>
+                  <th class="text-right">Tutar</th>
+                  <th class="text-right">USD Karşılığı</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoice.expenses
+                  .map((expense: any) => {
+                    // Convert expense amount to USD for display
+                    let usdAmount = expense.price;
+                    if (expense.currency === "TRY") {
+                      usdAmount = expense.price / exchangeRates.USD_TRY;
+                    } else if (expense.currency === "EUR") {
+                      usdAmount =
+                        (expense.price * exchangeRates.EUR_TRY) /
+                        exchangeRates.USD_TRY;
+                    }
+                    return `
+                  <tr>
+                    <td>${expense.expenseCode}</td>
+                    <td>${expense.expenseName}</td>
+                    <td class="text-right">${expense.price.toFixed(2)} ${
+                      expense.currency
+                    }</td>
+                    <td class="text-right">${usdAmount.toFixed(2)} USD</td>
                   </tr>
-                </tbody>
-              </table>
-            ` : ''}
+                `;
+                  })
+                  .join("")}
+                <tr class="total-row">
+                  <td colspan="2" class="text-right">Toplam Masraf:</td>
+                  <td colspan="2" class="text-right">${totalExpenses.toFixed(
+                    2
+                  )} USD</td>
+                </tr>
+              </tbody>
+            </table>
+            `
+                : ""
+            }
 
             <div class="summary-section">
               <div class="summary-block">
                 <div class="summary-row">
                   <span>Ara Toplam:</span>
-                  <span>${(totalProducts - totalVat).toFixed(2)} ${invoice.current.priceList.currency}</span>
+                  <span>${(totalProducts - totalVat).toFixed(2)} ${
+      invoice.current.priceList.currency
+    }</span>
                 </div>
-                ${invoice.expenses && invoice.expenses.length > 0 ? `
+                ${
+                  invoice.expenses && invoice.expenses.length > 0
+                    ? `
                   <div class="summary-row">
                     <span>Toplam Masraf:</span>
                     <span>${totalExpenses.toFixed(2)} USD</span>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 <div class="summary-row">
                   <span>Toplam İndirim:</span>
-                  <span>${totalDiscount.toFixed(2)} ${invoice.current.priceList.currency}</span>
+                  <span>${totalDiscount.toFixed(2)} ${
+      invoice.current.priceList.currency
+    }</span>
                 </div>
                 <div class="summary-row">
                   <span>Toplam KDV:</span>
-                  <span>${totalVat.toFixed(2)} ${invoice.current.priceList.currency}</span>
+                  <span>${totalVat.toFixed(2)} ${
+      invoice.current.priceList.currency
+    }</span>
                 </div>
                 <div class="summary-row total">
                   <span>Genel Toplam:</span>
-                  <span>${totalAmount.toFixed(2)} ${invoice.current.priceList.currency}</span>
+                  <span>${totalAmount.toFixed(2)} ${
+      invoice.current.priceList.currency
+    }</span>
                 </div>
               </div>
             </div>
@@ -351,13 +412,13 @@ export const printInvoice = async (invoice: any, options: PrintInvoiceOptions) =
       </html>
     `);
 
-        printWindow.document.close();
-        printWindow.print();
-        printWindow.close();
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
 
-        return true;
-    } catch (error) {
-        console.error('Print error:', error);
-        throw error;
-    }
+    return true;
+  } catch (error) {
+    console.error("Print error:", error);
+    throw error;
+  }
 };

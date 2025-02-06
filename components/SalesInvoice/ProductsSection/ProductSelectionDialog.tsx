@@ -47,6 +47,9 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
     new Set()
   );
+  const [selectedProducts, setSelectedProducts] = useState<
+    ProductSearchResult[]
+  >([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
@@ -56,7 +59,8 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.BASE_URL
+        `${
+          process.env.BASE_URL
         }/stockcards/byWarehouse/search/${warehouseId}?query=${encodeURIComponent(
           debouncedSearchTerm
         )}`,
@@ -98,72 +102,80 @@ const ProductSelectionDialog: React.FC<ProductSelectionDialogProps> = ({
     if (!open) {
       setSearchTerm("");
       setSelectedProductIds(new Set());
+      setSelectedProducts([]);
     }
   }, [open]);
 
-  const handleProductToggle = useCallback((productId: string) => {
-    setSelectedProductIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(productId)) {
-        newSet.delete(productId);
-      } else {
-        newSet.add(productId);
-      }
-      return newSet;
-    });
-  }, []);
+  const handleProductToggle = useCallback(
+    (productId: string) => {
+      setSelectedProductIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(productId)) {
+          newSet.delete(productId);
+          setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
+        } else {
+          newSet.add(productId);
+          const product = products.find((p) => p.id === productId);
+          if (product) {
+            setSelectedProducts((prev) => [...prev, product]);
+          }
+        }
+        return newSet;
+      });
+    },
+    [products]
+  );
 
   const handleAddProducts = useCallback(() => {
-    const selectedItems: StockItem[] = products
-      .filter((product) => selectedProductIds.has(product.id))
-      .map((product) => {
-        const priceListItem = product.stockCardPriceLists.find(
-          (pl) => pl.priceListId === current?.priceList?.id
-        );
-        const warehouseStock = product.stockCardWarehouse.find(
-          (w) => w.warehouseId === warehouseId
-        );
+    const selectedItems: StockItem[] = selectedProducts.map((product) => {
+      const priceListItem = product.stockCardPriceLists.find(
+        (pl) => pl.priceListId === current?.priceList?.id
+      );
+      const warehouseStock = product.stockCardWarehouse.find(
+        (w) => w.warehouseId === warehouseId
+      );
 
-        if (!priceListItem) {
-          throw new Error(`No price found for product ${product.productName}`);
-        }
+      if (!priceListItem) {
+        throw new Error(`No price found for product ${product.productName}`);
+      }
 
-        // Fiyat listesi KDV dahil/hariç durumuna göre ayarlamalar
-        const unitPrice = parseFloat(priceListItem.price);
-        const vatRate = current?.priceList?.isVatIncluded ? 20 : 0;
-        const quantity = 1;
-        const subtotal = unitPrice * quantity;
-        const vatAmount = subtotal * (vatRate / 100);
+      // Fiyat listesi KDV dahil/hariç durumuna göre ayarlamalar
+      const unitPrice = parseFloat(priceListItem.price);
+      const vatRate = current?.priceList?.isVatIncluded ? 20 : 0;
+      const quantity = 1;
+      const subtotal = unitPrice * quantity;
+      const vatAmount = subtotal * (vatRate / 100);
 
-        return {
-          id: crypto.randomUUID(),
-          stockId: product.id,
-          stockCode: product.productCode,
-          stockName: product.productName,
-          quantity: quantity,
-          unit: product.unit,
-          stockLevel: parseFloat(warehouseStock?.quantity || "0"),
-          unitPrice: unitPrice,
-          vatRate: vatRate,
-          vatAmount: vatAmount,
-          totalAmount: subtotal + vatAmount,
-          priceListId: current?.priceList?.id || "",
-          currency: priceListItem.priceList.currency,
-          isVatIncluded: priceListItem.priceList.isVatIncluded,
-        };
-      });
+      return {
+        id: crypto.randomUUID(),
+        stockId: product.id,
+        stockCode: product.productCode,
+        stockName: product.productName,
+        quantity: quantity,
+        unit: product.unit,
+        stockLevel: parseFloat(warehouseStock?.quantity || "0"),
+        unitPrice: unitPrice,
+        vatRate: vatRate,
+        vatAmount: vatAmount,
+        totalAmount: subtotal + vatAmount,
+        priceListId: current?.priceList?.id || "",
+        currency: priceListItem.priceList.currency,
+        isVatIncluded: priceListItem.priceList.isVatIncluded,
+      };
+    });
 
     if (selectedItems.length > 0) {
       onProductsSelect(selectedItems);
+      setSelectedProductIds(new Set());
+      setSelectedProducts([]);
       toast({
-        title: "Success",
+        title: "Başarılı",
         description: `${selectedItems.length} ürün başarıyla eklendi`,
       });
       onOpenChange(false);
     }
   }, [
-    products,
-    selectedProductIds,
+    selectedProducts,
     current,
     warehouseId,
     onProductsSelect,

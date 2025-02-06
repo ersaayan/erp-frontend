@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import CustomerSection from "./CustomerSection";
 import InvoiceForm from "./InvoiceForm";
-import ProductsSection from "./ProductsSection";
 import ExpenseSection from "./ExpenseSection";
 import PaymentSection from "./PaymentSection";
 import { ExpenseItem, InvoiceFormData, StockItem } from "./types";
@@ -13,10 +12,15 @@ import { useSalesInvoice } from "@/hooks/useSalesInvoice";
 import { InvoiceDetailResponse } from "@/types/invoice-detail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Printer, Maximize2 } from "lucide-react";
+import { Printer, Maximize2, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { printInvoice } from "@/lib/services/print/invoice";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ProductSelectionDialog from "./ProductsSection/ProductSelectionDialog";
+import ProductTable from "./ProductsSection/ProductTable";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const SalesInvoice: React.FC = () => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
@@ -39,22 +43,31 @@ const SalesInvoice: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
   const [isExpensesModalOpen, setIsExpensesModalOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showCurrentAlert, setShowCurrentAlert] = useState(true);
+  const [showInvoiceAlert, setShowInvoiceAlert] = useState(false);
+  const [showBranchWarehouseAlert, setShowBranchWarehouseAlert] =
+    useState(false);
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
     const savedCurrentData = localStorage.getItem("currentSalesInvoice");
     if (savedCurrentData) {
-      const currentData = JSON.parse(savedCurrentData);
-      setInvoiceData((prev) => ({
-        ...prev,
-        current: {
-          id: currentData.id,
-          currentCode: currentData.currentCode,
-          currentName: currentData.currentName,
-          priceList: currentData.priceList,
-        },
-      }));
-      localStorage.removeItem("currentSalesInvoice");
+      try {
+        const currentData = JSON.parse(savedCurrentData);
+        setInvoiceData((prev) => ({
+          ...prev,
+          current: {
+            id: currentData.id,
+            currentCode: currentData.currentCode,
+            currentName: currentData.currentName,
+            priceList: currentData.priceList,
+          },
+        }));
+        localStorage.removeItem("currentSalesInvoice");
+      } catch (error) {
+        console.error("Error parsing current data:", error);
+      }
     }
   }, []);
 
@@ -177,6 +190,7 @@ const SalesInvoice: React.FC = () => {
   // Form verilerini localStorage'dan yükleme
   useEffect(() => {
     const savedFormData = localStorage.getItem("salesInvoiceFormData");
+    localStorage.removeItem("salesInvoiceFormData");
     if (savedFormData) {
       try {
         const parsedData = JSON.parse(savedFormData);
@@ -209,26 +223,26 @@ const SalesInvoice: React.FC = () => {
     }
   }, []);
 
-  // Form gönderildiğinde veya silindiğinde localStorage'ı temizleme
-  const handleFormSubmit = async () => {
-    try {
-      await handleSubmit(invoiceData, products, expenses, payments);
-      localStorage.removeItem("salesInvoiceFormData");
-    } catch (error) {
-      console.error("Form gönderilirken hata oluştu:", error);
-    }
-  };
-
-  const handleFormDelete = async () => {
-    try {
-      await handleDelete();
-      localStorage.removeItem("salesInvoiceFormData");
-    } catch (error) {
-      console.error("Form silinirken hata oluştu:", error);
-    }
-  };
-
   const handleSave = async () => {
+    if (!invoiceData.invoiceNo) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen fatura numarası giriniz",
+      });
+
+      // InvoiceForm bileşenine hata durumunu iletmek için state'i güncelle
+      setInvoiceData((prev) => ({
+        ...prev,
+        errors: {
+          ...prev.errors,
+          invoiceNo: true,
+        },
+      }));
+
+      return;
+    }
+
     const result = await handleSubmit(
       invoiceData,
       products,
@@ -305,15 +319,143 @@ const SalesInvoice: React.FC = () => {
 
         // Reset edit mode
         setIsEditMode(false);
+        localStorage.removeItem("salesInvoiceFormData");
       }
     }
   };
 
+  // Component mount/unmount kontrolü
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("salesInvoiceFormData");
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("salesInvoiceFormData");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  const handleProductsAdd = (newProducts: StockItem[]) => {
+    setProducts((prevProducts) => {
+      // Mevcut ürünlerin stockId'lerini bir Map'e alalım
+      const existingProducts = new Map(prevProducts.map((p) => [p.stockId, p]));
+      const updatedProducts: StockItem[] = [];
+      const existingUpdated: StockItem[] = [];
+
+      // Yeni ürünleri ters sırada işleyelim ve her ürünü sadece bir kez ekleyelim
+      const processedIds = new Set<string>();
+      [...newProducts].reverse().forEach((newProduct) => {
+        // Eğer bu ürün zaten işlendiyse, atla
+        if (processedIds.has(newProduct.stockId)) {
+          return;
+        }
+        processedIds.add(newProduct.stockId);
+
+        const existingProduct = existingProducts.get(newProduct.stockId);
+
+        if (existingProduct) {
+          // Eğer ürün zaten varsa, miktarını artır ve yeni özellikleri güncelle
+          const updatedProduct = {
+            ...existingProduct,
+            quantity: existingProduct.quantity + 1,
+            vatAmount:
+              (existingProduct.quantity + 1) *
+              existingProduct.unitPrice *
+              (existingProduct.vatRate / 100),
+            totalAmount:
+              (existingProduct.quantity + 1) *
+              existingProduct.unitPrice *
+              (1 + existingProduct.vatRate / 100),
+          };
+          existingUpdated.push(updatedProduct);
+          existingProducts.delete(newProduct.stockId);
+        } else {
+          // Yeni ürünü ekle
+          updatedProducts.push(newProduct);
+        }
+      });
+
+      // Güncellenen mevcut ürünleri en başa, yeni ürünleri onların ardına ve kalan ürünleri en sona ekle
+      return [
+        ...existingUpdated,
+        ...updatedProducts,
+        ...Array.from(existingProducts.values()),
+      ];
+    });
+
+    setIsDialogOpen(false);
+  };
+
+  const handleProductUpdate = (index: number, updates: Partial<StockItem>) => {
+    setProducts((prevProducts) => {
+      const updatedProducts = [...prevProducts];
+      updatedProducts[index] = { ...updatedProducts[index], ...updates };
+
+      const quantity = updates.quantity ?? updatedProducts[index].quantity;
+      const unitPrice = updates.unitPrice ?? updatedProducts[index].unitPrice;
+      const vatRate = updates.vatRate ?? updatedProducts[index].vatRate;
+
+      const subtotal = quantity * unitPrice;
+      const vatAmount = subtotal * (vatRate / 100);
+      updatedProducts[index].vatAmount = vatAmount;
+      updatedProducts[index].totalAmount = subtotal + vatAmount;
+
+      return updatedProducts;
+    });
+  };
+
+  const handleProductDelete = (index: number) => {
+    setProducts((prevProducts) => prevProducts.filter((_, i) => i !== index));
+  };
+
+  const ProductsTableSection = () => {
+    return (
+      <div className="flex flex-col">
+        <div className="flex-1 min-h-0 border rounded-md overflow-hidden">
+          <ProductTable
+            products={products}
+            onUpdate={handleProductUpdate}
+            onDelete={handleProductDelete}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Current seçildiğinde
+  useEffect(() => {
+    if (invoiceData.current) {
+      setShowCurrentAlert(false);
+      setShowInvoiceAlert(true);
+      setShowBranchWarehouseAlert(true);
+    }
+  }, [invoiceData.current]);
+
+  // Fatura no, depo ve şube seçildiğinde
+  useEffect(() => {
+    if (
+      invoiceData.invoiceNo &&
+      invoiceData.branchCode &&
+      invoiceData.warehouseId
+    ) {
+      setShowInvoiceAlert(false);
+      setShowBranchWarehouseAlert(false);
+    }
+  }, [invoiceData.invoiceNo, invoiceData.branchCode, invoiceData.warehouseId]);
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
-      <div className="flex items-center justify-between shrink-0">
+      <div className="flex items-center justify-between shrink-0 mb-2">
         <h2 className="text-2xl font-bold">
-          {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
+          {isEditMode ? "Fatura Düzenle" : "Alış Faturası"}
         </h2>
         <div className="flex items-center gap-2">
           <Button
@@ -323,13 +465,15 @@ const SalesInvoice: React.FC = () => {
                 printInvoice(
                   {
                     ...invoiceData,
-                    items: products,
-                    expenses,
+                    items: products.length > 0 ? products : undefined,
+                    expenses: expenses.length > 0 ? expenses : undefined,
                     payments,
                   },
                   {
-                    title: "Satış Faturası",
+                    title: "Alış Faturası",
                     type: "sales",
+                    hideProductsTable: products.length === 0,
+                    hideExpensesTable: expenses.length === 0,
                   }
                 );
                 toast({
@@ -347,7 +491,10 @@ const SalesInvoice: React.FC = () => {
                 });
               }
             }}
-            disabled={!invoiceData.current || products.length === 0}
+            disabled={
+              !invoiceData.current ||
+              (products.length === 0 && expenses.length === 0)
+            }
             className="bg-[#84CC16] hover:bg-[#65A30D] text-white"
           >
             <Printer className="h-4 w-4 mr-2" />
@@ -363,6 +510,13 @@ const SalesInvoice: React.FC = () => {
 
       <div className="grid grid-cols-[1fr_400px] gap-4 flex-1 min-h-0">
         <div className="flex flex-col gap-4 overflow-hidden">
+          {showCurrentAlert && (
+            <Alert variant="destructive" className="mb-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>Lütfen önce cari seçiniz</AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-2 gap-4 shrink-0">
             <Card className="p-4">
               <CustomerSection
@@ -384,39 +538,83 @@ const SalesInvoice: React.FC = () => {
           </div>
 
           <div className="grid grid-rows-2 gap-4 flex-1">
+            {showInvoiceAlert && (
+              <Alert variant="destructive" className="mb-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Lütfen fatura numarası giriniz
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {showBranchWarehouseAlert && (
+              <Alert variant="destructive" className="mb-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>Lütfen şube ve depo seçiniz</AlertDescription>
+              </Alert>
+            )}
+
             <Card className="p-4 overflow-hidden flex flex-col h-[calc(25vh)]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Ürünler</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsProductsModalOpen(true)}
-                >
-                  <Maximize2 className="h-4 w-4 mr-2" />
-                  Tam Ekran
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="bg-[#84CC16] hover:bg-[#65A30D]"
+                    disabled={!invoiceData.current || !invoiceData.warehouseId}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ürün Ekle
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsProductsModalOpen(true)}
+                  >
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    Tam Ekran
+                  </Button>
+                </div>
               </div>
               <div className="flex-1 overflow-auto">
-                <ProductsSection
-                  products={products}
-                  onProductsChange={setProducts}
-                  current={invoiceData.current}
-                  warehouseId={invoiceData.warehouseId}
-                />
+                <ProductsTableSection />
               </div>
             </Card>
 
             <Card className="p-4 overflow-hidden flex flex-col h-[calc(25vh)]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Masraflar</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsExpensesModalOpen(true)}
-                >
-                  <Maximize2 className="h-4 w-4 mr-2" />
-                  Tam Ekran
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      const newExpense: ExpenseItem = {
+                        id: crypto.randomUUID(),
+                        expenseCode: "",
+                        expenseName: "",
+                        price: 0,
+                        currency: "TRY",
+                      };
+                      setExpenses([...expenses, newExpense]);
+                    }}
+                    className="bg-[#84CC16] hover:bg-[#65A30D]"
+                    disabled={!invoiceData.current}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Masraf Ekle
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsExpensesModalOpen(true)}
+                  >
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    Tam Ekran
+                  </Button>
+                </div>
               </div>
               <div className="flex-1 overflow-auto">
                 <ExpenseSection
@@ -443,11 +641,6 @@ const SalesInvoice: React.FC = () => {
               current={invoiceData.current}
             />
           </Card>
-
-          <div className="flex justify-end gap-2 shrink-0">
-            <Button onClick={handleFormSubmit}>Kaydet</Button>
-            <Button onClick={handleFormDelete}>Sil</Button>
-          </div>
         </div>
       </div>
 
@@ -455,15 +648,24 @@ const SalesInvoice: React.FC = () => {
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <DialogTitle className="text-2xl font-bold">Ürünler</DialogTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsDialogOpen(true)}
+                className="bg-[#84CC16] hover:bg-[#65A30D] mr-4"
+                disabled={!invoiceData.current || !invoiceData.warehouseId}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ürün Ekle
+              </Button>
+            </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <ProductsSection
-              products={products}
-              onProductsChange={setProducts}
-              current={invoiceData.current}
-              warehouseId={invoiceData.warehouseId}
-            />
-          </div>
+          <ScrollArea className="flex-1">
+            <div className="h-full">
+              <ProductsTableSection />
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
@@ -471,16 +673,49 @@ const SalesInvoice: React.FC = () => {
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <DialogTitle className="text-2xl font-bold">Masraflar</DialogTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  const newExpense: ExpenseItem = {
+                    id: crypto.randomUUID(),
+                    expenseCode: "",
+                    expenseName: "",
+                    price: 0,
+                    currency: "TRY",
+                  };
+                  setExpenses([...expenses, newExpense]);
+                }}
+                className="bg-[#84CC16] hover:bg-[#65A30D] mr-8"
+                disabled={!invoiceData.current}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Masraf Ekle
+              </Button>
+            </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <ExpenseSection
-              expenses={expenses}
-              onExpensesChange={setExpenses}
-              current={invoiceData.current}
-            />
-          </div>
+          <ScrollArea className="flex-1">
+            <div className="h-full">
+              <ExpenseSection
+                expenses={expenses}
+                onExpensesChange={setExpenses}
+                current={invoiceData.current}
+              />
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {isDialogOpen && (
+        <ProductSelectionDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onProductsSelect={handleProductsAdd}
+          current={invoiceData.current}
+          warehouseId={invoiceData.warehouseId}
+        />
+      )}
     </div>
   );
 };

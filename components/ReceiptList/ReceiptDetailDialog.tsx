@@ -18,6 +18,7 @@ import {
   Package,
   ArrowLeftRight,
   Info,
+  Warehouse,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ReceiptDetailType } from "./types";
@@ -93,84 +94,88 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               @media print {
                 @page {
                   size: auto;
-                  margin: 5mm;
+                  margin: 10mm;
                 }
               }
               
               body {
                 font-family: system-ui, -apple-system, sans-serif;
                 margin: 0;
-                padding: 10px;
-                font-size: 8pt;
-                line-height: 1.2;
+                padding: 0;
+                font-size: 9pt;
+                line-height: 1.3;
                 color: #333;
-                font-weight: 500;
-                width: 100%;
-                box-sizing: border-box;
               }
               
               .container {
-                width: 100%;
+                max-width: 210mm;
                 margin: 0 auto;
+                padding: 10mm;
+                box-sizing: border-box;
               }
               
               .header {
                 text-align: center;
-                margin-bottom: 10px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #333;
+                margin-bottom: 5mm;
+                padding-bottom: 3mm;
+                border-bottom: 0.5pt solid #666;
               }
               
               .header h1 {
                 margin: 0;
-                font-size: 12pt;
+                font-size: 14pt;
                 font-weight: 700;
+                color: #111;
               }
               
               .header .badge {
                 display: inline-block;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 8pt;
+                padding: 2pt 6pt;
+                border-radius: 3pt;
+                font-size: 9pt;
                 font-weight: 600;
-                margin-top: 4px;
+                margin-top: 2mm;
               }
               
               .badge.in {
                 background: #dcfce7;
                 color: #166534;
+                border: 0.5pt solid #86efac;
               }
               
               .badge.out {
                 background: #fef3c7;
                 color: #92400e;
+                border: 0.5pt solid #fcd34d;
               }
               
-              .info-grid {
+              .info-section {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                margin-bottom: 10px;
+                gap: 5mm;
+                margin-bottom: 5mm;
               }
               
               .info-card {
-                border: 1px solid #e5e7eb;
-                border-radius: 4px;
-                padding: 8px;
+                border: 0.5pt solid #e5e7eb;
+                border-radius: 2pt;
+                padding: 3mm;
               }
               
               .info-card h2 {
-                font-size: 9pt;
-                font-weight: 700;
-                margin: 0 0 6px 0;
-                padding-bottom: 4px;
-                border-bottom: 1px solid #e5e7eb;
+                font-size: 10pt;
+                font-weight: 600;
+                margin: 0 0 2mm 0;
+                padding-bottom: 1mm;
+                border-bottom: 0.5pt solid #e5e7eb;
+                color: #111;
               }
               
               .info-row {
                 display: flex;
                 justify-content: space-between;
-                padding: 2px 0;
+                padding: 1mm 0;
+                font-size: 8pt;
               }
               
               .info-label {
@@ -180,87 +185,75 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               
               .info-value {
                 font-weight: 600;
+                color: #111;
               }
               
               table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 10px 0;
-                font-size: 7pt;
-                table-layout: fixed;
+                margin: 5mm 0;
+                font-size: 8pt;
               }
               
               th {
-                background: #f3f4f6;
+                background: #f8fafc;
                 text-align: left;
-                padding: 4px;
-                font-weight: 700;
-                border-bottom: 1px solid #e5e7eb;
+                padding: 2mm;
+                font-weight: 600;
+                color: #111;
+                border: 0.5pt solid #e5e7eb;
                 white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
               }
               
               td {
-                padding: 4px;
-                border-bottom: 1px solid #e5e7eb;
-                font-weight: 500;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                padding: 2mm;
+                border: 0.5pt solid #e5e7eb;
+                color: #333;
               }
 
-              th:nth-child(1), td:nth-child(1) { width: 15%; }
-              th:nth-child(2), td:nth-child(2) { width: 35%; }
-              th:nth-child(3), td:nth-child(3) { width: 10%; }
-              th:nth-child(4), td:nth-child(4) { width: 12%; }
-              th:nth-child(5), td:nth-child(5) { width: 13%; }
-              th:nth-child(6), td:nth-child(6) { width: 15%; }
+              .text-right { text-align: right; }
+              .text-center { text-align: center; }
               
-              .text-right {
-                text-align: right;
+              .badge-outline {
+                display: inline-block;
+                padding: 1pt 4pt;
+                border-radius: 2pt;
+                font-size: 8pt;
+                border: 0.5pt solid #e5e7eb;
+              }
+
+              .badge-blue {
+                background: #eff6ff;
+                color: #1e40af;
+                border-color: #bfdbfe;
+              }
+
+              .badge-amber {
+                background: #fef3c7;
+                color: #92400e;
+                border-color: #fcd34d;
               }
               
               .total-row td {
                 font-weight: 700;
-                background: #f9fafb;
-                border-top: 1px solid #e5e7eb;
+                background: #f8fafc;
+                border-top: 1pt solid #e5e7eb;
               }
               
               .footer {
-                margin-top: 20px;
-                padding-top: 10px;
-                border-top: 1px solid #e5e7eb;
-                font-size: 7pt;
+                margin-top: 5mm;
+                padding-top: 3mm;
+                border-top: 0.5pt solid #e5e7eb;
+                font-size: 8pt;
                 color: #666;
                 text-align: center;
-                font-weight: 500;
               }
 
-              @media screen and (min-width: 210mm) {
-                body {
-                  font-size: 11pt;
-                }
-                
-                .header h1 {
-                  font-size: 16pt;
-                }
-                
-                .header .badge {
-                  font-size: 11pt;
-                }
-                
-                .info-card h2 {
-                  font-size: 12pt;
-                }
-                
-                table {
-                  font-size: 10pt;
-                }
-                
-                .footer {
-                  font-size: 9pt;
-                }
+              .product-name {
+                max-width: 200pt;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
               }
             </style>
           </head>
@@ -279,7 +272,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                 </div>
               </div>
 
-              <div class="info-grid">
+              <div class="info-section">
                 <div class="info-card">
                   <h2>Fiş Bilgileri</h2>
                   <div class="info-row">
@@ -329,9 +322,10 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   <tr>
                     <th>Ürün Kodu</th>
                     <th>Ürün Adı</th>
-                    <th>Birim</th>
+                    <th class="text-center">Birim</th>
                     <th class="text-right">Miktar</th>
-                    <th class="text-right">Birim Fiyat</th>
+                    <th class="text-right">B.Fiyat</th>
+                    <th class="text-right">Net Fiyat</th>
                     <th class="text-right">Toplam</th>
                   </tr>
                 </thead>
@@ -341,13 +335,23 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                       (detail) => `
                     <tr>
                       <td>${detail.stockCard.productCode}</td>
-                      <td>${detail.stockCard.productName}</td>
-                      <td>${detail.stockCard.unit}</td>
+                      <td class="product-name">${
+                        detail.stockCard.productName
+                      }</td>
+                      <td class="text-center">
+                        <span class="badge-outline">${
+                          detail.stockCard.unit
+                        }</span>
+                      </td>
                       <td class="text-right">${detail.quantity.toLocaleString(
                         "tr-TR",
                         { minimumFractionDigits: 2 }
                       )}</td>
                       <td class="text-right">${detail.unitPrice.toLocaleString(
+                        "tr-TR",
+                        { minimumFractionDigits: 2 }
+                      )}</td>
+                      <td class="text-right">${detail.netPrice.toLocaleString(
                         "tr-TR",
                         { minimumFractionDigits: 2 }
                       )}</td>
@@ -365,12 +369,10 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                       "tr-TR",
                       { minimumFractionDigits: 2 }
                     )}</td>
-                    <td></td>
+                    <td colspan="2"></td>
                     <td class="text-right">${totalAmount.toLocaleString(
                       "tr-TR",
-                      {
-                        minimumFractionDigits: 2,
-                      }
+                      { minimumFractionDigits: 2 }
                     )}</td>
                   </tr>
                 </tbody>
@@ -500,22 +502,22 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
-          className="max-w-7xl max-h-[90vh] flex flex-col p-0 overflow-hidden"
+          className="max-w-7xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-gray-950 border dark:border-gray-800 shadow-lg dark:shadow-gray-900/50"
           aria-describedby="receipt-detail-description"
         >
-          <DialogHeader className="px-6 py-4 border-b">
+          <DialogHeader className="px-6 py-4 border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xl font-semibold">
+                <span className="text-xl font-semibold tracking-tight">
                   Fiş Detayı - {receipt?.documentNo}
                 </span>
                 {receipt && (
                   <Badge
                     className={cn(
-                      "text-sm px-3 py-1",
+                      "text-sm px-3 py-1 font-medium tracking-wide",
                       receipt.receiptType === "Giris"
-                        ? "bg-green-100 text-green-700 hover:bg-green-100"
-                        : "bg-amber-100 text-amber-700 hover:bg-amber-100"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/50"
+                        : "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/50"
                     )}
                   >
                     {receipt.receiptType === "Giris"
@@ -530,7 +532,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   size="sm"
                   onClick={() => setShowDeleteAlert(true)}
                   disabled={!receipt}
-                  className="bg-red-500 hover:bg-red-600 text-white gap-2"
+                  className="bg-red-500 hover:bg-red-600 text-white gap-2 shadow-sm transition-colors duration-200"
                 >
                   <Trash2 className="h-4 w-4" />
                   Sil
@@ -540,7 +542,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   size="sm"
                   onClick={handlePrint}
                   disabled={!receipt}
-                  className="gap-2"
+                  className="bg-blue-500 hover:bg-blue-600 text-white gap-2 shadow-sm transition-colors duration-200"
                 >
                   <Printer className="h-4 w-4" />
                   Yazdır
@@ -557,7 +559,7 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
               <div className="flex items-center justify-center p-8">
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground animate-pulse">
                     Yükleniyor...
                   </span>
                 </div>
@@ -566,51 +568,62 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
 
             {error && (
               <div className="p-6">
-                <Alert variant="destructive">
+                <Alert
+                  variant="destructive"
+                  className="border-red-500/20 dark:border-red-900/30"
+                >
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="font-medium">
+                    {error}
+                  </AlertDescription>
                 </Alert>
               </div>
             )}
 
             {receipt && (
               <div className="space-y-6 p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="shadow-sm">
-                    <CardHeader className="pb-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                    <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
                       <CardTitle className="text-base font-medium flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                         Fiş Bilgileri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center py-1 border-b">
-                        <span className="text-muted-foreground">Fiş No:</span>
-                        <span className="font-medium">
+                    <CardContent className="space-y-2 text-sm pt-4">
+                      <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                        <span className="text-muted-foreground font-medium">
+                          Fiş No:
+                        </span>
+                        <span className="font-semibold tracking-wide">
                           {receipt.documentNo}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-1 border-b">
-                        <span className="text-muted-foreground">Tarih:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                        <span className="text-muted-foreground font-medium">
+                          Tarih:
+                        </span>
+                        <span className="font-semibold tracking-wide">
                           {format(
                             new Date(receipt.createdAt),
                             "dd.MM.yyyy HH:mm"
                           )}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center py-1 border-b">
-                        <span className="text-muted-foreground">Şube:</span>
-                        <span className="font-medium">
+                      <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                        <span className="text-muted-foreground font-medium">
+                          Şube:
+                        </span>
+                        <span className="font-semibold tracking-wide">
                           {receipt.branchCode}
                         </span>
                       </div>
                       {receipt.description && (
-                        <div className="flex justify-between items-center py-1 border-b">
-                          <span className="text-muted-foreground">
+                        <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                          <span className="text-muted-foreground font-medium">
                             Açıklama:
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             {receipt.description}
                           </span>
                         </div>
@@ -618,51 +631,105 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                     </CardContent>
                   </Card>
 
+                  <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                    <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <Warehouse className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                        Depo Bilgileri
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm pt-4">
+                      {receipt.outWarehouse && (
+                        <>
+                          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                            <span className="text-muted-foreground font-medium">
+                              Çıkış Depo:
+                            </span>
+                            <span className="font-semibold tracking-wide">
+                              {receipt.outWarehouse.warehouseCode}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                            <span className="text-muted-foreground font-medium">
+                              Depo Adı:
+                            </span>
+                            <span className="font-semibold tracking-wide">
+                              {receipt.outWarehouse.warehouseName}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      {receipt.inWarehouse && (
+                        <>
+                          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                            <span className="text-muted-foreground font-medium">
+                              Giriş Depo:
+                            </span>
+                            <span className="font-semibold tracking-wide">
+                              {receipt.inWarehouse.warehouseCode}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                            <span className="text-muted-foreground font-medium">
+                              Depo Adı:
+                            </span>
+                            <span className="font-semibold tracking-wide">
+                              {receipt.inWarehouse.warehouseName}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   {receipt.current && (
-                    <Card className="shadow-sm">
-                      <CardHeader className="pb-3">
+                    <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                      <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
                         <CardTitle className="text-base font-medium flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                          <User className="h-4 w-4 text-violet-500 dark:text-violet-400" />
                           Cari Bilgileri
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        <div className="flex justify-between items-center py-1 border-b">
-                          <span className="text-muted-foreground">
+                      <CardContent className="space-y-2 text-sm pt-4">
+                        <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                          <span className="text-muted-foreground font-medium">
                             Cari Kodu:
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             {receipt.current.currentCode}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center py-1 border-b">
-                          <span className="text-muted-foreground">
+                        <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                          <span className="text-muted-foreground font-medium">
                             Cari Adı:
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             {receipt.current.currentName}
                           </span>
                         </div>
                         {receipt.current.priceList && (
                           <>
-                            <div className="flex justify-between items-center py-1 border-b">
-                              <span className="text-muted-foreground">
+                            <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                              <span className="text-muted-foreground font-medium">
                                 Fiyat Listesi:
                               </span>
-                              <span className="font-medium">
+                              <span className="font-semibold tracking-wide">
                                 {receipt.current.priceList.priceListName}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center py-1 border-b">
-                              <span className="text-muted-foreground">
+                            <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                              <span className="text-muted-foreground font-medium">
                                 Para Birimi:
                               </span>
-                              <span className="font-medium">
+                              <Badge
+                                variant="outline"
+                                className="font-semibold"
+                              >
                                 {receipt.current.priceList.currency}
-                              </span>
+                              </Badge>
                             </div>
-                            <div className="flex justify-between items-center py-1 border-b">
-                              <span className="text-muted-foreground">
+                            <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                              <span className="text-muted-foreground font-medium">
                                 KDV Dahil:
                               </span>
                               <Badge
@@ -671,6 +738,12 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                                     ? "default"
                                     : "secondary"
                                 }
+                                className={cn(
+                                  "font-semibold",
+                                  receipt.current.priceList.isVatIncluded
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                )}
                               >
                                 {receipt.current.priceList.isVatIncluded
                                   ? "Evet"
@@ -684,59 +757,116 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   )}
                 </div>
 
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3">
+                <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                  <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <Package className="h-4 w-4 text-amber-500 dark:text-amber-400" />
                       Ürün Detayları
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="rounded-md border">
+                    <div className="rounded-lg border dark:border-gray-800 overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-muted/50">
-                            <TableHead>Ürün Kodu</TableHead>
-                            <TableHead>Ürün Adı</TableHead>
-                            <TableHead>Birim</TableHead>
-                            <TableHead className="text-right">Miktar</TableHead>
-                            <TableHead className="text-right">
+                          <TableRow className="bg-gray-50/80 dark:bg-gray-900/80 hover:bg-gray-100/80 dark:hover:bg-gray-800/80">
+                            <TableHead className="font-semibold">
+                              Ürün Kodu
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              Ürün Adı
+                            </TableHead>
+                            <TableHead className="font-semibold text-center">
+                              Birim
+                            </TableHead>
+                            <TableHead className="text-right font-semibold">
+                              Miktar
+                            </TableHead>
+                            <TableHead className="text-right font-semibold">
                               Birim Fiyat
                             </TableHead>
-                            <TableHead className="text-right">Toplam</TableHead>
+                            <TableHead className="text-right font-semibold">
+                              İskonto
+                            </TableHead>
+                            <TableHead className="text-right font-semibold">
+                              Net Fiyat
+                            </TableHead>
+                            <TableHead className="text-right font-semibold">
+                              KDV
+                            </TableHead>
+                            <TableHead className="text-right font-semibold">
+                              Toplam
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {receipt.receiptDetail.map((detail) => (
                             <TableRow
                               key={detail.id}
-                              className="hover:bg-muted/50"
+                              className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
                             >
-                              <TableCell className="font-medium">
+                              <TableCell className="font-medium whitespace-nowrap">
                                 {detail.stockCard.productCode}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="max-w-[200px] truncate">
                                 {detail.stockCard.productName}
                               </TableCell>
-                              <TableCell>{detail.stockCard.unit}</TableCell>
-                              <TableCell className="text-right tabular-nums">
+                              <TableCell className="text-center">
+                                <Badge
+                                  variant="outline"
+                                  className="font-medium"
+                                >
+                                  {detail.stockCard.unit}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-medium tabular-nums">
                                 {detail.quantity.toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
                                 })}
                               </TableCell>
-                              <TableCell className="text-right tabular-nums">
+                              <TableCell className="text-right font-medium tabular-nums">
                                 {detail.unitPrice.toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
                                 })}
                               </TableCell>
                               <TableCell className="text-right font-medium tabular-nums">
+                                {detail.discount > 0 ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="font-medium bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/50"
+                                  >
+                                    %
+                                    {detail.discount.toLocaleString("tr-TR", {
+                                      minimumFractionDigits: 2,
+                                    })}
+                                  </Badge>
+                                ) : (
+                                  "-"
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-medium tabular-nums">
+                                {detail.netPrice.toLocaleString("tr-TR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right font-medium tabular-nums">
+                                <Badge
+                                  variant="outline"
+                                  className="font-medium bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50"
+                                >
+                                  %
+                                  {detail.vatRate.toLocaleString("tr-TR", {
+                                    minimumFractionDigits: 0,
+                                  })}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold tabular-nums">
                                 {detail.totalPrice.toLocaleString("tr-TR", {
                                   minimumFractionDigits: 2,
                                 })}
                               </TableCell>
                             </TableRow>
                           ))}
-                          <TableRow className="bg-muted/50 font-medium">
+                          <TableRow className="bg-gray-50/80 dark:bg-gray-900/80 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 font-semibold">
                             <TableCell colSpan={3} className="text-right">
                               Toplam:
                             </TableCell>
@@ -773,49 +903,49 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                 </Card>
 
                 {receipt.currentMovement && (
-                  <Card className="shadow-sm">
-                    <CardHeader className="pb-3">
+                  <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                    <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
                       <CardTitle className="text-base font-medium flex items-center gap-2">
-                        <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                        <ArrowLeftRight className="h-4 w-4 text-cyan-500 dark:text-cyan-400" />
                         Hareket Bilgileri
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center py-1 border-b">
-                        <span className="text-muted-foreground">
+                    <CardContent className="space-y-2 text-sm pt-4">
+                      <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                        <span className="text-muted-foreground font-medium">
                           Hareket Tipi:
                         </span>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="font-semibold">
                           {receipt.currentMovement.movementType}
                         </Badge>
                       </div>
                       {receipt.currentMovement.documentType && (
-                        <div className="flex justify-between items-center py-1 border-b">
-                          <span className="text-muted-foreground">
+                        <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                          <span className="text-muted-foreground font-medium">
                             Belge Tipi:
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             {receipt.currentMovement.documentType}
                           </span>
                         </div>
                       )}
                       {receipt.currentMovement.description && (
-                        <div className="flex justify-between items-center py-1 border-b">
-                          <span className="text-muted-foreground">
+                        <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                          <span className="text-muted-foreground font-medium">
                             Açıklama:
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             {receipt.currentMovement.description}
                           </span>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         {receipt.currentMovement.debtAmount && (
-                          <div className="p-4 rounded-lg bg-red-50">
-                            <div className="text-sm text-red-600 mb-1">
+                          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-900">
+                            <div className="text-sm text-red-600 dark:text-red-400 mb-1 font-medium">
                               Borç
                             </div>
-                            <div className="text-lg font-semibold text-red-700 tabular-nums">
+                            <div className="text-lg font-semibold text-red-700 dark:text-red-300 tabular-nums">
                               {receipt.currentMovement.debtAmount.toLocaleString(
                                 "tr-TR",
                                 {
@@ -826,11 +956,11 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                           </div>
                         )}
                         {receipt.currentMovement.creditAmount && (
-                          <div className="p-4 rounded-lg bg-green-50">
-                            <div className="text-sm text-green-600 mb-1">
+                          <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900">
+                            <div className="text-sm text-emerald-600 dark:text-emerald-400 mb-1 font-medium">
                               Alacak
                             </div>
-                            <div className="text-lg font-semibold text-green-700 tabular-nums">
+                            <div className="text-lg font-semibold text-emerald-700 dark:text-emerald-300 tabular-nums">
                               {receipt.currentMovement.creditAmount.toLocaleString(
                                 "tr-TR",
                                 { minimumFractionDigits: 2 }
@@ -843,35 +973,35 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
                   </Card>
                 )}
 
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3">
+                <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border dark:border-gray-800">
+                  <CardHeader className="pb-3 bg-gray-50/50 dark:bg-gray-900/50">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <Info className="h-4 w-4 text-orange-500 dark:text-orange-400" />
                       Oluşturma Bilgileri
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
+                  <CardContent className="space-y-2 text-sm pt-4">
                     {receipt.createdByUser && (
-                      <div className="flex justify-between items-center py-1 border-b">
-                        <span className="text-muted-foreground">
+                      <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                        <span className="text-muted-foreground font-medium">
                           Oluşturan:
                         </span>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="font-normal">
                             {receipt.createdByUser.username}
                           </Badge>
-                          <span className="font-medium">
+                          <span className="font-semibold tracking-wide">
                             ({receipt.createdByUser.firstName}{" "}
                             {receipt.createdByUser.lastName})
                           </span>
                         </div>
                       </div>
                     )}
-                    <div className="flex justify-between items-center py-1 border-b">
-                      <span className="text-muted-foreground">
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150">
+                      <span className="text-muted-foreground font-medium">
                         Oluşturma Tarihi:
                       </span>
-                      <span className="font-medium">
+                      <span className="font-semibold tracking-wide">
                         {format(
                           new Date(receipt.createdAt),
                           "dd.MM.yyyy HH:mm"
@@ -887,9 +1017,9 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
       </Dialog>
 
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white dark:bg-gray-950 border dark:border-gray-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-semibold text-red-600">
+            <AlertDialogTitle className="text-lg font-semibold text-red-600 dark:text-red-500">
               Fişi Silmek İstediğinize Emin misiniz?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
@@ -898,7 +1028,9 @@ const ReceiptDetailDialog: React.FC<ReceiptDetailDialogProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+              Vazgeç
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600 text-white"

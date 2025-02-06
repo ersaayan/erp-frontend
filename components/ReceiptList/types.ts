@@ -44,6 +44,16 @@ export interface ReceiptDetailType {
   description: string | null;
   branchCode: string;
   createdAt: Date;
+  outWarehouse: {
+    id: string;
+    warehouseCode: string;
+    warehouseName: string;
+  } | null;
+  inWarehouse: {
+    id: string;
+    warehouseCode: string;
+    warehouseName: string;
+  } | null;
   current: {
     id: string;
     currentCode: string;

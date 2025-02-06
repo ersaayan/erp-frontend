@@ -248,10 +248,25 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </div>
         </div>
         <Input
+          placeholder="Fatura No"
           value={data.invoiceNo}
-          onChange={(e) => handleInputChange("invoiceNo", e.target.value)}
-          placeholder="Fatura numarası giriniz"
+          onChange={(e) =>
+            onChange({
+              ...data,
+              invoiceNo: e.target.value,
+              errors: {
+                ...data.errors,
+                invoiceNo: false,
+              },
+            })
+          }
           disabled={isSerial || isEditMode}
+          className={cn(
+            "w-full",
+            !data.invoiceNo &&
+              data.current &&
+              "border-red-500 focus-visible:ring-red-500"
+          )}
         />
       </div>
 
@@ -360,7 +375,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           value={data.branchCode}
           onValueChange={(value) => handleInputChange("branchCode", value)}
         >
-          <SelectTrigger>
+          <SelectTrigger
+            className={cn(
+              !data.branchCode &&
+                data.current &&
+                "border-red-500 focus-visible:ring-red-500"
+            )}
+          >
             <SelectValue placeholder="Şube seçin" />
           </SelectTrigger>
           <SelectContent>
@@ -379,7 +400,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           value={data.warehouseId}
           onValueChange={(value) => handleInputChange("warehouseId", value)}
         >
-          <SelectTrigger>
+          <SelectTrigger
+            className={cn(
+              !data.warehouseId &&
+                data.current &&
+                "border-red-500 focus-visible:ring-red-500"
+            )}
+          >
             <SelectValue placeholder="Depo seçin" />
           </SelectTrigger>
           <SelectContent>

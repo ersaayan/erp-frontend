@@ -9,13 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Info } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,19 +34,7 @@ const currencies = [
 const ExpenseSection: React.FC<ExpenseSectionProps> = ({
   expenses,
   onExpensesChange,
-  current,
 }) => {
-  const handleAddExpense = () => {
-    const newExpense: ExpenseItem = {
-      id: crypto.randomUUID(),
-      expenseCode: "",
-      expenseName: "",
-      price: 0,
-      currency: "TRY",
-    };
-    onExpensesChange([...expenses, newExpense]);
-  };
-
   const handleUpdateExpense = (
     index: number,
     updates: Partial<ExpenseItem>
@@ -69,40 +51,14 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Masraflar</h2>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Tüm masraflar otomatik olarak USD&apos;ye çevrilir</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleAddExpense}
-          disabled={!current}
-          className="bg-[#84CC16] hover:bg-[#65A30D]"
-          title={!current ? "Önce cari seçimi yapmalısınız" : undefined}
-        >
-          Masraf Ekle
-        </Button>
-      </div>
-
-      <div className="border rounded-md">
+      <div className="border rounded-md overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted">
             <TableRow>
-              <TableHead>Masraf Kodu</TableHead>
-              <TableHead>Masraf Adı</TableHead>
-              <TableHead className="text-right">Tutar</TableHead>
-              <TableHead>Para Birimi</TableHead>
+              <TableHead className="w-[200px]">Masraf Kodu</TableHead>
+              <TableHead className="w-[300px]">Masraf Adı</TableHead>
+              <TableHead className="text-right w-[150px]">Tutar</TableHead>
+              <TableHead className="w-[150px]">Para Birimi</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -111,14 +67,14 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="text-center text-muted-foreground"
+                  className="text-center h-24 text-muted-foreground"
                 >
                   Henüz masraf eklenmedi
                 </TableCell>
               </TableRow>
             ) : (
               expenses.map((expense, index) => (
-                <TableRow key={expense.id}>
+                <TableRow key={expense.id} className="hover:bg-muted/50">
                   <TableCell>
                     <Input
                       value={expense.expenseCode}
@@ -128,6 +84,7 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                         })
                       }
                       placeholder="Masraf kodu"
+                      className="h-8"
                     />
                   </TableCell>
                   <TableCell>
@@ -139,6 +96,7 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                         })
                       }
                       placeholder="Masraf adı"
+                      className="h-8"
                     />
                   </TableCell>
                   <TableCell>
@@ -150,7 +108,7 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                           price: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="text-right"
+                      className="text-right h-8"
                     />
                   </TableCell>
                   <TableCell>
@@ -160,7 +118,7 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                         handleUpdateExpense(index, { currency: value })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-8">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -180,8 +138,9 @@ const ExpenseSection: React.FC<ExpenseSectionProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDeleteExpense(index)}
+                      className="h-8 w-8"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
                 </TableRow>
