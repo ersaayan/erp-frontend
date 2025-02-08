@@ -33,6 +33,18 @@ const TabContainer: React.FC<TabContainerProps> = ({
     if (tabName === "Stok Formu") {
       localStorage.removeItem("stockFormData");
     }
+    if (tabName === "Hızlı Satış") {
+      localStorage.removeItem("quickSalesFormData");
+      localStorage.removeItem("currentInvoiceData");
+    }
+    if (tabName === "Satış Faturası") {
+      localStorage.removeItem("salesInvoiceFormData");
+      localStorage.removeItem("currentInvoiceData");
+    }
+    if (tabName === "Alış Faturası") {
+      localStorage.removeItem("purchaseInvoiceFormData");
+      localStorage.removeItem("currentInvoiceData");
+    }
 
     onCloseTab(tabName);
   };

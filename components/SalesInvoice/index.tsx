@@ -324,25 +324,6 @@ const SalesInvoice: React.FC = () => {
     }
   };
 
-  // Component mount/unmount kontrolü
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("salesInvoiceFormData");
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      localStorage.removeItem("salesInvoiceFormData");
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
-
   const handleProductsAdd = (newProducts: StockItem[]) => {
     setProducts((prevProducts) => {
       // Mevcut ürünlerin stockId'lerini bir Map'e alalım
