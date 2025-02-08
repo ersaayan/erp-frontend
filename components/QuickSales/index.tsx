@@ -14,7 +14,11 @@ import { AlertCircle } from "lucide-react";
 import WarehouseSelect from "./WarehouseSection/WarehouseSelect";
 import { Badge } from "@/components/ui/badge";
 
-const QuickSales: React.FC = () => {
+interface QuickSalesProps {
+  tabId: string;
+}
+
+const QuickSales: React.FC<QuickSalesProps> = ({ tabId }) => {
   const {
     cart,
     customer,
@@ -28,6 +32,7 @@ const QuickSales: React.FC = () => {
     setPayments,
     processPayment,
     deleteOrder,
+    setCart,
   } = useQuickSales();
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
@@ -85,6 +90,36 @@ const QuickSales: React.FC = () => {
       fetchDefaultCustomer();
     }
   }, [customer, fetchDefaultCustomer]);
+
+  // Form verilerini localStorage'a kaydetme
+  useEffect(() => {
+    if (cart.length > 0 || customer || payments.length > 0) {
+      const formData = {
+        cart,
+        customer,
+        payments,
+      };
+      localStorage.setItem(
+        `quickSalesFormData-${tabId}`,
+        JSON.stringify(formData)
+      );
+    }
+  }, [cart, customer, payments, tabId]);
+
+  // Form verilerini localStorage'dan yükleme
+  useEffect(() => {
+    const savedFormData = localStorage.getItem(`quickSalesFormData-${tabId}`);
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        if (parsedData.cart) setCart(parsedData.cart);
+        if (parsedData.customer) setCustomer(parsedData.customer);
+        if (parsedData.payments) setPayments(parsedData.payments);
+      } catch (error) {
+        console.error("Form verilerini yüklerken hata oluştu:", error);
+      }
+    }
+  }, [tabId]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)]">

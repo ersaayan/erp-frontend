@@ -52,17 +52,34 @@ export default function MainContent() {
   };
 
   const handleMenuItemClick = (itemName: string) => {
-    if (!openTabs.includes(itemName)) {
-      const newTabs = [...openTabs, itemName];
+    if (
+      itemName === "Alış Faturası" ||
+      itemName === "Satış Faturası" ||
+      itemName === "Hızlı Satış"
+    ) {
+      const newTabId = `${itemName}-${crypto.randomUUID()}`;
+      const newTabs = [...openTabs, newTabId];
       setOpenTabs(newTabs);
       document.cookie = `openTabs=${encodeURIComponent(
         JSON.stringify(newTabs)
       )}; path=/; max-age=31536000`;
+      setActiveTab(newTabId);
+      document.cookie = `activeTab=${encodeURIComponent(
+        newTabId
+      )}; path=/; max-age=31536000`;
+    } else {
+      if (!openTabs.includes(itemName)) {
+        const newTabs = [...openTabs, itemName];
+        setOpenTabs(newTabs);
+        document.cookie = `openTabs=${encodeURIComponent(
+          JSON.stringify(newTabs)
+        )}; path=/; max-age=31536000`;
+      }
+      setActiveTab(itemName);
+      document.cookie = `activeTab=${encodeURIComponent(
+        itemName
+      )}; path=/; max-age=31536000`;
     }
-    setActiveTab(itemName);
-    document.cookie = `activeTab=${encodeURIComponent(
-      itemName
-    )}; path=/; max-age=31536000`;
   };
 
   const handleCloseTab = (tabName: string) => {

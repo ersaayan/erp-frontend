@@ -29,20 +29,23 @@ const TabContainer: React.FC<TabContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleCloseTab = (tabName: string) => {
-    // Clear form data when closing Stok Formu tab
+    // Stok Formu için
     if (tabName === "Stok Formu") {
       localStorage.removeItem("stockFormData");
     }
-    if (tabName === "Hızlı Satış") {
-      localStorage.removeItem("quickSalesFormData");
+    // Hızlı Satış için
+    else if (tabName.startsWith("Hızlı Satış-")) {
+      localStorage.removeItem(`quickSalesFormData-${tabName}`);
       localStorage.removeItem("currentInvoiceData");
     }
-    if (tabName === "Satış Faturası") {
-      localStorage.removeItem("salesInvoiceFormData");
+    // Satış Faturası için
+    else if (tabName.startsWith("Satış Faturası-")) {
+      localStorage.removeItem(`salesInvoiceFormData-${tabName}`);
       localStorage.removeItem("currentInvoiceData");
     }
-    if (tabName === "Alış Faturası") {
-      localStorage.removeItem("purchaseInvoiceFormData");
+    // Alış Faturası için
+    else if (tabName.startsWith("Alış Faturası-")) {
+      localStorage.removeItem(`purchaseInvoiceFormData-${tabName}`);
       localStorage.removeItem("currentInvoiceData");
     }
 
@@ -109,7 +112,13 @@ const TabContainer: React.FC<TabContainerProps> = ({
                 value={tab}
                 className="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm relative border-r last:border-r-0 h-10"
               >
-                {tab}
+                {tab.startsWith("Alış Faturası-")
+                  ? "Alış Faturası"
+                  : tab.startsWith("Satış Faturası-")
+                  ? "Satış Faturası"
+                  : tab.startsWith("Hızlı Satış-")
+                  ? "Hızlı Satış"
+                  : tab}
                 <span
                   onClick={(e) => {
                     e.stopPropagation();

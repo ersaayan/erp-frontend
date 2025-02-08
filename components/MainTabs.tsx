@@ -144,90 +144,94 @@ export const MainTabs: React.FC<MainTabsProps> = ({
   onMenuItemClick,
 }) => {
   const renderActiveTab = () => {
-    switch (activeTab) {
-      case "Stok Listesi":
+    switch (true) {
+      case activeTab?.startsWith("Alış Faturası-"):
+        return <PurchaseInvoice key={activeTab} tabId={activeTab} />;
+      case activeTab?.startsWith("Satış Faturası-"):
+        return <SalesInvoice key={activeTab} tabId={activeTab} />;
+      case activeTab?.startsWith("Hızlı Satış-"):
+        return <QuickSales key={activeTab} tabId={activeTab} />;
+      case activeTab === "Stok Listesi":
         return <StockList onMenuItemClick={onMenuItemClick} />;
-      case "Stok Formu":
+      case activeTab === "Stok Formu":
         return <StockForm />;
-      case "Bundle/Set Stoklar":
+      case activeTab === "Bundle/Set Stoklar":
         return <BundleSetStocks />;
-      case "Bundle/Set Stok Formu":
+      case activeTab === "Bundle/Set Stok Formu":
         return <BundleSetStockForm />;
-      case "Hareketler":
+      case activeTab === "Hareketler":
         return <StockMovements />;
-      case "Stok Hareketleri":
+      case activeTab === "Stok Hareketleri":
         return <StockMovements />;
-      case "Alış Hareketleri":
+      case activeTab === "Alış Hareketleri":
         return <StockPurchaseMovements />;
-      case "Satış Hareketleri":
+      case activeTab === "Satış Hareketleri":
         return <StockSalesMovements />;
-      case "Sipariş Hareketleri":
+      case activeTab === "Sipariş Hareketleri":
         return <StockOrderMovements />;
-      case "Stok Sayım Hareketleri":
+      case activeTab === "Stok Sayım Hareketleri":
         return <StockTakeMovements />;
-      case "Banka Hareketleri":
+      case activeTab === "Banka Hareketleri":
         return <BankMovements />;
-      case "POS Hareketleri":
+      case activeTab === "POS Hareketleri":
         return <PosMovements />;
-      case "Nakit Hareketleri":
+      case activeTab === "Nakit Hareketleri":
         return <VaultMovements />;
-      case "Kategoriler":
+      case activeTab === "Kategoriler":
         return <Categories />;
-      case "Özellikler":
+      case activeTab === "Özellikler":
         return <Properties />;
-      case "Hızlı Stok":
+      case activeTab === "Hızlı Stok":
         return <QuickStock />;
-      case "Barkod":
+      case activeTab === "Barkod":
         return <Barcodes />;
-      case "Kampanyalar":
+      case activeTab === "Kampanyalar":
         return <Campaigns />;
-      case "Cari Listesi":
+      case activeTab === "Cari Listesi":
         return <CurrentList onMenuItemClick={onMenuItemClick} />;
-      case "Cari Kategorileri":
+      case activeTab === "Cari Kategorileri":
         return <CurrentCategories />;
-      case "Cari Hareketleri":
+      case activeTab === "Cari Hareketleri":
         return <CurrentTransactions onMenuItemClick={onMenuItemClick} />;
-      case "Cari Formu":
+      case activeTab === "Cari Formu":
         return <CurrentForm />;
-      case "Hızlı Satış":
+      case activeTab === "Hızlı Satış":
         return <QuickSales />;
-      case "Depo Listesi":
+      case activeTab === "Depo Listesi":
         return <Warehouses />;
-      case "Sipariş Paketleme":
+      case activeTab === "Sipariş Paketleme":
         return <OrderPreparation />;
-      case "Stok Sayım":
+      case activeTab === "Stok Sayım":
         return <StockCount />;
-      case "Fatura/İrsaliye Listesi":
+      case activeTab === "Fatura/İrsaliye Listesi":
         return <InvoiceList onMenuItemClick={onMenuItemClick} />;
-      case "Fiş Listesi":
+      case activeTab === "Fiş Listesi":
         return <FisListesi />;
-      case "Alış Faturası":
-        return <PurchaseInvoice />;
-      case "Satış Faturası":
+      case activeTab === "Satış Faturası":
         return <SalesInvoice />;
-      case "Cari İşlemleri":
+      case activeTab === "Cari İşlemleri":
         return <CurrentTransactions onMenuItemClick={onMenuItemClick} />;
-      case "Kasa İşlemleri":
+      case activeTab === "Kasa İşlemleri":
         return <VaultOperations />;
-      case "Banka İşlemleri":
+      case activeTab === "Banka İşlemleri":
         return <BankOperations />;
-      case "POS İşlemleri":
+      case activeTab === "POS İşlemleri":
         return <PosOperations />;
-      case "Kullanıcılar":
+      case activeTab === "Kullanıcılar":
         return <UsersPage />;
-      case "Profil":
+      case activeTab === "Profil":
         return <ProfileForm />;
-      case "Firma":
+      case activeTab === "Firma":
         return <CompanyForm />;
-      case "Tanımlar":
+      case activeTab === "Tanımlar":
         return <Definitions />;
-      case "Roller ve İzinler":
+      case activeTab === "Roller ve İzinler":
         return <Roles />;
-      case "Şubeler":
+      case activeTab === "Şubeler":
         return <Branches />;
-      case "Stok Bakiye Raporu":
+      case activeTab === "Stok Bakiye Raporu":
         return <StockBalanceReport />;
-      case "Bildirimler":
+      case activeTab === "Bildirimler":
         return <Notifications />;
       default:
         return null;

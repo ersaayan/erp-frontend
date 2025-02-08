@@ -22,7 +22,11 @@ import ProductTable from "./ProductsSection/ProductTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-const SalesInvoice: React.FC = () => {
+interface SalesInvoiceProps {
+  tabId: string;
+}
+
+const SalesInvoice: React.FC<SalesInvoiceProps> = ({ tabId }) => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
     id: "",
     invoiceNo: "",
@@ -51,7 +55,9 @@ const SalesInvoice: React.FC = () => {
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentSalesInvoice");
+    const savedCurrentData = localStorage.getItem(
+      `currentSalesInvoice-${tabId}`
+    );
     if (savedCurrentData) {
       try {
         const currentData = JSON.parse(savedCurrentData);
@@ -64,16 +70,18 @@ const SalesInvoice: React.FC = () => {
             priceList: currentData.priceList,
           },
         }));
-        localStorage.removeItem("currentSalesInvoice");
+        localStorage.removeItem(`currentSalesInvoice-${tabId}`);
       } catch (error) {
         console.error("Error parsing current data:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   // Load invoice data from localStorage if available
   useEffect(() => {
-    const savedInvoiceData = localStorage.getItem("currentInvoiceData");
+    const savedInvoiceData = localStorage.getItem(
+      `currentInvoiceData-${tabId}`
+    );
     if (savedInvoiceData) {
       try {
         const invoiceDetail: InvoiceDetailResponse =
@@ -162,12 +170,12 @@ const SalesInvoice: React.FC = () => {
         }
 
         setIsEditMode(true);
-        localStorage.removeItem("currentInvoiceData");
+        localStorage.removeItem(`currentInvoiceData-${tabId}`);
       } catch (error) {
         console.error("Error parsing invoice data:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   // Form verilerini localStorage'a kaydetme
   useEffect(() => {
@@ -183,14 +191,17 @@ const SalesInvoice: React.FC = () => {
         expenses,
         payments,
       };
-      localStorage.setItem("salesInvoiceFormData", JSON.stringify(formData));
+      localStorage.setItem(
+        `salesInvoiceFormData-${tabId}`,
+        JSON.stringify(formData)
+      );
     }
-  }, [invoiceData, products, expenses, payments]);
+  }, [invoiceData, products, expenses, payments, tabId]);
 
   // Form verilerini localStorage'dan yükleme
   useEffect(() => {
-    const savedFormData = localStorage.getItem("salesInvoiceFormData");
-    localStorage.removeItem("salesInvoiceFormData");
+    const savedFormData = localStorage.getItem(`salesInvoiceFormData-${tabId}`);
+    localStorage.removeItem(`salesInvoiceFormData-${tabId}`);
     if (savedFormData) {
       try {
         const parsedData = JSON.parse(savedFormData);
@@ -221,7 +232,7 @@ const SalesInvoice: React.FC = () => {
         console.error("Form verilerini yüklerken hata oluştu:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   const handleSave = async () => {
     if (!invoiceData.invoiceNo) {
@@ -319,7 +330,7 @@ const SalesInvoice: React.FC = () => {
 
         // Reset edit mode
         setIsEditMode(false);
-        localStorage.removeItem("salesInvoiceFormData");
+        localStorage.removeItem(`salesInvoiceFormData-${tabId}`);
       }
     }
   };
@@ -436,7 +447,7 @@ const SalesInvoice: React.FC = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
       <div className="flex items-center justify-between shrink-0 mb-2">
         <h2 className="text-2xl font-bold">
-          {isEditMode ? "Fatura Düzenle" : "Alış Faturası"}
+          {isEditMode ? "Fatura Düzenle" : "Satış Faturası"}
         </h2>
         <div className="flex items-center gap-2">
           <Button

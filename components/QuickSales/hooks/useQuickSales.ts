@@ -381,6 +381,7 @@ export const useQuickSales = () => {
     setPayments,
     processPayment,
     deleteOrder,
+    setCart,
   };
 };
 

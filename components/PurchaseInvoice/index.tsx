@@ -22,7 +22,11 @@ import ProductTable from "./ProductsSection/ProductTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-const PurchaseInvoice: React.FC = () => {
+interface PurchaseInvoiceProps {
+  tabId: string;
+}
+
+const PurchaseInvoice: React.FC<PurchaseInvoiceProps> = ({ tabId }) => {
   const [invoiceData, setInvoiceData] = useState<InvoiceFormData>({
     id: "",
     invoiceNo: "",
@@ -51,7 +55,9 @@ const PurchaseInvoice: React.FC = () => {
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentPurchaseInvoice");
+    const savedCurrentData = localStorage.getItem(
+      `currentPurchaseInvoice-${tabId}`
+    );
     if (savedCurrentData) {
       try {
         const currentData = JSON.parse(savedCurrentData);
@@ -64,16 +70,18 @@ const PurchaseInvoice: React.FC = () => {
             priceList: currentData.priceList,
           },
         }));
-        localStorage.removeItem("currentPurchaseInvoice");
+        localStorage.removeItem(`currentPurchaseInvoice-${tabId}`);
       } catch (error) {
         console.error("Error parsing current data:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   // Load invoice data from localStorage if available
   useEffect(() => {
-    const savedInvoiceData = localStorage.getItem("currentInvoiceData");
+    const savedInvoiceData = localStorage.getItem(
+      `currentInvoiceData-${tabId}`
+    );
     if (savedInvoiceData) {
       try {
         const invoiceDetail: InvoiceDetailResponse =
@@ -162,12 +170,12 @@ const PurchaseInvoice: React.FC = () => {
         }
 
         setIsEditMode(true);
-        localStorage.removeItem("currentInvoiceData");
+        localStorage.removeItem(`currentInvoiceData-${tabId}`);
       } catch (error) {
         console.error("Error parsing invoice data:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   // Form verilerini localStorage'a kaydetme
   useEffect(() => {
@@ -183,14 +191,19 @@ const PurchaseInvoice: React.FC = () => {
         expenses,
         payments,
       };
-      localStorage.setItem("purchaseInvoiceFormData", JSON.stringify(formData));
+      localStorage.setItem(
+        `purchaseInvoiceFormData-${tabId}`,
+        JSON.stringify(formData)
+      );
     }
-  }, [invoiceData, products, expenses, payments]);
+  }, [invoiceData, products, expenses, payments, tabId]);
 
   // Form verilerini localStorage'dan yükleme
   useEffect(() => {
-    const savedFormData = localStorage.getItem("purchaseInvoiceFormData");
-    localStorage.removeItem("purchaseInvoiceFormData");
+    const savedFormData = localStorage.getItem(
+      `purchaseInvoiceFormData-${tabId}`
+    );
+    localStorage.removeItem(`purchaseInvoiceFormData-${tabId}`);
     if (savedFormData) {
       try {
         const parsedData = JSON.parse(savedFormData);
@@ -221,7 +234,7 @@ const PurchaseInvoice: React.FC = () => {
         console.error("Form verilerini yüklerken hata oluştu:", error);
       }
     }
-  }, []);
+  }, [tabId]);
 
   const handleSave = async () => {
     if (!invoiceData.invoiceNo) {
@@ -319,7 +332,7 @@ const PurchaseInvoice: React.FC = () => {
 
         // Reset edit mode
         setIsEditMode(false);
-        localStorage.removeItem("purchaseInvoiceFormData");
+        localStorage.removeItem(`purchaseInvoiceFormData-${tabId}`);
       }
     }
   };
