@@ -56,7 +56,6 @@ import {
 } from "@/components/ui/select";
 import { Card } from "../ui/card";
 import { BarcodePrinter } from "@/lib/services/barcode/printer";
-import { BarcodeData } from "@/lib/services/barcode/types";
 import {
   Form,
   FormControl,
@@ -68,6 +67,8 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import PrintBarcodeDialog from "./components/PrintBarcodeDialog";
+import { PrintBarcodeItem } from "./types";
 
 interface StockListProps {
   onMenuItemClick: (itemName: string) => void;
@@ -110,7 +111,6 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
   const [selectedStocks, setSelectedStocks] = useState<StockCard[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
   const [settings, setSettings] = useState({
     showGroupPanel: true,
     showFilterRow: true,
@@ -121,6 +121,7 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkPriceUpdateOpen, setBulkPriceUpdateOpen] = useState(false);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
 
   const bulkPriceUpdateForm = useForm<z.infer<typeof bulkPriceUpdateSchema>>({
     resolver: zodResolver(bulkPriceUpdateSchema),
@@ -246,47 +247,47 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
     [onMenuItemClick, toast]
   );
 
-  const handlePrint = useCallback(async () => {
+  const handlePrintDialogOpen = useCallback(() => {
     if (selectedRowKeys.length === 0) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen en az bir ürün seçin",
+        description: "Lütfen en az bir stok kartı seçin",
       });
       return;
     }
+    setIsPrintDialogOpen(true);
+  }, [selectedRowKeys, toast]);
 
-    try {
-      setLoading(true);
-      const barcodeData: BarcodeData[] = selectedStocks
-        .sort((a, b) => a.productCode.localeCompare(b.productCode))
-        .map((stock) => ({
-          stockCode: stock.productCode,
-          stockName: stock.productName,
-          barcode: stock.barcodes?.[0]?.barcode || stock.productCode,
-        }));
+  const handlePrintBarcodes = useCallback(
+    async (items: PrintBarcodeItem[]) => {
+      try {
+        const printer = new BarcodePrinter();
+        const barcodes = items.flatMap((item) => {
+          const barcodeData = {
+            stockCode: item.stockCard.productCode,
+            // Diğer barkod verileri buraya eklenebilir
+          };
+          return Array(item.quantity).fill(barcodeData);
+        });
 
-      const printer = new BarcodePrinter();
-      await printer.printBarcodes(barcodeData);
-      toast({
-        title: "Başarılı",
-        description: "Barkod yazdırma işlemi başlatıldı",
-      });
-    } catch (error) {
-      console.error("Print error:", error);
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Yazdırma işlemi başarısız oldu",
-      });
-    } finally {
-      setLoading(false);
-      setShowPreview(false);
-    }
-  }, [selectedStocks, toast, selectedRowKeys.length]);
+        await printer.printBarcodes(barcodes);
+        setIsPrintDialogOpen(false);
+        toast({
+          title: "Başarılı",
+          description: "Barkodlar yazdırılıyor...",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description:
+            error instanceof Error ? error.message : "Yazdırma hatası oluştu",
+        });
+      }
+    },
+    [toast]
+  );
 
   const handleDeleteSelected = useCallback(async () => {
     if (selectedRowKeys.length === 0) {
@@ -711,16 +712,12 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={handlePrintDialogOpen}
+                  disabled={selectedRowKeys.length === 0}
                   className="flex-1 bg-white hover:bg-gray-50"
-                  onClick={() => setShowPreview(true)}
-                  disabled={selectedRowKeys.length === 0 || loading}
                 >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Printer className="h-4 w-4 mr-2" />
-                  )}
-                  {loading ? "Yazdırılıyor..." : "Barkod Yazdır"}
+                  <Printer className="h-4 w-4 mr-2" />
+                  Barkod Yazdır
                 </Button>
                 <Button
                   variant="outline"
@@ -742,10 +739,10 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
       handleImport,
       bulkActionsOpen,
       selectedRowKeys.length,
-      loading,
       handleDeleteSelected,
       applyQuickFilter,
       handleExport,
+      handlePrintDialogOpen,
     ]
   );
 
@@ -1228,56 +1225,12 @@ const StockList: React.FC<StockListProps> = ({ onMenuItemClick }) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-2xl flex flex-col h-[80vh] p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle>Barkod Yazdırma Önizleme</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-2">
-              <p className="font-medium">
-                Seçili Ürünler ({selectedStocks.length}):
-              </p>
-              <div className="border rounded-md">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-2 text-left">Stok Kodu</th>
-                      <th className="px-4 py-2 text-left">Stok Adı</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedStocks
-                      .sort((a, b) =>
-                        a.productCode.localeCompare(b.productCode)
-                      )
-                      .map((stock) => (
-                        <tr key={stock.id} className="border-t">
-                          <td className="px-4 py-2">{stock.productCode}</td>
-                          <td className="px-4 py-2">{stock.productName}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div className="mt-auto border-t bg-background px-6 py-4">
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowPreview(false)}>
-                İptal
-              </Button>
-              <Button
-                onClick={handlePrint}
-                className="bg-[#84CC16] hover:bg-[#65A30D]"
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Yazdır
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PrintBarcodeDialog
+        open={isPrintDialogOpen}
+        onOpenChange={setIsPrintDialogOpen}
+        selectedStocks={selectedStocks}
+        onPrint={handlePrintBarcodes}
+      />
     </div>
   );
 };

@@ -1,41 +1,20 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import DataGrid, {
   Column,
-  Export,
   Selection,
   FilterRow,
   HeaderFilter,
-  FilterPanel,
-  FilterBuilderPopup,
   Scrolling,
-  GroupPanel,
-  Grouping,
-  Summary,
-  TotalItem,
-  ColumnChooser,
-  Toolbar,
-  Item,
   Paging,
   StateStoring,
+  Lookup,
+  LoadPanel,
+  Export,
 } from "devextreme-react/data-grid";
-import { RowPreparedEvent } from "devextreme/ui/data_grid";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver-es";
-import { exportDataGrid } from "devextreme/excel_exporter";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  CheckSquare,
-  Filter,
-  RefreshCw,
-  Settings,
-  Upload,
-} from "lucide-react";
-import { Invoice } from "./types";
+import { CheckSquare, RefreshCw, Settings, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -45,86 +24,148 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { InvoiceDetailResponse } from "@/types/invoice-detail";
 import { Card } from "../ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Invoice,
+  InvoiceListProps,
+  InvoiceListResponse,
+  FilterParams,
+} from "./types";
 
-interface InvoiceListProps {
-  onMenuItemClick: (itemName: string) => void;
-}
+const invoiceTypes = [
+  { id: "Sales", name: "Satış Faturası" },
+  { id: "Purchase", name: "Alış Faturası" },
+  { id: "Return", name: "İade Faturası" },
+  { id: "Cancel", name: "İptal Faturası" },
+];
+
+const documentTypes = [
+  { id: "Invoice", name: "Fatura" },
+  { id: "Order", name: "Sipariş" },
+  { id: "Waybill", name: "İrsaliye" },
+];
 
 const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const dataGridRef = useRef<DataGrid>(null);
-  const [quickFilterText, setQuickFilterText] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Invoice");
   const [activeInvoiceTab, setActiveInvoiceTab] = useState("all");
 
   const [settings, setSettings] = useState({
-    showGroupPanel: true,
     showFilterRow: true,
     showHeaderFilter: true,
     alternateRowColoring: true,
-    pageSize: "50",
-    virtualScrolling: true,
   });
 
-  const fetchData = useCallback(async () => {
-    try {
+  const fetchInvoices = useCallback(
+    async (params: FilterParams = {}) => {
       setLoading(true);
-      const response = await fetch(`${process.env.BASE_URL}/invoices/`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        credentials: "include",
-      });
+      try {
+        // API parametrelerini oluştur
+        const apiParams: any = {
+          page: params.page || 1,
+          limit: params.limit || pageSize,
+        };
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch invoice data");
+        // Sıralama varsa ekle
+        if (params.orderBy) {
+          apiParams.orderBy = params.orderBy;
+        } else {
+          // Varsayılan sıralama
+          apiParams.orderBy = {
+            field: "invoiceDate",
+            direction: "desc",
+          };
+        }
+
+        // Filtreleme
+        const filter: any = {
+          ...params.filter,
+        };
+
+        // Aktif sekmeye göre filtreleme
+        if (activeInvoiceTab !== "all") {
+          filter.invoiceType =
+            activeInvoiceTab === "purchase" ? "Purchase" : "Sales";
+        }
+
+        // Filtre varsa ekle
+        if (Object.keys(filter).length > 0) {
+          apiParams.filter = filter;
+        }
+
+        const response = await fetch(
+          `${process.env.BASE_URL}/invoices?${new URLSearchParams({
+            page: apiParams.page.toString(),
+            limit: apiParams.limit.toString(),
+            orderBy: JSON.stringify(apiParams.orderBy),
+            ...(apiParams.filter && {
+              filter: JSON.stringify(apiParams.filter),
+            }),
+          })}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Faturalar yüklenirken bir hata oluştu");
+        }
+
+        const result: InvoiceListResponse = await response.json();
+        setInvoices(result.data);
+        setCurrentPage(result.page);
+      } catch (_error) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description:
+            _error instanceof Error
+              ? _error.message
+              : "Faturalar yüklenirken bir hata oluştu",
+        });
+      } finally {
+        setLoading(false);
       }
+    },
+    [toast, activeInvoiceTab, pageSize]
+  );
 
-      const data = await response.json();
-      setInvoices(data);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An error occurred while fetching data"
-      );
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch invoice data. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices, activeInvoiceTab]);
 
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      fetchInvoices({ page, limit: pageSize });
+    },
+    [fetchInvoices, pageSize]
+  );
+
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      fetchInvoices({ page: 1, limit: size });
+    },
+    [fetchInvoices]
+  );
+
+  const handleRefresh = useCallback(() => {
+    fetchInvoices({ page: currentPage, limit: pageSize });
+  }, [fetchInvoices, currentPage, pageSize]);
 
   const handleRowDblClick = useCallback(
     async (e: any) => {
       try {
-        // Fatura detaylarını getir
         const response = await fetch(
           `${process.env.BASE_URL}/invoices/getInvoiceInfoById/${e.data.id}`,
           {
@@ -136,261 +177,115 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch invoice details");
+          throw new Error("Fatura detayları alınamadı");
         }
 
-        const invoiceDetail: InvoiceDetailResponse = await response.json();
-
-        // Veriyi localStorage'a kaydet
+        const invoiceDetail = await response.json();
         localStorage.setItem(
           "currentInvoiceData",
           JSON.stringify(invoiceDetail)
         );
 
-        // Belge tipine göre yönlendirme yap
         if (e.data.documentType === "Invoice") {
-          if (e.data.invoiceType === "Purchase") {
-            onMenuItemClick("Alış Faturası");
-          } else if (e.data.invoiceType === "Sales") {
-            onMenuItemClick("Satış Faturası");
-          }
+          onMenuItemClick(
+            e.data.invoiceType === "Purchase"
+              ? "Alış Faturası"
+              : "Satış Faturası"
+          );
         } else if (e.data.documentType === "Order") {
-          // Sipariş düzenleme sayfasına yönlendir
           onMenuItemClick("Hızlı Satış");
         }
 
         toast({
-          title: "Success",
-          description:
-            e.data.documentType === "Invoice" || e.data.invoiceType !== "Cancel"
-              ? "Opening invoice form..."
-              : "Opening order for editing...",
-        });
-
-        toast({
-          title: "Destroy",
+          title: "Bilgi",
           description:
             e.data.invoiceType === "Cancel"
               ? "İptal Faturaları Düzenlenemez"
               : "Fatura Açılıyor...",
         });
       } catch (error) {
+        console.error(error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to open document. Please try again.",
+          title: "Hata",
+          description: "Fatura açılırken bir hata oluştu",
         });
-        console.error(error);
       }
     },
     [onMenuItemClick, toast]
   );
 
-  const onExporting = React.useCallback((e: any) => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Invoices");
-
-    exportDataGrid({
-      component: e.component,
-      worksheet,
-      autoFilterEnabled: true,
-      customizeCell: ({ gridCell, excelCell }: any) => {
-        if (gridCell.rowType === "data") {
-          if (typeof gridCell.value === "number") {
-            excelCell.numFmt = "#,##0.00";
-          }
-        }
-      },
-    }).then(() => {
-      workbook.xlsx.writeBuffer().then((buffer) => {
-        saveAs(
-          new Blob([buffer], { type: "application/octet-stream" }),
-          "Invoices.xlsx"
-        );
-      });
-    });
-  }, []);
-
-  const applyQuickFilter = useCallback(() => {
-    if (!dataGridRef.current) return;
-
-    const instance = dataGridRef.current.instance;
-    if (quickFilterText) {
-      instance.filter([
-        ["invoiceNo", "contains", quickFilterText],
-        "or",
-        ["gibInvoiceNo", "contains", quickFilterText],
-        "or",
-        ["currentCode", "contains", quickFilterText],
-      ]);
-    } else {
-      instance.clearFilter();
-    }
-  }, [quickFilterText]);
-
-  const handleImport = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      setLoading(true);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        toast({
-          title: "Success",
-          description: `File "${file.name}" imported successfully.`,
-        });
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to import file. Please try again.",
-        });
-        throw error;
-      } finally {
-        setLoading(false);
-        if (event.target) {
-          event.target.value = "";
-        }
-      }
-    },
-    [toast]
-  );
-
-  const onRowPrepared = useCallback((e: RowPreparedEvent<any, any>) => {
-    if (e.rowType === "data") {
-      switch (e.data.invoiceType) {
-        case "Return":
-          e.rowElement.classList.add("bg-light-red");
-          break;
-        default:
-          e.rowElement.classList.remove(
-            "bg-light-blue",
-            "bg-light-green",
-            "bg-light-red"
-          );
-          break;
-      }
-    }
-  }, []);
-
-  const renderToolbarContent = useCallback(
-    () => (
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <Input
-            placeholder="Hızlı arama..."
-            value={quickFilterText}
-            onChange={(e) => setQuickFilterText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applyQuickFilter()}
-            className="max-w-xs"
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (dataGridRef.current) {
-              dataGridRef.current.instance.clearFilter();
-              setQuickFilterText("");
-            }
-          }}
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Filtreleri Temizle
-        </Button>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Yenile
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          İçeri Aktar
-        </Button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleImport}
-          accept=".xlsx,.xls"
-          className="hidden"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setSettingsOpen(true)}
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Ayarlar
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
-        >
-          <CheckSquare className="h-4 w-4 mr-2" />
-          Toplu İşlemler
-        </Button>
-      </div>
-    ),
-    [
-      quickFilterText,
-      applyQuickFilter,
-      fetchData,
-      handleImport,
-      bulkActionsOpen,
-    ]
-  );
-
-  const handleCancelInvoices = async () => {
+  const handleCancelInvoices = useCallback(async () => {
     if (selectedRowKeys.length === 0) return;
 
     try {
       setLoading(true);
-      console.log("Selected Row Keys:", selectedRowKeys);
 
-      // Seçili faturaları doğrudan selectedRowKeys olarak kullan
-      const selectedInvoices = selectedRowKeys;
-
-      const endpoint =
-        activeInvoiceTab === "purchase" ? "/purchase/cancel" : "/sales/cancel";
-
-      const requestBody = selectedInvoices;
-      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
-
-      const response = await fetch(
-        `${process.env.BASE_URL}/invoices${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          credentials: "include",
-          body: JSON.stringify(requestBody),
-        }
+      // Seçili faturaları bul
+      const selectedInvoices = invoices.filter((invoice) =>
+        selectedRowKeys.includes(invoice.id)
       );
 
-      if (!response.ok) {
-        throw new Error("Faturalar iptal edilirken bir hata oluştu");
+      // Faturaları tiplerine göre grupla
+      const purchaseInvoices = selectedInvoices
+        .filter((invoice) => invoice.invoiceType === "Purchase")
+        .map((invoice) => invoice.id);
+
+      const salesInvoices = selectedInvoices
+        .filter((invoice) => invoice.invoiceType === "Sales")
+        .map((invoice) => invoice.id);
+
+      // Her tip için ayrı istek gönder
+      const requests = [];
+
+      if (purchaseInvoices.length > 0) {
+        requests.push(
+          fetch(`${process.env.BASE_URL}/invoices/purchase/cancel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+            body: JSON.stringify(purchaseInvoices),
+          })
+        );
+      }
+
+      if (salesInvoices.length > 0) {
+        requests.push(
+          fetch(`${process.env.BASE_URL}/invoices/sales/cancel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+            body: JSON.stringify(salesInvoices),
+          })
+        );
+      }
+
+      // Tüm istekleri paralel olarak çalıştır
+      const responses = await Promise.all(requests);
+
+      // Hata kontrolü
+      for (const response of responses) {
+        if (!response.ok) {
+          throw new Error("Faturalar iptal edilirken bir hata oluştu");
+        }
       }
 
       toast({
         title: "Başarılı",
         description: "Seçili faturalar başarıyla iptal edildi",
-        variant: "success",
       });
 
-      // Listeyi yenile
-      fetchData();
-      // Seçimleri temizle
+      handleRefresh();
       setSelectedRowKeys([]);
       setBulkActionsOpen(false);
     } catch (error) {
-      console.error("Error canceling invoices:", error);
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -400,265 +295,247 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getFilteredInvoices = useCallback(
-    (documentType: string) => {
-      let filtered = invoices.filter(
-        (invoice) => invoice.documentType === documentType
-      );
-
-      if (documentType === "Invoice") {
-        switch (activeInvoiceTab) {
-          case "purchase":
-            filtered = filtered.filter(
-              (invoice) => invoice.invoiceType === "Purchase"
-            );
-            break;
-          case "sales":
-            filtered = filtered.filter(
-              (invoice) => invoice.invoiceType === "Sales"
-            );
-            break;
-          // 'all' durumunda filtreleme yapma
-        }
-      }
-
-      return filtered;
-    },
-    [invoices, activeInvoiceTab]
-  );
-
-  const renderDataGrid = (documentType: string) => (
-    <DataGrid
-      ref={dataGridRef}
-      dataSource={getFilteredInvoices(documentType)}
-      showBorders={true}
-      showRowLines={true}
-      showColumnLines={true}
-      rowAlternationEnabled={settings.alternateRowColoring}
-      allowColumnReordering={true}
-      allowColumnResizing={true}
-      columnAutoWidth={true}
-      wordWrapEnabled={true}
-      onExporting={onExporting}
-      height="calc(100vh - 300px)"
-      selectedRowKeys={selectedRowKeys}
-      onSelectionChanged={(e) => {
-        const selectedRows = e.selectedRowsData;
-        setSelectedRowKeys(selectedRows);
-        console.log("Selected Rows:", selectedRows);
-      }}
-      onRowDblClick={handleRowDblClick}
-      onRowPrepared={onRowPrepared}
-      loadPanel={{
-        enabled: loading,
-        showIndicator: true,
-        showPane: true,
-        text: "Loading...",
-      }}
-    >
-      <StateStoring
-        enabled={true}
-        type="localStorage"
-        storageKey={`invoiceListGrid_${documentType}`}
-      />
-      <Selection mode="multiple" showCheckBoxesMode="always" />
-      <FilterRow visible={settings.showFilterRow} />
-      <HeaderFilter visible={settings.showHeaderFilter} />
-      <FilterPanel visible={true} />
-      <FilterBuilderPopup position={{ my: "top", at: "top", of: window }} />
-      <GroupPanel visible={settings.showGroupPanel} />
-      <Grouping autoExpandAll={false} />
-      <Scrolling
-        mode={settings.virtualScrolling ? "virtual" : "standard"}
-        rowRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
-        columnRenderingMode={settings.virtualScrolling ? "virtual" : "standard"}
-      />
-      <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
-      <Export enabled={true} allowExportSelectedData={true} />
-      <ColumnChooser enabled={true} mode="select" />
-
-      <Column dataField="invoiceNo" caption="Fatura No" width={120} />
-      <Column dataField="gibInvoiceNo" caption="GİB No" width={120} />
-      <Column
-        dataField="invoiceDate"
-        caption="Fatura Tarihi"
-        dataType="datetime"
-        format="dd.MM.yyyy HH:mm"
-        width={150}
-      />
-      <Column dataField="invoiceType" caption="Fatura Tipi" width={100} />
-      <Column dataField="documentType" caption="Belge Tipi" width={100} />
-      <Column dataField="currentCode" caption="Cari Kodu" width={100} />
-      <Column dataField="description" caption="Açıklama" />
-      <Column
-        dataField="totalAmount"
-        caption="Toplam Tutar"
-        dataType="number"
-        format="#,##0.00"
-        width={120}
-      />
-      <Column
-        dataField="totalVat"
-        caption="KDV"
-        dataType="number"
-        format="#,##0.00"
-        width={100}
-      />
-      <Column
-        dataField="totalDiscount"
-        caption="İndirim"
-        dataType="number"
-        format="#,##0.00"
-        width={100}
-      />
-      <Column
-        dataField="totalNet"
-        caption="Net Tutar"
-        dataType="number"
-        format="#,##0.00"
-        width={120}
-      />
-      <Column
-        dataField="totalPaid"
-        caption="Ödenen"
-        dataType="number"
-        format="#,##0.00"
-        width={120}
-      />
-      <Column
-        dataField="totalDebt"
-        caption="Borç"
-        dataType="number"
-        format="#,##0.00"
-        width={120}
-      />
-      <Column
-        dataField="paymentDate"
-        caption="Ödeme Tarihi"
-        dataType="datetime"
-        format="dd.MM.yyyy HH:mm"
-        width={150}
-      />
-      <Column dataField="paymentDay" caption="Vade (Gün)" width={100} />
-
-      <Summary>
-        <TotalItem
-          column="totalAmount"
-          summaryType="sum"
-          valueFormat="#,##0.00"
-        />
-        <TotalItem column="totalVat" summaryType="sum" valueFormat="#,##0.00" />
-        <TotalItem
-          column="totalDiscount"
-          summaryType="sum"
-          valueFormat="#,##0.00"
-        />
-        <TotalItem column="totalNet" summaryType="sum" valueFormat="#,##0.00" />
-        <TotalItem
-          column="totalPaid"
-          summaryType="sum"
-          valueFormat="#,##0.00"
-        />
-        <TotalItem
-          column="totalDebt"
-          summaryType="sum"
-          valueFormat="#,##0.00"
-        />
-      </Summary>
-
-      <Toolbar>
-        <Item name="groupPanel" />
-        <Item name="exportButton" />
-        <Item name="columnChooserButton" />
-      </Toolbar>
-    </DataGrid>
-  );
-
-  if (error) {
-    return (
-      <Alert variant="destructive" className="m-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
+  }, [selectedRowKeys, invoices, toast, handleRefresh]);
 
   return (
     <div className="p-4 space-y-4">
-      {renderToolbarContent()}
-
-      {bulkActionsOpen && activeInvoiceTab !== "all" && (
-        <Card className="p-4 rounded-md flex items-center">
+      {/* Toolbar */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
           <Button
-            variant="destructive"
-            onClick={handleCancelInvoices}
-            disabled={selectedRowKeys.length === 0}
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
           >
-            Seçili Olanları İptal Et ({selectedRowKeys.length})
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
+            Yenile
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Ayarlar
+          </Button>
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            value={activeInvoiceTab}
+            onChange={(e) => setActiveInvoiceTab(e.target.value)}
+          >
+            <option value="all">Tüm Faturalar</option>
+            <option value="purchase">Alış Faturaları</option>
+            <option value="sales">Satış Faturaları</option>
+          </select>
+        </div>
+
+        <Button
+          variant={bulkActionsOpen ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setBulkActionsOpen(!bulkActionsOpen)}
+          disabled={selectedRowKeys.length === 0}
+        >
+          <CheckSquare className="h-4 w-4 mr-2" />
+          Toplu İşlemler ({selectedRowKeys.length})
+        </Button>
+      </div>
+
+      {/* Bulk Actions */}
+      {bulkActionsOpen && (
+        <Card className="p-4">
+          <div className="flex gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleCancelInvoices}
+              disabled={selectedRowKeys.length === 0}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Seçili Faturaları İptal Et
+            </Button>
+          </div>
         </Card>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="Invoice">Faturalar</TabsTrigger>
-          <TabsTrigger value="Order">Siparişler</TabsTrigger>
-          <TabsTrigger value="Waybill">İrsaliyeler</TabsTrigger>
-          <TabsTrigger value="Other">Diğer</TabsTrigger>
-        </TabsList>
+      {/* DataGrid */}
+      <DataGrid
+        ref={dataGridRef}
+        dataSource={invoices}
+        showBorders={true}
+        showRowLines={true}
+        showColumnLines={true}
+        rowAlternationEnabled={settings.alternateRowColoring}
+        columnAutoWidth={true}
+        wordWrapEnabled={true}
+        height="calc(100vh - 300px)"
+        selectedRowKeys={selectedRowKeys}
+        onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
+        onRowDblClick={handleRowDblClick}
+        onFilterValueChange={(e) => {
+          const filter: any = {};
+          e.columns.forEach((column: any) => {
+            if (column.filterValue) {
+              switch (column.dataField) {
+                case "invoiceType":
+                case "documentType":
+                case "current.currentCode":
+                case "current.currentName":
+                  filter[column.dataField] = column.filterValue;
+                  break;
+                default:
+                  break;
+              }
+            }
+          });
+          fetchInvoices({ filter });
+        }}
+      >
+        <LoadPanel enabled={loading} />
+        <StateStoring
+          enabled={true}
+          type="localStorage"
+          storageKey="invoiceListGrid"
+        />
+        <Selection mode="multiple" showCheckBoxesMode="always" />
+        <FilterRow visible={settings.showFilterRow} />
+        <HeaderFilter visible={settings.showHeaderFilter} />
+        <Scrolling mode="virtual" rowRenderingMode="virtual" />
+        <Paging
+          enabled={true}
+          pageSize={pageSize}
+          defaultCurrentPage={currentPage}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+        <Export enabled={true} allowExportSelectedData={true} />
 
-        <TabsContent value="Invoice" className="mt-4">
-          <Tabs value={activeInvoiceTab} onValueChange={setActiveInvoiceTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">Tüm Faturalar</TabsTrigger>
-              <TabsTrigger value="purchase">Alış Faturaları</TabsTrigger>
-              <TabsTrigger value="sales">Satış Faturaları</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="mt-4">
-              {renderDataGrid("Invoice")}
-            </TabsContent>
-            <TabsContent value="purchase" className="mt-4">
-              {renderDataGrid("Invoice")}
-            </TabsContent>
-            <TabsContent value="sales" className="mt-4">
-              {renderDataGrid("Invoice")}
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
+        <Column
+          dataField="invoiceNo"
+          caption="Fatura No"
+          width={120}
+          allowFiltering={false}
+        />
+        <Column
+          dataField="gibInvoiceNo"
+          caption="GİB No"
+          width={120}
+          allowFiltering={false}
+        />
+        <Column
+          dataField="invoiceDate"
+          caption="Fatura Tarihi"
+          dataType="datetime"
+          format="dd.MM.yyyy HH:mm"
+          width={150}
+          allowFiltering={false}
+        />
+        <Column
+          dataField="invoiceType"
+          caption="Fatura Tipi"
+          allowFiltering={true}
+        >
+          <Lookup dataSource={invoiceTypes} valueExpr="id" displayExpr="name" />
+        </Column>
+        <Column
+          dataField="documentType"
+          caption="Belge Tipi"
+          allowFiltering={true}
+        >
+          <Lookup
+            dataSource={documentTypes}
+            valueExpr="id"
+            displayExpr="name"
+          />
+        </Column>
+        <Column
+          dataField="current.currentCode"
+          caption="Cari Kodu"
+          allowFiltering={true}
+        />
+        <Column
+          dataField="current.currentName"
+          caption="Cari Adı"
+          allowFiltering={true}
+        />
+        <Column
+          dataField="branch.branchCode"
+          caption="Şube Kodu"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="branch.branchName"
+          caption="Şube Adı"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalAmount"
+          caption="Toplam Tutar"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalVat"
+          caption="KDV"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalDiscount"
+          caption="İndirim"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalNet"
+          caption="Net Tutar"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalPaid"
+          caption="Ödenen"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="totalDebt"
+          caption="Borç"
+          dataType="number"
+          format="#,##0.00"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="createdByUser.username"
+          caption="Oluşturan"
+          allowFiltering={false}
+        />
+        <Column
+          dataField="createdAt"
+          caption="Oluşturma Tarihi"
+          dataType="datetime"
+          format="dd.MM.yyyy HH:mm"
+          allowFiltering={false}
+        />
+      </DataGrid>
 
-        <TabsContent value="Order" className="mt-4">
-          {renderDataGrid("Order")}
-        </TabsContent>
-        <TabsContent value="Waybill" className="mt-4">
-          {renderDataGrid("Waybill")}
-        </TabsContent>
-        <TabsContent value="Other" className="mt-4">
-          {renderDataGrid("Other")}
-        </TabsContent>
-      </Tabs>
-
+      {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Table Settings</DialogTitle>
+            <DialogTitle>Tablo Ayarları</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="showGroupPanel">Show Group Panel</Label>
+              <Label>Filtre Satırı</Label>
               <Switch
-                id="showGroupPanel"
-                checked={settings.showGroupPanel}
-                onCheckedChange={(checked) =>
-                  setSettings((prev) => ({ ...prev, showGroupPanel: checked }))
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="showFilterRow">Show Filter Row</Label>
-              <Switch
-                id="showFilterRow"
                 checked={settings.showFilterRow}
                 onCheckedChange={(checked) =>
                   setSettings((prev) => ({ ...prev, showFilterRow: checked }))
@@ -666,9 +543,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="showHeaderFilter">Show Header Filter</Label>
+              <Label>Başlık Filtresi</Label>
               <Switch
-                id="showHeaderFilter"
                 checked={settings.showHeaderFilter}
                 onCheckedChange={(checked) =>
                   setSettings((prev) => ({
@@ -679,11 +555,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="alternateRowColoring">
-                Alternate Row Coloring
-              </Label>
+              <Label>Alternatif Satır Renklendirme</Label>
               <Switch
-                id="alternateRowColoring"
                 checked={settings.alternateRowColoring}
                 onCheckedChange={(checked) =>
                   setSettings((prev) => ({
@@ -692,38 +565,6 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
                   }))
                 }
               />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="virtualScrolling">Virtual Scrolling</Label>
-              <Switch
-                id="virtualScrolling"
-                checked={settings.virtualScrolling}
-                onCheckedChange={(checked) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    virtualScrolling: checked,
-                  }))
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="pageSize">Page Size</Label>
-              <Select
-                value={settings.pageSize}
-                onValueChange={(value) =>
-                  setSettings((prev) => ({ ...prev, pageSize: value }))
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select page size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 rows</SelectItem>
-                  <SelectItem value="25">25 rows</SelectItem>
-                  <SelectItem value="50">50 rows</SelectItem>
-                  <SelectItem value="100">100 rows</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </DialogContent>
