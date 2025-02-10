@@ -17,6 +17,12 @@ interface CurrentTransactionsProps {
   onMenuItemClick: (itemName: string) => void;
 }
 
+interface CustomEventType extends Event {
+  detail: {
+    movement: CurrentMovement;
+  };
+}
+
 const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
   onMenuItemClick,
 }) => {
@@ -33,16 +39,20 @@ const CurrentTransactions: React.FC<CurrentTransactionsProps> = ({
     useState<CurrentMovement | null>(null);
 
   useEffect(() => {
-    const handleOpenEditDialog = (
-      event: CustomEvent<{ movement: CurrentMovement }>
-    ) => {
+    const handleOpenEditDialog = (event: CustomEventType) => {
       setSelectedMovement(event.detail.movement);
       setEditDialogOpen(true);
     };
 
-    window.addEventListener("openEditDialog" as any, handleOpenEditDialog);
+    window.addEventListener(
+      "openEditDialog",
+      handleOpenEditDialog as EventListener
+    );
     return () => {
-      window.removeEventListener("openEditDialog" as any, handleOpenEditDialog);
+      window.removeEventListener(
+        "openEditDialog",
+        handleOpenEditDialog as EventListener
+      );
     };
   }, []);
 

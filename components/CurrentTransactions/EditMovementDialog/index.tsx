@@ -50,10 +50,10 @@ const EditMovementDialog: React.FC<EditMovementDialogProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dueDate: "",
-      description: "",
-      amount: "",
-      isDebt: true,
+      dueDate: movement?.dueDate || new Date().toISOString().split("T")[0],
+      description: movement?.description || "",
+      amount: movement?.debtAmount || movement?.creditAmount || "",
+      isDebt: Boolean(movement?.debtAmount),
     },
   });
 

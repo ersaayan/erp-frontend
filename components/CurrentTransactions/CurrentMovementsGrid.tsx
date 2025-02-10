@@ -53,45 +53,66 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
   const [movementToDelete, setMovementToDelete] =
     useState<CurrentMovement | null>(null);
 
-  const fetchMovements = useCallback(async () => {
-    if (!selectedCurrent) {
-      setMovements([]);
-      return;
+  const deleteCurrentMovement = async (id: string) => {
+    const response = await fetch(
+      `${process.env.BASE_URL}/currentMovements/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Cari hareket silinemedi");
     }
+  };
+
+  const deleteRelatedMovement = async (id: string) => {
+    const response = await fetch(
+      `${process.env.BASE_URL}/currentMovements/${id}/related`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("İlişkili hareket silinemedi");
+    }
+  };
+
+  const fetchMovements = useCallback(async () => {
+    if (!selectedCurrent) return;
 
     try {
       setLoading(true);
+      setError(null);
+
       const response = await fetch(
-        `${process.env.BASE_URL}/currentMovements/byCurrent/${selectedCurrent.id}`,
+        `${process.env.BASE_URL}/currentMovements/current/${selectedCurrent.currentCode}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
-          credentials: "include",
         }
       );
+
       if (!response.ok) {
-        throw new Error("Failed to fetch current movements");
+        throw new Error("Hareketler yüklenirken bir hata oluştu");
       }
 
       const data = await response.json();
       setMovements(data);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An error occurred while fetching data"
-      );
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch current movements. Please try again.",
-      });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Bir hata oluştu");
     } finally {
       setLoading(false);
     }
-  }, [selectedCurrent, toast]);
+  }, [selectedCurrent]);
 
   useEffect(() => {
     fetchMovements();
@@ -185,35 +206,8 @@ const CurrentMovementsGrid: React.FC<CurrentMovementsGridProps> = ({
     try {
       setLoading(true);
 
-      // Cari hareketi sil
-      const currentMovementResponse = await fetch(
-        `${process.env.BASE_URL}/currentMovements/${movementToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-        }
-      );
-
-      if (!currentMovementResponse.ok) {
-        throw new Error("Cari hareket silinemedi");
-      }
-
-      // İlişkili hareketi sil
-      const relatedMovementResponse = await fetch(
-        `${process.env.BASE_URL}/currentMovements/${movementToDelete.id}/related`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-        }
-      );
-
-      if (!relatedMovementResponse.ok) {
-        throw new Error("İlişkili hareket silinemedi");
-      }
+      await deleteCurrentMovement(movementToDelete.id);
+      await deleteRelatedMovement(movementToDelete.id);
 
       toast({
         title: "Başarılı",

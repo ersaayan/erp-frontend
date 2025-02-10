@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Search,
   Zap,
+  Minus,
 } from "lucide-react";
 import { Current } from "./types";
 import {
@@ -77,17 +78,29 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch currents");
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.message ||
+              `Cariler aranırken bir hata oluştu (${response.status})`
+          );
         }
 
         const data = await response.json();
-        setCurrents(Array.isArray(data) ? data : []);
+
+        if (!Array.isArray(data)) {
+          throw new Error("Sunucudan geçersiz veri formatı alındı");
+        }
+
+        setCurrents(data);
       } catch (error) {
         console.error("Error fetching currents:", error);
         toast({
           variant: "destructive",
           title: "Hata",
-          description: "Cariler aranırken bir hata oluştu.",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Cariler aranırken beklenmeyen bir hata oluştu.",
         });
         setCurrents([]);
       } finally {
@@ -142,32 +155,30 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-[#84CC16] hover:bg-[#65A30D]"
-            onClick={handleNewCurrentForm}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Yeni Cari
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Yenile
-          </Button>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           {selectedCurrent && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-[#F59E0B] hover:bg-[#D97706]"
-              onClick={() => setQuickMovementOpen(true)}
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Hızlı Hareket
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openCashCollectionDialog?.()}
+                className="bg-green-500 text-white hover:bg-green-600"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Tahsilat
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openCashPaymentDialog?.()}
+                className="bg-red-500 text-white hover:bg-red-600"
+              >
+                <Minus className="h-4 w-4 mr-2" />
+                Ödeme
+              </Button>
+            </>
           )}
         </div>
       </div>

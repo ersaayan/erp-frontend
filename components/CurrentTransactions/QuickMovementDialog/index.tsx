@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -71,41 +71,41 @@ const QuickMovementDialog: React.FC<QuickMovementDialogProps> = ({
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>("");
 
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const response = await fetch(`${process.env.BASE_URL}/branches`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          credentials: "include",
-        });
+  const fetchBranches = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.BASE_URL}/branches`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        credentials: "include",
+      });
 
-        if (!response.ok) {
-          throw new Error("Şubeler yüklenirken bir hata oluştu");
-        }
-
-        const data = await response.json();
-        setBranches(data);
-
-        // Varsayılan olarak ilk şubeyi seç
-        if (data.length > 0) {
-          setSelectedBranch(data[0].branchCode);
-        }
-      } catch (error) {
-        console.error("Error fetching branches:", error);
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Şubeler yüklenirken bir hata oluştu.",
-        });
+      if (!response.ok) {
+        throw new Error("Şubeler yüklenirken bir hata oluştu");
       }
-    };
 
+      const data = await response.json();
+      setBranches(data);
+
+      // Varsayılan olarak ilk şubeyi seç
+      if (data.length > 0) {
+        setSelectedBranch(data[0].branchCode);
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Şubeler yüklenirken bir hata oluştu.",
+      });
+    }
+  }, [toast]);
+
+  useEffect(() => {
     if (open) {
       fetchBranches();
     }
-  }, [open, toast]);
+  }, [open, fetchBranches]);
 
   const handleSubmit = async () => {
     if (!current || !selectedBranch) return;

@@ -133,6 +133,9 @@ const StockBalanceReport = dynamic(
 const Notifications = dynamic(() => import("@/components/Notifications"), {
   ssr: false,
 });
+const PrintQueue = dynamic(() => import("@/components/PrintQueue"), {
+  ssr: false,
+});
 
 interface MainTabsProps {
   activeTab: string | null;
@@ -195,8 +198,6 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <CurrentTransactions onMenuItemClick={onMenuItemClick} />;
       case activeTab === "Cari Formu":
         return <CurrentForm />;
-      case activeTab === "Hızlı Satış":
-        return <QuickSales />;
       case activeTab === "Depo Listesi":
         return <Warehouses />;
       case activeTab === "Sipariş Paketleme":
@@ -207,8 +208,6 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <InvoiceList onMenuItemClick={onMenuItemClick} />;
       case activeTab === "Fiş Listesi":
         return <FisListesi />;
-      case activeTab === "Satış Faturası":
-        return <SalesInvoice />;
       case activeTab === "Cari İşlemleri":
         return <CurrentTransactions onMenuItemClick={onMenuItemClick} />;
       case activeTab === "Kasa İşlemleri":
@@ -233,6 +232,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <StockBalanceReport />;
       case activeTab === "Bildirimler":
         return <Notifications />;
+      case activeTab === "Yazdırma Kuyruğu":
+        return <PrintQueue />;
       default:
         return null;
     }

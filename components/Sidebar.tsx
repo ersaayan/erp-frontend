@@ -45,6 +45,7 @@ const menuItems = [
       { name: "Hareketler", disabled: false },
       { name: "Kategoriler", disabled: false },
       { name: "Özellikler", disabled: false },
+      { name: "Yazdırma Kuyruğu", disabled: false },
       // { name: "Bundle/Set Stoklar", disabled: false },
       // { name: "Bundle/Set Stok Formu", disabled: false },
       { name: "Hızlı Stok", disabled: false },
