@@ -375,6 +375,7 @@ export default function StockBalanceReport() {
                 <Grouping autoExpandAll={false} />
                 <Export
                   enabled={true}
+                  allowExportSelectedData={true}
                   texts={{
                     exportAll: "Tüm Verileri Excel'e Aktar",
                     exportSelectedRows: "Seçili Satırları Excel'e Aktar",
