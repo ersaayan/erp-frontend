@@ -260,7 +260,15 @@ const PosMovementsGrid: React.FC<PosMovementsGridProps> = ({
         <SearchPanel visible={true} width={240} placeholder="Ara..." />
         <ColumnChooser enabled={true} mode="select" />
         <Scrolling mode="virtual" />
-        <Export enabled={true} allowExportSelectedData={true} />
+        <Export
+          enabled={true}
+          allowExportSelectedData={true}
+          texts={{
+            exportAll: "Tüm Verileri Excel'e Aktar",
+            exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+            exportTo: "Excel'e Aktar",
+          }}
+        />
 
         <Column dataField="pos.posName" caption="POS Adı" />
         <Column dataField="description" caption="Açıklama" />

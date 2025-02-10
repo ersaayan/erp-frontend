@@ -133,7 +133,15 @@ const PosGrid: React.FC<PosGridProps> = ({ onPosSelect }) => {
       <Grouping autoExpandAll={false} />
       <Scrolling mode="virtual" />
       <Paging enabled={true} pageSize={50} />
-      <Export enabled={true} allowExportSelectedData={true} />
+      <Export
+        enabled={true}
+        allowExportSelectedData={true}
+        texts={{
+          exportAll: "Tüm Verileri Excel'e Aktar",
+          exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+          exportTo: "Excel'e Aktar",
+        }}
+      />
       <ColumnChooser enabled={true} mode="select" />
 
       <Column dataField="posName" caption="POS Adı" />

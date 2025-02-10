@@ -120,7 +120,15 @@ const MovementsGrid = ({
         <ColumnFixing enabled={true} />
         <Scrolling mode="virtual" rowRenderingMode="virtual" />
         <Paging enabled={false} />
-        <Export enabled={true} allowExportSelectedData={true} />
+        <Export
+          enabled={true}
+          allowExportSelectedData={true}
+          texts={{
+            exportAll: "Tüm Verileri Excel'e Aktar",
+            exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+            exportTo: "Excel'e Aktar",
+          }}
+        />
 
         <Column
           type="buttons"

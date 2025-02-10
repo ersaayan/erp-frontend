@@ -84,13 +84,16 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
   const handleRowDblClick = useCallback(
     async (e: any) => {
       try {
-        const response = await fetch(`${process.env.BASE_URL}/currents/${e.data.id}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.BASE_URL}/currents/${e.data.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            credentials: "include",
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch current details");
@@ -108,28 +111,33 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
           identityNo: currentData.identityNo,
           taxNumber: currentData.taxNumber,
           taxOffice: currentData.taxOffice,
-          kepAddress: currentData.kepAddress || '',
-          mersisNo: currentData.mersisNo || '',
-          sicilNo: currentData.sicilNo || '',
-          title: currentData.title || '',
-          webSite: currentData.webSite || '',
-          birthOfDate: currentData.birthOfDate ? new Date(currentData.birthOfDate) : null,
+          kepAddress: currentData.kepAddress || "",
+          mersisNo: currentData.mersisNo || "",
+          sicilNo: currentData.sicilNo || "",
+          title: currentData.title || "",
+          webSite: currentData.webSite || "",
+          birthOfDate: currentData.birthOfDate
+            ? new Date(currentData.birthOfDate)
+            : null,
           priceListId: currentData.priceListId,
-          categories: currentData.currentCategoryItem?.map(item => item.categoryId) || [],
-          addresses: currentData.currentAddress?.map(addr => ({
-            id: addr.id,
-            addressName: addr.addressName || '',
-            addressType: addr.addressType || '',
-            address: addr.address || '',
-            province: addr.city || '',
-            district: addr.district || '',
-            countryCode: addr.countryCode || '',
-            postalCode: addr.postalCode || '',
-            phone: addr.phone || '',
-            phone2: addr.phone2 || '',
-            email: addr.email || '',
-            email2: addr.email2 || ''
-          })) || []
+          categories:
+            currentData.currentCategoryItem?.map((item) => item.categoryId) ||
+            [],
+          addresses:
+            currentData.currentAddress?.map((addr) => ({
+              id: addr.id,
+              addressName: addr.addressName || "",
+              addressType: addr.addressType || "",
+              address: addr.address || "",
+              province: addr.city || "",
+              district: addr.district || "",
+              countryCode: addr.countryCode || "",
+              postalCode: addr.postalCode || "",
+              phone: addr.phone || "",
+              phone2: addr.phone2 || "",
+              email: addr.email || "",
+              email2: addr.email2 || "",
+            })) || [],
         };
 
         // LocalStorage'a kaydet
@@ -630,7 +638,16 @@ const CurrentList: React.FC<CurrentListProps> = ({ onMenuItemClick }) => {
           }
         />
         <Paging enabled={true} pageSize={parseInt(settings.pageSize)} />
-        <Export enabled={true} allowExportSelectedData={true} children={true} />
+        <Export
+          enabled={true}
+          allowExportSelectedData={true}
+          children={true}
+          texts={{
+            exportAll: "Tüm Verileri Excel'e Aktar",
+            exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+            exportTo: "Excel'e Aktar",
+          }}
+        />
         <ColumnChooser enabled={true} mode="select" />
         <MasterDetail
           enabled={true}

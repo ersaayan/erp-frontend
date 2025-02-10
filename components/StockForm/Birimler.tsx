@@ -233,7 +233,15 @@ const StockUnits: React.FC<StockUnitsProps> = ({ units, setUnits }) => {
           <Selection mode="single" />
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <Export enabled={true} />
+          <Export
+            enabled={true}
+            allowExportSelectedData={true}
+            texts={{
+              exportAll: "Tüm Verileri Excel'e Aktar",
+              exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+              exportTo: "Excel'e Aktar",
+            }}
+          />
           <ColumnChooser enabled={true} mode="select" />
           <Editing mode="cell" allowUpdating={true} allowDeleting={true} />
 

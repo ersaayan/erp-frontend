@@ -114,7 +114,10 @@ const menuItems = [
   {
     name: "Raporlar",
     icon: <BarChart2 className="h-5 w-5" />,
-    subItems: [{ name: "Stok Bakiye Raporu", disabled: false }],
+    subItems: [
+      { name: "Stok Bakiye Raporu", disabled: false },
+      { name: "Stok Devir Raporu", disabled: false },
+    ],
   },
   {
     name: "Ayarlar",

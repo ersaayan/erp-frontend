@@ -410,7 +410,15 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
         />
-        <Export enabled={true} allowExportSelectedData={true} />
+        <Export
+          enabled={true}
+          allowExportSelectedData={true}
+          texts={{
+            exportAll: "Tüm Verileri Excel'e Aktar",
+            exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+            exportTo: "Excel'e Aktar",
+          }}
+        />
 
         <Column
           dataField="invoiceNo"

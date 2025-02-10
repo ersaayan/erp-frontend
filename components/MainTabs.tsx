@@ -136,6 +136,10 @@ const Notifications = dynamic(() => import("@/components/Notifications"), {
 const PrintQueue = dynamic(() => import("@/components/PrintQueue"), {
   ssr: false,
 });
+const StockTurnoverReport = dynamic(
+  () => import("@/components/StockTurnoverReport"),
+  { ssr: false }
+);
 
 interface MainTabsProps {
   activeTab: string | null;
@@ -234,6 +238,8 @@ export const MainTabs: React.FC<MainTabsProps> = ({
         return <Notifications />;
       case activeTab === "Yazdırma Kuyruğu":
         return <PrintQueue />;
+      case activeTab === "Stok Devir Raporu":
+        return <StockTurnoverReport />;
       default:
         return null;
     }

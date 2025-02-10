@@ -373,7 +373,14 @@ export default function StockBalanceReport() {
                 <HeaderFilter visible={true} />
                 <FilterRow visible={true} />
                 <Grouping autoExpandAll={false} />
-                <Export enabled={true} />
+                <Export
+                  enabled={true}
+                  texts={{
+                    exportAll: "Tüm Verileri Excel'e Aktar",
+                    exportSelectedRows: "Seçili Satırları Excel'e Aktar",
+                    exportTo: "Excel'e Aktar",
+                  }}
+                />
                 <ColumnChooser enabled={true} mode="select" />
                 <Paging defaultPageSize={20} />
                 <Pager
