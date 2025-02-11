@@ -79,9 +79,7 @@ const SalesInvoice: React.FC<SalesInvoiceProps> = ({ tabId }) => {
 
   // Load invoice data from localStorage if available
   useEffect(() => {
-    const savedInvoiceData = localStorage.getItem(
-      `currentInvoiceData-${tabId}`
-    );
+    const savedInvoiceData = localStorage.getItem("currentInvoiceData");
     if (savedInvoiceData) {
       try {
         const invoiceDetail: InvoiceDetailResponse =
@@ -170,12 +168,12 @@ const SalesInvoice: React.FC<SalesInvoiceProps> = ({ tabId }) => {
         }
 
         setIsEditMode(true);
-        localStorage.removeItem(`currentInvoiceData-${tabId}`);
+        localStorage.removeItem("currentInvoiceData");
       } catch (error) {
         console.error("Error parsing invoice data:", error);
       }
     }
-  }, [tabId]);
+  }, []);
 
   // Form verilerini localStorage'a kaydetme
   useEffect(() => {
