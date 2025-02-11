@@ -1,4 +1,6 @@
-const formSchema = z.object({
+import { z } from "zod";
+
+export const formSchema = z.object({
   paymentDate: z.date({
     required_error: "Ödeme tarihi zorunludur",
   }),

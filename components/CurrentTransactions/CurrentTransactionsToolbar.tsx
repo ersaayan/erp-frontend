@@ -10,7 +10,6 @@ import {
   CreditCard,
   RefreshCw,
   Search,
-  Zap,
   Minus,
 } from "lucide-react";
 import { Current } from "./types";
@@ -123,11 +122,6 @@ const CurrentTransactionsToolbar: React.FC<CurrentTransactionsToolbarProps> = ({
   const handleRefresh = () => {
     const event = new Event("refreshCurrentMovements");
     window.dispatchEvent(event);
-  };
-
-  const handleNewCurrentForm = () => {
-    // Navigate to New Current page
-    onMenuItemClick?.("Cari Formu");
   };
 
   const handlePurchaseInvoice = () => {
