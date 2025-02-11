@@ -11,12 +11,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TagInput } from "@/components/ui/tag-input";
-import { usePropertyDialog } from "./usePropertyDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
-const PropertyDialog: React.FC = () => {
-  const { isOpen, closeDialog } = usePropertyDialog();
+interface PropertyDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onRefresh: () => Promise<void>;
+}
+
+const PropertyDialog: React.FC<PropertyDialogProps> = ({
+  isOpen,
+  onClose,
+  onRefresh,
+}) => {
   const [propertyName, setPropertyName] = useState("");
   const [propertyValues, setPropertyValues] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +33,7 @@ const PropertyDialog: React.FC = () => {
   const handleClose = () => {
     setPropertyName("");
     setPropertyValues([]);
-    closeDialog();
+    onClose();
   };
 
   const handleSave = async () => {
@@ -69,10 +77,8 @@ const PropertyDialog: React.FC = () => {
         description: "Feature added successfully",
       });
 
-      // Trigger a refresh of the properties list
-      const refreshEvent = new CustomEvent("refreshProperties");
-      window.dispatchEvent(refreshEvent);
-
+      // Yeni özellikler eklendiğinde listeyi güncelle
+      await onRefresh();
       handleClose();
     } catch (err) {
       toast({

@@ -144,13 +144,6 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
     fetchInvoices();
   }, [fetchInvoices, activeInvoiceTab]);
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      fetchInvoices({ page, limit: pageSize });
-    },
-    [fetchInvoices, pageSize]
-  );
-
   const handlePageSizeChange = useCallback(
     (size: number) => {
       setPageSize(size);
@@ -374,23 +367,25 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
         selectedRowKeys={selectedRowKeys}
         onSelectionChanged={(e) => setSelectedRowKeys(e.selectedRowKeys)}
         onRowDblClick={handleRowDblClick}
-        onFilterValueChange={(e) => {
+        onFilterValueChange={(e: any) => {
           const filter: any = {};
-          e.columns.forEach((column: any) => {
-            if (column.filterValue) {
-              switch (column.dataField) {
-                case "invoiceType":
-                case "documentType":
-                case "current.currentCode":
-                case "current.currentName":
-                  filter[column.dataField] = column.filterValue;
-                  break;
-                default:
-                  break;
+          if (e?.columns) {
+            e.columns.forEach((column: any) => {
+              if (column.filterValue) {
+                switch (column.dataField) {
+                  case "invoiceType":
+                  case "documentType":
+                  case "current.currentCode":
+                  case "current.currentName":
+                    filter[column.dataField] = column.filterValue;
+                    break;
+                  default:
+                    break;
+                }
               }
-            }
-          });
-          fetchInvoices({ filter });
+            });
+            fetchInvoices({ filter });
+          }
         }}
       >
         <LoadPanel enabled={loading} />
@@ -406,8 +401,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ onMenuItemClick }) => {
         <Paging
           enabled={true}
           pageSize={pageSize}
-          defaultCurrentPage={currentPage}
-          onPageChange={handlePageChange}
+          pageIndex={currentPage - 1}
           onPageSizeChange={handlePageSizeChange}
         />
         <Export

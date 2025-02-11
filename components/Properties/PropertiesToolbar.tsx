@@ -4,50 +4,28 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
 import { usePropertyDialog } from "./usePropertyDialog";
-import { useToast } from "@/hooks/use-toast";
 
-const PropertiesToolbar: React.FC = () => {
+interface PropertiesToolbarProps {
+  onRefresh: () => Promise<void>;
+}
+
+const PropertiesToolbar: React.FC<PropertiesToolbarProps> = ({ onRefresh }) => {
   const { openDialog } = usePropertyDialog();
-  const { toast } = useToast();
-
-  const handleRefresh = async () => {
-    try {
-      // Trigger a refresh of the properties list
-      const refreshEvent = new CustomEvent("refreshProperties");
-      window.dispatchEvent(refreshEvent);
-
-      toast({
-        title: "Success",
-        description: "Properties refreshed successfully",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to refresh properties",
-      });
-      throw error;
-    }
-  };
-
-  const handleAddProperty = () => {
-    openDialog();
-  };
 
   return (
-    <div className="flex justify-end items-center gap-2">
-      <Button variant="outline" size="sm" onClick={handleRefresh}>
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Yenile
-      </Button>
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={onRefresh}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Yenile
+        </Button>
+      </div>
       <Button
-        variant="default"
-        size="sm"
         className="bg-[#84CC16] hover:bg-[#65A30D]"
-        onClick={handleAddProperty}
+        onClick={() => openDialog()}
       >
         <Plus className="h-4 w-4 mr-2" />
-        Özellik Ekle
+        Yeni Özellik
       </Button>
     </div>
   );

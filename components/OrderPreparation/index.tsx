@@ -5,44 +5,69 @@ import { Card } from "@/components/ui/card";
 import CustomerSection from "./CustomerSection";
 import OrderForm from "./OrderForm";
 import ProductsSection from "./ProductsSection";
-import { OrderFormData, StockItem } from "./types";
+import { OrderFormData, StockItem, Current } from "./types";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const OrderPreparation: React.FC = () => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [orderData, setOrderData] = useState<OrderFormData>({
+    current: null,
     orderNo: "",
     orderDate: new Date(),
     deliveryDate: new Date(),
     branchCode: "",
     warehouseId: "",
     description: "",
-    current: null,
   });
 
   const [products, setProducts] = useState<StockItem[]>([]);
 
   // Load customer data from localStorage if available (from Current Operations)
   useEffect(() => {
-    const savedCurrentData = localStorage.getItem("currentOrderPreparation");
+    const savedCurrentData = localStorage.getItem("currentOrderData");
     if (savedCurrentData) {
-      const currentData = JSON.parse(savedCurrentData);
-      setOrderData((prev) => ({
-        ...prev,
-        current: {
+      try {
+        const currentData = JSON.parse(savedCurrentData);
+        const current: Current = {
           id: currentData.id,
           currentCode: currentData.currentCode,
           currentName: currentData.currentName,
-          priceList: currentData.priceList,
-        },
-      }));
-      localStorage.removeItem("currentOrderPreparation");
+          currentType: currentData.currentType || "",
+          institution: currentData.institution ? "true" : "false",
+          identityNo: currentData.identityNo || "",
+          taxNumber: currentData.taxNumber || "",
+          taxOffice: currentData.taxOffice || "",
+          title: currentData.title || "",
+          name: currentData.name,
+          surname: currentData.surname,
+          webSite: currentData.webSite,
+          birthOfDate: currentData.birthOfDate,
+          kepAddress: currentData.kepAddress,
+          mersisNo: currentData.mersisNo,
+          sicilNo: currentData.sicilNo,
+          priceListId: currentData.priceListId || "",
+          createdAt: currentData.createdAt || "",
+          updatedAt: currentData.updatedAt || "",
+          createdBy: currentData.createdBy,
+          updatedBy: currentData.updatedBy,
+          priceList: currentData.priceList || {
+            priceListName: "",
+          },
+          currentAddress: currentData.currentAddress,
+          currentFinancial: currentData.currentFinancial,
+          currentRisk: currentData.currentRisk,
+          currentOfficials: currentData.currentOfficials,
+        };
+        setOrderData((prev) => ({ ...prev, current }));
+        localStorage.removeItem("currentOrderData");
+      } catch (error) {
+        console.error("Error parsing current data:", error);
+      }
     }
   }, []);
-
-  const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
     try {

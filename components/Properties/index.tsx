@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import PropertiesToolbar from "./PropertiesToolbar";
-import PropertiesGrid from "./PropertiesGrid";
+import PropertiesGrid, { GroupedAttribute } from "./PropertiesGrid";
 import PropertyDialog from "./PropertyDialog";
 import { usePropertyDialog } from "./usePropertyDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -13,13 +13,6 @@ interface Attribute {
   id: string;
   attributeName: string;
   value: string;
-}
-
-interface GroupedAttribute {
-  name: string;
-  values: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 const Properties: React.FC = () => {
@@ -42,23 +35,24 @@ const Properties: React.FC = () => {
       if (!response.ok) {
         throw new Error("Failed to fetch attributes");
       }
-      const data: Attribute[] = await response.json();
+      const data = await response.json();
 
-      // Group attributes by name
-      const groupedData = data.reduce((acc, curr) => {
-        const existing = acc.find((item) => item.name === curr.attributeName);
-        if (existing) {
-          existing.values.push(curr.value);
-        } else {
-          acc.push({
-            name: curr.attributeName,
-            values: [curr.value],
-          });
-        }
-        return acc;
-      }, [] as GroupedAttribute[]);
+      // API yanıtını doğru formata dönüştür
+      const formattedData: GroupedAttribute[] = data.map((item: any) => ({
+        id: item.id,
+        attributeCode: item.attributeCode,
+        attributeName: item.attributeName,
+        attributeType: item.attributeType || "",
+        attributeValue: item.value,
+        groupCode: item.groupCode || "",
+        groupName: item.groupName || "",
+        createdAt: item.createdAt || "",
+        updatedAt: item.updatedAt || "",
+        createdBy: item.createdBy || "",
+        updatedBy: item.updatedBy || "",
+      }));
 
-      setAttributes(groupedData);
+      setAttributes(formattedData);
       setError(null);
     } catch (err) {
       setError(

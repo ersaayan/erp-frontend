@@ -92,6 +92,7 @@ const CashCollectionForm: React.FC<CashCollectionFormProps> = ({
         branchCode: values.branchCode,
         description: values.description || "",
       };
+
       await handleFormSubmit(formData);
       toast({
         title: "Success",
